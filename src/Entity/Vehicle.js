@@ -1,4 +1,5 @@
 import vec2 from 'gl-matrix/src/gl-matrix/vec2';
+import { config } from '../config';
 
 // The "Vehicle" class
 function Vehicle(location, mass, ctx) {
@@ -26,7 +27,7 @@ function Vehicle(location, mass, ctx) {
 
     this.hue = Math.random() * 360;
 
-    this.applyBehaviors = function(vehicles, path) {
+    this.applyBehaviors = function (vehicles, path) {
         var f = this.follow(path);
         var s = this.separate(vehicles);
 
@@ -36,7 +37,7 @@ function Vehicle(location, mass, ctx) {
 
         // Calculate the average force
         var forces = vec2.add(vec2.create(), f, s);
-        vec2.scale(forces, forces, 1/this.mass);    // divide force by its mass
+        vec2.scale(forces, forces, 1 / this.mass);    // divide force by its mass
 
         // Apply force
         this.applyForce(forces);
@@ -45,14 +46,14 @@ function Vehicle(location, mass, ctx) {
     /**
      * Apply force on the vehicle
      */
-    this.applyForce = function(force) {
+    this.applyForce = function (force) {
         vec2.add(this.acceleration, this.acceleration, force);
     };
 
     /**
      * Run Vehicle loop
      */
-    this.run = function() {
+    this.run = function () {
         this.update();
         //this.borders();
         this.render();
@@ -61,7 +62,7 @@ function Vehicle(location, mass, ctx) {
     /**
      * Implement Craig Reynolds' path following algorithm
      */
-    this.follow = function(path) {
+    this.follow = function (path) {
 
         // Predict future location
         predict.set(this.velocity);
@@ -82,7 +83,7 @@ function Vehicle(location, mass, ctx) {
 
             // Get current and next point of the path
             a.set(path.points[i]);
-            b.set(path.points[(i+1) % path.points.length]);
+            b.set(path.points[(i + 1) % path.points.length]);
 
             // Calculate a normal point
             var normalPoint = this.getNormalPoint(predictLoc, a, b);
@@ -96,8 +97,8 @@ function Vehicle(location, mass, ctx) {
                 normalPoint[1] < Math.min(a[1], b[1]) || normalPoint[1] > Math.max(a[1], b[1])) {
 
                 normalPoint.set(b);
-                a.set(path.points[(i+1) % path.points.length]);
-                b.set(path.points[(i+2) % path.points.length]);
+                a.set(path.points[(i + 1) % path.points.length]);
+                b.set(path.points[(i + 2) % path.points.length]);
 
                 dir.set(b);
                 vec2.sub(dir, dir, a);
@@ -126,7 +127,7 @@ function Vehicle(location, mass, ctx) {
     };
 
     // Find normal point of the future location on current path segment
-    this.getNormalPoint = function(p, a, b) {
+    this.getNormalPoint = function (p, a, b) {
         ap.set(p);
         vec2.sub(ap, ap, a);
         ab.set(b);
@@ -141,7 +142,7 @@ function Vehicle(location, mass, ctx) {
     };
 
     // Update vehicle's location
-    this.update = function() {
+    this.update = function () {
         // New location = current location + (velocity + acceleration) limited by maximum speed
         // Reset acceleration to avoid permanent increasing
         vec2.add(this.velocity, this.velocity, this.acceleration);
@@ -169,7 +170,7 @@ function Vehicle(location, mass, ctx) {
         return steer;
     };
 
-    this.separate = function(boids) {
+    this.separate = function (boids) {
         var desiredSepartion = this.radius * 2 + 2,
             count = 0,
             steer;
@@ -185,7 +186,7 @@ function Vehicle(location, mass, ctx) {
             // Get distance between current and other vehicle
             d = vec2.dist(d, other.location);
 
-            if ((d > 0 ) && (d < desiredSepartion)) {
+            if ((d > 0) && (d < desiredSepartion)) {
 
                 // Point away from the vehicle
                 vec2.sub(diffVec, this.location, other.location);
@@ -211,15 +212,17 @@ function Vehicle(location, mass, ctx) {
     //
     //};
 
-    this.render = function() {
-        ctx.shadowBlur = this.radius;
-        ctx.shadowColor = 'hsl(' + this.hue + ',100%,60%)';
+    this.render = function () {
+        if (config.renderShadow) {
+            ctx.shadowBlur = this.radius;
+            ctx.shadowColor = 'hsl(' + this.hue + ',100%,60%)';
+        }
         // ctx.fillStyle = 'hsl(' + this.hue + ',100%,60%';
         ctx.strokeStyle = 'hsl(' + this.hue + ',100%,80%';
-        ctx.lineWidth = Math.max(3, this.radius/8);
+        ctx.lineWidth = Math.max(3, this.radius / 8);
 
         ctx.beginPath();
-        ctx.arc(this.location[0], this.location[1], this.radius, 0, 2*Math.PI);
+        ctx.arc(this.location[0], this.location[1], this.radius, 0, 2 * Math.PI);
         ctx.closePath();
         // ctx.fill();
         ctx.stroke();

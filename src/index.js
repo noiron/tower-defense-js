@@ -1,7 +1,8 @@
 // var vec2 = require('gl-matrix/src/gl-matrix/vec2');
 import vec2 from 'gl-matrix/src/gl-matrix/vec2';
-import Path from './Path.js';
-import Vehicle from './Vehicle.js';
+import Path from './Entity/Path.js';
+import Vehicle from './Entity/Vehicle.js';
+import SimpleTower from './Entity/SimpleTower.js';
 
 // Make sure v is smaller than high
 vec2.limit = function (out, v, high) {
@@ -25,8 +26,10 @@ vec2.limit = function (out, v, high) {
 var canvas = document.getElementById("drawing"),
     ctx = canvas.getContext("2d");
 
-var WIDTH = window.innerWidth;
-var HEIGHT = window.innerHeight;
+// var WIDTH = window.innerWidth;
+// var HEIGHT = window.innerHeight;
+var WIDTH = 800;
+var HEIGHT = 600;
 
 canvas.width = WIDTH;
 canvas.height = HEIGHT;
@@ -51,26 +54,30 @@ function setPoints() {
     path.addPoint(offset * 6, offset);
     path.addPoint(WIDTH - offset, offset);
     path.addPoint(WIDTH - offset, offset * 5);
-    path.addPoint(WIDTH - offset - 500, offset * 5);
-    path.addPoint(WIDTH - offset - 500, offset * 7);
+    path.addPoint(WIDTH - offset - 200, offset * 5);
+    path.addPoint(WIDTH - offset - 200, offset * 7);
     path.addPoint(WIDTH - offset, offset * 7);
     path.addPoint(WIDTH - offset, HEIGHT - offset);
     path.addPoint(offset, HEIGHT - offset);
-    path.addPoint(offset, offset);
+    // path.addPoint(offset, offset);
 }
 
 // Add points to the path
 setPoints();
 
 var vehicles = [];
+var bullets = [];
 
-for (var i = 0; i < 100; i++) {
+for (var i = 0; i < 50; i++) {
     var mass = Math.random() * 4 + 1;
 
     var vehicle = new Vehicle(vec2.fromValues(WIDTH * Math.random(), HEIGHT * Math.random()), mass, ctx);
 
     vehicles.push(vehicle);
 }
+
+var simpleTower = new SimpleTower(ctx, 280, 280, bullets);
+    // simpleTower.shoot();
 
 // Specify what to draw
 function draw() {
@@ -88,7 +95,12 @@ function draw() {
         vehicles[i].run();
     }
 
-    requestAnimationFrame(draw);
+
+    // Draw our tower
+    simpleTower.draw(ctx);
+
+
+    requestAnimationFrame(draw, 10000000000);
 }
 
 draw();
@@ -108,3 +120,13 @@ function onResize() {
 }
 
 // window.addEventListener('resize', onResize, false);
+
+
+var node = document.createElement("p");                 
+var textnode = document.createTextNode(`Vehicle Count: ${vehicles.length}`);         
+node.appendChild(textnode);                              
+document.body.appendChild(node);     
+
+// var vehicleCountNode = document.createElement("p").append(document.createTextNode("")); 
+
+// document.body.appendChild(vehicleCountNode);
