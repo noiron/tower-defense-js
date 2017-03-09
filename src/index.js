@@ -77,7 +77,7 @@ for (var i = 0; i < 50; i++) {
 }
 
 var simpleTower = new SimpleTower(ctx, 280, 280, bullets);
-    // simpleTower.shoot();
+// simpleTower.shoot();
 
 // Specify what to draw
 function draw() {
@@ -99,11 +99,62 @@ function draw() {
     // Draw our tower
     simpleTower.draw(ctx);
 
+    detectImpact();
 
-    requestAnimationFrame(draw, 10000000000);
+    for (let i = 0; i < bullets.length; i++) {
+        if (bullets[i].start[0] < 0 || bullets[i].start[1] < 0 ||
+            bullets[i].start[0] > WIDTH || bullets[i].start[1] > HEIGHT) {
+            bullets.remove(i);
+            i--;
+        } else {
+            bullets[i].draw(ctx);
+        }
+    }
+
+    if (document.getElementById('vehicleCount')) {
+        document.getElementById('vehicleCount').innerHTML = `Vehicle Count: ${vehicles.length}, Bullets: ${bullets.length}`;
+    }
+
+    requestAnimationFrame(draw, 100);
 }
 
 draw();
+
+// 循环检测bullet是否和vehicle碰撞
+function detectImpact() {
+    for (var i = 0; i < bullets.length; i++) {
+        let impact = false;
+        for (var j = 0; j < vehicles.length; j++) {
+            // const distance = calcuteDistance(bullets[i].end[0], bullets[i].end[1],
+            //     vehicles[j].location[0], vehicles[j].location[1]);
+
+            // 求圆心至bullet的垂足
+            let normal = vec2.create();
+            let bVec = bullets[i].directionVec;
+            let aDotB = 1;
+
+            let aVec = vec2.fromValues(
+                vehicles[j].location[0] - bullets[i].start[0],
+                vehicles[j].location[1] - bullets[i].start[1]
+            );
+            vec2.multiply(aDotB, aVec, bVec);
+            vec2.scale(bVec, bVec, aDotB);
+            vec2.add(normal, bullets[i].start, bVec);
+
+            const distance = calcuteDistance(normal[0], normal[1],
+                vehicles[j].location[0], vehicles[j].location[1]);
+
+            if (distance < vehicles[j].radius) {
+                impact = true;
+                vehicles.remove(j); j--;
+                break;
+            }
+        }
+        if (impact) {
+            bullets.remove(i); i--;
+        }
+    }
+}
 
 // Handle things appropriately on resize
 function onResize() {
@@ -122,11 +173,26 @@ function onResize() {
 // window.addEventListener('resize', onResize, false);
 
 
-var node = document.createElement("p");                 
-var textnode = document.createTextNode(`Vehicle Count: ${vehicles.length}`);         
-node.appendChild(textnode);                              
-document.body.appendChild(node);     
+var node = document.createElement("p");
+node.setAttribute("id", "vehicleCount");
+var textnode = document.createTextNode(`Vehicle Count: ${vehicles.length}`);
+node.appendChild(textnode);
+document.body.appendChild(node);
 
 // var vehicleCountNode = document.createElement("p").append(document.createTextNode("")); 
 
 // document.body.appendChild(vehicleCountNode);
+
+
+// Array Remove - By John Resig (MIT Licensed)
+Array.prototype.remove = function (from, to) {
+    var rest = this.slice((to || from) + 1 || this.length);
+    this.length = from < 0 ? this.length + from : from;
+    return this.push.apply(this, rest);
+};
+
+
+function calcuteDistance(x1, y1, x2, y2) {
+    const result = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+    return result;
+}

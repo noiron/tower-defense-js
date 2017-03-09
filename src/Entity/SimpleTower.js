@@ -7,7 +7,7 @@ export default class SimpleTower {
     constructor(ctx, x, y, bullets) {
         this.x = x;
         this.y = y;
-        this.radius = 20;
+        this.radius = 15;
         this.hue = 200;
         this.bullets = bullets;
         this.lastShootTime = new Date();
@@ -45,23 +45,19 @@ export default class SimpleTower {
         ctx.stroke();
         ctx.fill();
 
-        // console.log(bulletStartPosVec);
         ctx.beginPath();
         ctx.moveTo(this.x, this.y);
         ctx.lineTo(this.x + this.bulletStartPosVec[0], this.y + this.bulletStartPosVec[1]);
         ctx.stroke();
         ctx.closePath();
 
-        if (new Date - this.lastShootTime >= 500) {
+        if (new Date - this.lastShootTime >= 400) {
             this.shoot(ctx);
             this.lastShootTime = new Date();
         }
 
         this.direction = (this.direction + 0.2) % 360;
 
-        for (let i = 0; i < this.bullets.length; i++) {
-            this.bullets[i].draw(ctx);
-        }
         ctx.restore();
     };
 
