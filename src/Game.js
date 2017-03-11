@@ -22,10 +22,14 @@ export default class Game {
 
         this.vehicles = [];
         this.bullets = [];
+        this.towers = [];
 
         this.vehicleCreatedCount = 0;    // 目前已经创建的vehicle的总数
         this.lastCreatedVehicleTime = new Date();
         this.simpleTower = new SimpleTower(ctx, 280, 280, this.bullets);
+        this.towers.push(this.simpleTower);
+
+        this.mode = '';
 
         // Add points to the path
         this.setPoints();
@@ -63,7 +67,7 @@ export default class Game {
         this.path.display();
 
         // 总数小于50，且间隔1000ms以上
-        if (this.vehicleCreatedCount < 50 && new Date() - this.lastCreatedVehicleTime > 1000) {
+        if (this.vehicleCreatedCount < 100 && new Date() - this.lastCreatedVehicleTime > 200) {
             var mass = Math.random() * 3 + 3;
 
             var vehicle = new Vehicle(vec2.fromValues(60, 60), mass, ctx);
@@ -84,7 +88,9 @@ export default class Game {
         }
 
         // Draw our tower
-        this.simpleTower.draw(ctx);
+        for (let i = 0, len = this.towers.length; i < len; i++) {
+            this.towers[i].draw(ctx);
+        }
 
         // 检查bullet是否与vehicle相撞
         this.detectImpact();
@@ -102,6 +108,10 @@ export default class Game {
 
         if (document.getElementById('vehicleCount')) {
             document.getElementById('vehicleCount').innerHTML = `Vehicle Count: ${this.vehicles.length}, Bullets: ${this.bullets.length}`;
+        }
+
+        if (this.mode === 'ADD_TOWER') {
+            this.drawGhostTower(ctx, this.cursorX, this.cursorY);
         }
 
         requestAnimationFrame(() => this.draw(), 100);
@@ -139,5 +149,15 @@ export default class Game {
                 this.bullets.remove(i); i--;
             }
         }
+    }
+
+    createNewTower(x, y) {
+        const tower = new SimpleTower(ctx, x, y, this.bullets);
+        this.towers.push(tower);
+    }
+
+    drawGhostTower(ctx, x, y, towerType) {
+        const tower = new SimpleTower(ctx, x, y, this.bullets);
+        tower.draw(ctx);
     }
 }

@@ -14,7 +14,6 @@ export default class SimpleTower {
         this.direction = 180;     // 用度数表示的tower指向
         this.bulletStartPosVec = vec2.fromValues(0, 0);
         this.directionVec = vec2.create();
-
     }
 
     draw(ctx) {

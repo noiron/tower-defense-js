@@ -1,0 +1,8 @@
+#add-tower {
+    width: 50px;
+    height: 50px;
+    background-color: red;
+    display: inline-block;
+    position: absolute;
+    margin-left: 20px;
+}
