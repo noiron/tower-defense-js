@@ -27,7 +27,7 @@ var Path = function(ctx) {
         for (var i= 0; i < this.points.length; i++) {
             ctx.lineTo(this.points[i][0], this.points[i][1]);
         }
-        ctx.closePath();
+        // ctx.closePath();
         ctx.stroke();
 
 
@@ -38,7 +38,7 @@ var Path = function(ctx) {
         for (i= 0; i < this.points.length; i++) {
             ctx.lineTo(this.points[i][0], this.points[i][1]);
         }
-        ctx.closePath();
+        // ctx.closePath();
         ctx.stroke();
 
     }

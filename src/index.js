@@ -1,4 +1,3 @@
-// var vec2 = require('gl-matrix/src/gl-matrix/vec2');
 import vec2 from 'gl-matrix/src/gl-matrix/vec2';
 import Path from './Entity/Path.js';
 import Vehicle from './Entity/Vehicle.js';
@@ -58,26 +57,19 @@ function setPoints() {
     path.addPoint(WIDTH - offset - 200, offset * 7);
     path.addPoint(WIDTH - offset, offset * 7);
     path.addPoint(WIDTH - offset, HEIGHT - offset);
-    path.addPoint(offset, HEIGHT - offset);
-    // path.addPoint(offset, offset);
+    path.addPoint(0, HEIGHT - offset);
+    path.addPoint(-100, HEIGHT - offset);
 }
 
 // Add points to the path
 setPoints();
 
-var vehicles = [];
-var bullets = [];
+let vehicles = [];
+let bullets = [];
 
-for (var i = 0; i < 50; i++) {
-    var mass = Math.random() * 4 + 1;
-
-    var vehicle = new Vehicle(vec2.fromValues(WIDTH * Math.random(), HEIGHT * Math.random()), mass, ctx);
-
-    vehicles.push(vehicle);
-}
-
-var simpleTower = new SimpleTower(ctx, 280, 280, bullets);
-// simpleTower.shoot();
+let vehicleCreatedCount = 0;    // 目前已经创建的vehicle的总数
+let lastCreatedVehicleTime = new Date();
+let simpleTower = new SimpleTower(ctx, 280, 280, bullets);
 
 // Specify what to draw
 function draw() {
@@ -90,17 +82,34 @@ function draw() {
     // Render the path
     path.display();
 
+    // 总数小于50，且间隔1000ms以上
+    if (vehicleCreatedCount < 50 && new Date() - lastCreatedVehicleTime > 1000) {
+        var mass = Math.random() * 3 + 3;
+
+        var vehicle = new Vehicle(vec2.fromValues(60, 60), mass, ctx);
+
+        vehicles.push(vehicle);
+        vehicleCreatedCount++;
+        lastCreatedVehicleTime = new Date();
+    }
+
     for (var i = 0; i < vehicles.length; i++) {
         vehicles[i].applyBehaviors(vehicles, path);
         vehicles[i].run();
-    }
 
+        if (vehicles[i].dead === true) {
+            vehicles.remove(i);
+            i--;
+        }
+    }
 
     // Draw our tower
     simpleTower.draw(ctx);
 
+    // 检查bullet是否与vehicle相撞
     detectImpact();
 
+    // 移除出界的bullet，画出剩下的bullet
     for (let i = 0; i < bullets.length; i++) {
         if (bullets[i].start[0] < 0 || bullets[i].start[1] < 0 ||
             bullets[i].start[0] > WIDTH || bullets[i].start[1] > HEIGHT) {
@@ -144,7 +153,7 @@ function detectImpact() {
             const distance = calcuteDistance(normal[0], normal[1],
                 vehicles[j].location[0], vehicles[j].location[1]);
 
-            if (distance < vehicles[j].radius) {
+            if (distance <= vehicles[j].radius) {
                 impact = true;
                 vehicles.remove(j); j--;
                 break;
@@ -178,11 +187,6 @@ node.setAttribute("id", "vehicleCount");
 var textnode = document.createTextNode(`Vehicle Count: ${vehicles.length}`);
 node.appendChild(textnode);
 document.body.appendChild(node);
-
-// var vehicleCountNode = document.createElement("p").append(document.createTextNode("")); 
-
-// document.body.appendChild(vehicleCountNode);
-
 
 // Array Remove - By John Resig (MIT Licensed)
 Array.prototype.remove = function (from, to) {

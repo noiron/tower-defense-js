@@ -27,6 +27,8 @@ function Vehicle(location, mass, ctx) {
 
     this.hue = Math.random() * 360;
 
+    this.dead = false;
+
     this.applyBehaviors = function (vehicles, path) {
         var f = this.follow(path);
         var s = this.separate(vehicles);
@@ -55,7 +57,7 @@ function Vehicle(location, mass, ctx) {
      */
     this.run = function () {
         this.update();
-        //this.borders();
+        this.borders();
         this.render();
     };
 
@@ -208,9 +210,11 @@ function Vehicle(location, mass, ctx) {
         return steer;
     };
 
-    //this.borders = function() {
-    //
-    //};
+    this.borders = function() {
+        if (this.location[0] < - 50) {
+            this.dead = true;
+        }
+    };
 
     this.render = function () {
         if (config.renderShadow) {
