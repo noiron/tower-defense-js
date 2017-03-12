@@ -1,8 +1,25 @@
+body {
+    background: #aaa;
+}
+
 #add-tower {
     width: 50px;
     height: 50px;
     background-color: red;
     display: inline-block;
     position: absolute;
+    margin-left: 20px;
+    top: 20px;
+}
+
+canvas {
+    margin-top: 10px;
+    /*margin-left: 20px;*/
+}
+
+#game-info {
+    display: inline-block;
+    position: absolute;
+    top: 100px;
     margin-left: 20px;
 }

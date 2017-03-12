@@ -1,13 +1,13 @@
 import Bullet from './Bullet.js';
 import vec2 from 'gl-matrix/src/gl-matrix/vec2';
-import { toRadians } from '../utils';
+import { toRadians } from '../utils/utils';
 import { config } from '../config';
 
 export default class SimpleTower {
     constructor(ctx, x, y, bullets) {
         this.x = x;
         this.y = y;
-        this.radius = 15;
+        this.radius = 12;
         this.hue = 200;
         this.bullets = bullets;
         this.lastShootTime = new Date();

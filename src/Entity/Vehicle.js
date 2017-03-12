@@ -21,7 +21,7 @@ function Vehicle(location, mass, ctx) {
     this.mass = mass;
     this.maxspeed = 5 / this.mass;
     this.maxforce = 1 / 5;
-    this.radius = this.mass * 2;
+    this.radius = this.mass * 1.5;
     this.acceleration = vec2.create();
     this.velocity = vec2.fromValues(this.maxspeed, 0);
 
