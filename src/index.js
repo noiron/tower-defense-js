@@ -1,5 +1,5 @@
 import Game from './Game';
-import { gridWidth, gridHeight } from './constant'; 
+import { gridWidth, gridHeight, gridNumX, gridNumY } from './constant';
 
 const game = new Game();
 
@@ -8,15 +8,12 @@ addTowerBlock.addEventListener('click', () => {
     game.mode = game.mode === 'ADD_TOWER' ? '' : 'ADD_TOWER';
 });
 
-
-
 const canvas = document.getElementById("drawing");
 
 // 在canvas上进行右键操作
 canvas.oncontextmenu = function (e) {
     game.mode = '';
     e.preventDefault();
-    console.log(game.score);
 };
 
 
@@ -33,18 +30,54 @@ document.onmousemove = function (e) {
 }
 
 document.onclick = function (e) {
-    if (game.mode === 'ADD_TOWER') {
-        var rect = canvas.getBoundingClientRect();
+    const rect = canvas.getBoundingClientRect();
 
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
-        game.createNewTower(
-            Math.floor(x / gridWidth) * gridWidth + gridWidth / 2,
-            Math.floor(y / gridWidth) * gridWidth + gridWidth / 2
-        );
+    const coordX = Math.floor(x / gridWidth);
+    const coordY = Math.floor(y / gridHeight);
+
+    /* 只在地图范围内进行操作 */
+    if (0 <= coordX && coordX < gridNumX && 0 <= coordY && coordY < gridNumY) {
+
+        if (game.map[coordX][coordY] === 'T') {
+            // 点击的格子内为塔
+            game.towers.map((tower, index) => {
+                if (tower.coordX === coordX && tower.coordY === coordY) {
+                    console.log(`You select ${index}th tower`);
+
+                    // 已经选中的塔再次点击则取消
+                    if (game.towerSelectIndex === index) {
+                        game.towerSelectIndex = -1;
+                        game.towerSelect = false;
+                    } else {
+                        game.towerSelectIndex = index;
+                        game.towerSelect = true;
+                    }
+                }
+            })
+        } else {
+            game.towerSelect = false;
+            game.towerSelectIndex = -1;
+        }
+
+        if (game.mode === 'ADD_TOWER') {
+            game.createNewTower(coordX, coordY);
+        }
     }
+    // console.log(coordX, coordY);
 }
+
+const sellButton = document.getElementById('sell-tower');
+sellButton.onclick = () => {
+    if (game.towerSelect === true) {
+        console.log('you sell a tower');
+        game.sellTower();
+    } else {
+        // console.log('do nothing');
+    }
+};
 
 
 const vehicleCountNode = document.createElement("p");

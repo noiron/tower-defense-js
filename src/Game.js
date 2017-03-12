@@ -3,7 +3,7 @@ import Path from './Entity/Path.js';
 import Vehicle from './Entity/Vehicle.js';
 import SimpleTower from './Entity/SimpleTower.js';
 import { calcuteDistance } from './utils/utils';
-import { gridWidth, gridHeight } from './constant';
+import { gridWidth, gridHeight, gridNumX, gridNumY, towerCost } from './constant';
 
 const WIDTH = 800;
 const HEIGHT = 640;
@@ -25,11 +25,18 @@ export default class Game {
         this.bullets = [];
         this.towers = [];
 
+        this.money = 2000;
+
         this.coordX = 0;
         this.coordY = 0;
 
         this.vehicleCreatedCount = 0;    // 目前已经创建的vehicle的总数
         this.lastCreatedVehicleTime = new Date();
+
+        this.map = [];
+        for (let i = 0; i < gridNumX; i++) {
+            this.map[i] = [];
+        }
 
         const newTowerCoord = [8, 8];
         this.simpleTower = new SimpleTower(
@@ -38,14 +45,10 @@ export default class Game {
             gridHeight / 2 + newTowerCoord[1] * gridHeight,
             this.bullets
         );
+        this.map[newTowerCoord[0]][newTowerCoord[1]] = 'T';
         this.towers.push(this.simpleTower);
 
         this.mode = '';
-
-        this.map = [];
-        for (let i = 0; i < 10; i++) {
-            this.map[i] = [];
-        }
 
         this.pathCoord = [
             [0, 0], [18, 0],
@@ -54,6 +57,10 @@ export default class Game {
         ]
 
         this.score = 0;
+
+        // 当前是否选中塔
+        this.towerSelect = false;
+        this.towerSelectIndex = -1;
 
         // Add points to the path
         this.setPoints();
@@ -151,14 +158,20 @@ export default class Game {
             document.getElementById('vehicleCount').innerHTML = `Vehicle Count: ${this.vehicles.length}, Bullets: ${this.bullets.length}`;
         }
 
-        if (this.mode === 'ADD_TOWER') {
-            // this.drawGhostTower(ctx, this.cursorX, this.cursorY);
-            console.log(this.coordX, this.coordY);
-            this.drawGhostTower(ctx, this.coordX * gridWidth + gridWidth / 2, this.coordY * gridHeight + gridHeight / 2);
+        if (this.mode === 'ADD_TOWER') {    // 添加塔模式
+            if (0 <= this.coordX && this.coordX < gridNumX && 0 <= this.coordY && this.coordY < gridNumY) {
+                if (this.map[this.coordX][this.coordY] !== 'T') {  // 该位置没有塔
+                    this.drawGhostTower(
+                        ctx,
+                        this.coordX * gridWidth + gridWidth / 2,
+                        this.coordY * gridHeight + gridHeight / 2);
+                }
+            }
         }
 
         // 画面右侧信息的显示
         document.getElementById('score').innerHTML = `Score: ${this.score}`;
+        document.getElementById('money').innerHTML = `Money: ${this.money}`;
 
         requestAnimationFrame(() => this.draw(), 100);
     }
@@ -198,9 +211,44 @@ export default class Game {
         }
     }
 
-    createNewTower(x, y) {
+    /**
+     * 创建一个新的tower
+     * @param {Number} coordX x轴的坐标  
+     * @param {Number} coordY y轴的坐标
+     */
+    createNewTower(coordX, coordY) {
+        console.log(coordX, coordY);
+
+        // 检查当前位置是否已有物体
+        if (this.map[coordX][coordY] === 'T') {
+            console.log('You can not place tower here!');
+            return -1;
+        }
+
+        const cost = towerCost.simpleTower;
+        // 检查是否有足够金钱
+        if (this.money - cost < 0) {
+            console.log('You do not have enough money.');
+            return -1;
+        }
+
+        const x = coordX * gridWidth + gridWidth / 2;
+        const y = coordY * gridWidth + gridWidth / 2;
         const tower = new SimpleTower(ctx, x, y, this.bullets);
+        this.map[coordX][coordY] = 'T';
+        this.money -= cost;
         this.towers.push(tower);
+    }
+
+    sellTower(index = this.towerSelectIndex) {
+        const coordX = this.towers[index].coordX;
+        const coordY = this.towers[index].coordY;
+        this.towers.remove(index);
+        this.map[coordX][coordY] = '';
+
+        this.money += 400;
+        this.towerSelect = false;
+        this.towerSelectIndex = -1;
     }
 
     drawGhostTower(ctx, x, y, towerType) {
@@ -233,6 +281,14 @@ export default class Game {
             ctx.lineTo(size * gridWidth, i * gridWidth);
         }
         ctx.stroke();
+
+        // 当前选中的格子突出显示
+        if (this.towerSelect) {
+            const coordX = this.towers[this.towerSelectIndex].coordX;
+            const coordY = this.towers[this.towerSelectIndex].coordY;
+
+            fillGrid(coordX, coordY, 'red')
+        }
 
         // 给一个格子上色
         function fillGrid(x, y, color) {

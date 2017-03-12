@@ -2,14 +2,20 @@ import Bullet from './Bullet.js';
 import vec2 from 'gl-matrix/src/gl-matrix/vec2';
 import { toRadians } from '../utils/utils';
 import { config } from '../config';
+import { towerCost } from './../constant';
+import { gridWidth, gridHeight } from './../constant';
+
 
 export default class SimpleTower {
     constructor(ctx, x, y, bullets) {
         this.x = x;
         this.y = y;
+        this.coordX = Math.floor((x - gridWidth / 2) / gridWidth);
+        this.coordY = Math.floor((y - gridHeight / 2) / gridHeight);
         this.radius = 12;
         this.hue = 200;
         this.bullets = bullets;
+        this.cost = towerCost.simpleTower;
         this.lastShootTime = new Date();
         this.direction = 180;     // 用度数表示的tower指向
         this.bulletStartPosVec = vec2.fromValues(0, 0);

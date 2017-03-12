@@ -23,3 +23,16 @@ canvas {
     top: 100px;
     margin-left: 20px;
 }
+
+#action {
+    width: 200px;
+    height: 30px;
+    margin: auto;
+}
+
+#sell-tower {
+    width: 50px;
+    height: 20px;
+    border: 1px solid #000;
+    text-align: center;
+}
