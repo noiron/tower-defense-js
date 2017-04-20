@@ -2,6 +2,7 @@ import vec2 from 'gl-matrix/src/gl-matrix/vec2';
 import Path from './Entity/Path.js';
 import Vehicle from './Entity/Vehicle.js';
 import SimpleTower from './Entity/SimpleTower.js';
+import BulletTower from './Entity/BulletTower.js';
 import { calcuteDistance } from './utils/utils';
 import { gridWidth, gridHeight, gridNumX, gridNumY, towerCost } from './constant';
 
@@ -25,6 +26,8 @@ export default class Game {
         this.bullets = [];
         this.towers = [];
 
+        this.ctx = ctx;
+
         this.money = 2000;
 
         this.coordX = 0;
@@ -39,11 +42,13 @@ export default class Game {
         }
 
         const newTowerCoord = [8, 8];
-        this.simpleTower = new SimpleTower(
+        // this.simpleTower = new SimpleTower(
+        this.simpleTower = new BulletTower(
             ctx,
             gridWidth / 2 + newTowerCoord[0] * gridWidth,
             gridHeight / 2 + newTowerCoord[1] * gridHeight,
-            this.bullets
+            this.bullets,
+            this
         );
         this.map[newTowerCoord[0]][newTowerCoord[1]] = 'T';
         this.towers.push(this.simpleTower);
@@ -140,6 +145,30 @@ export default class Game {
             this.towers[i].draw(ctx);
         }
 
+        // 确定 bullet tower 的目标
+        for (let i = 0, len = this.towers.length; i < len; i++) {
+            const index = this.towers[i].findTarget(this.vehicles);
+            if (this.towers[i].targetIndex != -1) {
+                // console.log(`tower ${i} have target ${this.towers[i].targetIndex}`);
+
+                const target = this.vehicles[this.towers[i].targetIndex];
+                // 调整其朝向
+                this.towers[i].directionVec = vec2.fromValues(
+                    target.location[0] - this.towers[i].x,
+                    target.location[1] - this.towers[i].y
+                );
+
+                const theta = Math.atan2(target.location[1] - this.towers[i].y, 
+                target.location[0] - this.towers[i].x);
+                this.towers[i].direction =  theta < 0 ? theta * 180 / Math.PI : (theta+1) * 180 / Math.PI ;
+
+        
+
+
+            }
+        }
+
+
         // 检查bullet是否与vehicle相撞
         this.detectImpact();
 
@@ -174,6 +203,10 @@ export default class Game {
         document.getElementById('money').innerHTML = `Money: ${this.money}`;
 
         requestAnimationFrame(() => this.draw(), 100);
+
+        // setTimeout( () => {
+        //     requestAnimationFrame(() => this.draw());
+        // }, 1000 / 100);
     }
 
     // 循环检测bullet是否和vehicle碰撞
@@ -198,7 +231,7 @@ export default class Game {
                 const distance = calcuteDistance(normal[0], normal[1],
                     this.vehicles[j].location[0], this.vehicles[j].location[1]);
 
-                if (distance <= this.vehicles[j].radius) {
+                if (distance <= this.vehicles[j].radius + 5) {
                     impact = true;
                     this.vehicles.remove(j); j--;
                     this.score += 100;
@@ -216,8 +249,7 @@ export default class Game {
      * @param {Number} coordX x轴的坐标  
      * @param {Number} coordY y轴的坐标
      */
-    createNewTower(coordX, coordY) {
-        console.log(coordX, coordY);
+    createNewTower(coordX, coordY, towerType) {
 
         // 检查当前位置是否已有物体
         if (this.map[coordX][coordY] === 'T') {
@@ -234,7 +266,19 @@ export default class Game {
 
         const x = coordX * gridWidth + gridWidth / 2;
         const y = coordY * gridWidth + gridWidth / 2;
-        const tower = new SimpleTower(ctx, x, y, this.bullets);
+
+        let tower = null;
+        switch(towerType) {
+            case 'SIMPLE':
+                new SimpleTower(ctx, x, y, this.bullets, this);
+            case 'BULLET':
+                tower = new BulletTower(ctx, x, y, this.bullets, this);
+            default:
+                tower = new BulletTower(ctx, x, y, this.bullets, this);
+        }
+
+        // const tower = new SimpleTower(ctx, x, y, this.bullets);
+        // const tower = new BulletTower(ctx, x, y, this.bullets);
         this.map[coordX][coordY] = 'T';
         this.money -= cost;
         this.towers.push(tower);

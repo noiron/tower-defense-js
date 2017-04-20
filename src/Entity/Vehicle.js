@@ -3,7 +3,7 @@ import { config } from '../config';
 
 // The "Vehicle" class
 function Vehicle(location, mass, ctx) {
-    'use strict';
+    // console.log(location);
 
     var predict = vec2.create();
     var dir = vec2.create();

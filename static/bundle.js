@@ -74,7 +74,6 @@
 	canvas.oncontextmenu = function (e) {
 	    game.mode = '';
 	    e.preventDefault();
-	    console.log(game.score);
 	};
 
 	document.onmousemove = function (e) {
@@ -90,13 +89,52 @@
 	};
 
 	document.onclick = function (e) {
-	    if (game.mode === 'ADD_TOWER') {
-	        var rect = canvas.getBoundingClientRect();
+	    var rect = canvas.getBoundingClientRect();
 
-	        var x = e.clientX - rect.left;
-	        var y = e.clientY - rect.top;
+	    var x = e.clientX - rect.left;
+	    var y = e.clientY - rect.top;
 
-	        game.createNewTower(Math.floor(x / _constant.gridWidth) * _constant.gridWidth + _constant.gridWidth / 2, Math.floor(y / _constant.gridWidth) * _constant.gridWidth + _constant.gridWidth / 2);
+	    var coordX = Math.floor(x / _constant.gridWidth);
+	    var coordY = Math.floor(y / _constant.gridHeight);
+
+	    /* 只在地图范围内进行操作 */
+	    if (0 <= coordX && coordX < _constant.gridNumX && 0 <= coordY && coordY < _constant.gridNumY) {
+
+	        if (game.map[coordX][coordY] === 'T') {
+	            // 点击的格子内为塔
+	            game.towers.map(function (tower, index) {
+	                if (tower.coordX === coordX && tower.coordY === coordY) {
+	                    console.log('You select ' + index + 'th tower');
+
+	                    // 已经选中的塔再次点击则取消
+	                    if (game.towerSelectIndex === index) {
+	                        game.towerSelectIndex = -1;
+	                        game.towerSelect = false;
+	                    } else {
+	                        game.towerSelectIndex = index;
+	                        game.towerSelect = true;
+	                    }
+	                }
+	            });
+	        } else {
+	            game.towerSelect = false;
+	            game.towerSelectIndex = -1;
+	        }
+
+	        if (game.mode === 'ADD_TOWER') {
+	            game.createNewTower(coordX, coordY);
+	        }
+	    }
+	    // console.log(coordX, coordY);
+	};
+
+	var sellButton = document.getElementById('sell-tower');
+	sellButton.onclick = function () {
+	    if (game.towerSelect === true) {
+	        console.log('you sell a tower');
+	        game.sellTower();
+	    } else {
+	        // console.log('do nothing');
 	    }
 	};
 
@@ -164,26 +202,33 @@
 	        this.bullets = [];
 	        this.towers = [];
 
+	        this.money = 2000;
+
 	        this.coordX = 0;
 	        this.coordY = 0;
 
 	        this.vehicleCreatedCount = 0; // 目前已经创建的vehicle的总数
 	        this.lastCreatedVehicleTime = new Date();
 
+	        this.map = [];
+	        for (var i = 0; i < _constant.gridNumX; i++) {
+	            this.map[i] = [];
+	        }
+
 	        var newTowerCoord = [8, 8];
 	        this.simpleTower = new _SimpleTower2.default(ctx, _constant.gridWidth / 2 + newTowerCoord[0] * _constant.gridWidth, _constant.gridHeight / 2 + newTowerCoord[1] * _constant.gridHeight, this.bullets);
+	        this.map[newTowerCoord[0]][newTowerCoord[1]] = 'T';
 	        this.towers.push(this.simpleTower);
 
 	        this.mode = '';
 
-	        this.map = [];
-	        for (var i = 0; i < 10; i++) {
-	            this.map[i] = [];
-	        }
-
 	        this.pathCoord = [[0, 0], [18, 0], [18, 4], [10, 4], [10, 10], [16, 10], [16, 14], [-6, 14]];
 
 	        this.score = 0;
+
+	        // 当前是否选中塔
+	        this.towerSelect = false;
+	        this.towerSelectIndex = -1;
 
 	        // Add points to the path
 	        this.setPoints();
@@ -283,17 +328,26 @@
 	            }
 
 	            if (this.mode === 'ADD_TOWER') {
-	                // this.drawGhostTower(ctx, this.cursorX, this.cursorY);
-	                console.log(this.coordX, this.coordY);
-	                this.drawGhostTower(ctx, this.coordX * _constant.gridWidth + _constant.gridWidth / 2, this.coordY * _constant.gridHeight + _constant.gridHeight / 2);
+	                // 添加塔模式
+	                if (0 <= this.coordX && this.coordX < _constant.gridNumX && 0 <= this.coordY && this.coordY < _constant.gridNumY) {
+	                    if (this.map[this.coordX][this.coordY] !== 'T') {
+	                        // 该位置没有塔
+	                        this.drawGhostTower(ctx, this.coordX * _constant.gridWidth + _constant.gridWidth / 2, this.coordY * _constant.gridHeight + _constant.gridHeight / 2);
+	                    }
+	                }
 	            }
 
 	            // 画面右侧信息的显示
 	            document.getElementById('score').innerHTML = 'Score: ' + this.score;
+	            document.getElementById('money').innerHTML = 'Money: ' + this.money;
 
 	            requestAnimationFrame(function () {
 	                return _this.draw();
 	            }, 100);
+
+	            // setTimeout( () => {
+	            //     requestAnimationFrame(() => this.draw());
+	            // }, 1000 / 100);
 	        }
 
 	        // 循环检测bullet是否和vehicle碰撞
@@ -329,11 +383,51 @@
 	                }
 	            }
 	        }
+
+	        /**
+	         * 创建一个新的tower
+	         * @param {Number} coordX x轴的坐标  
+	         * @param {Number} coordY y轴的坐标
+	         */
+
 	    }, {
 	        key: 'createNewTower',
-	        value: function createNewTower(x, y) {
+	        value: function createNewTower(coordX, coordY) {
+	            console.log(coordX, coordY);
+
+	            // 检查当前位置是否已有物体
+	            if (this.map[coordX][coordY] === 'T') {
+	                console.log('You can not place tower here!');
+	                return -1;
+	            }
+
+	            var cost = _constant.towerCost.simpleTower;
+	            // 检查是否有足够金钱
+	            if (this.money - cost < 0) {
+	                console.log('You do not have enough money.');
+	                return -1;
+	            }
+
+	            var x = coordX * _constant.gridWidth + _constant.gridWidth / 2;
+	            var y = coordY * _constant.gridWidth + _constant.gridWidth / 2;
 	            var tower = new _SimpleTower2.default(ctx, x, y, this.bullets);
+	            this.map[coordX][coordY] = 'T';
+	            this.money -= cost;
 	            this.towers.push(tower);
+	        }
+	    }, {
+	        key: 'sellTower',
+	        value: function sellTower() {
+	            var index = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.towerSelectIndex;
+
+	            var coordX = this.towers[index].coordX;
+	            var coordY = this.towers[index].coordY;
+	            this.towers.remove(index);
+	            this.map[coordX][coordY] = '';
+
+	            this.money += 400;
+	            this.towerSelect = false;
+	            this.towerSelectIndex = -1;
 	        }
 	    }, {
 	        key: 'drawGhostTower',
@@ -368,6 +462,14 @@
 	                ctx.lineTo(size * _constant.gridWidth, i * _constant.gridWidth);
 	            }
 	            ctx.stroke();
+
+	            // 当前选中的格子突出显示
+	            if (this.towerSelect) {
+	                var coordX = this.towers[this.towerSelectIndex].coordX;
+	                var coordY = this.towers[this.towerSelectIndex].coordY;
+
+	                fillGrid(coordX, coordY, 'red');
+	            }
 
 	            // 给一个格子上色
 	            function fillGrid(x, y, color) {
@@ -1408,6 +1510,8 @@
 
 	var _config = __webpack_require__(7);
 
+	var _constant = __webpack_require__(11);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -1418,9 +1522,12 @@
 
 	        this.x = x;
 	        this.y = y;
+	        this.coordX = Math.floor((x - _constant.gridWidth / 2) / _constant.gridWidth);
+	        this.coordY = Math.floor((y - _constant.gridHeight / 2) / _constant.gridHeight);
 	        this.radius = 12;
 	        this.hue = 200;
 	        this.bullets = bullets;
+	        this.cost = _constant.towerCost.simpleTower;
 	        this.lastShootTime = new Date();
 	        this.direction = 180; // 用度数表示的tower指向
 	        this.bulletStartPosVec = _vec2.default.fromValues(0, 0);
@@ -1614,13 +1721,19 @@
 /* 11 */
 /***/ function(module, exports) {
 
-	"use strict";
+	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-	  value: true
+	    value: true
 	});
 	var gridWidth = exports.gridWidth = 40;
 	var gridHeight = exports.gridHeight = gridWidth;
+	var gridNumX = exports.gridNumX = 20; // x轴方向上的格子数目
+	var gridNumY = exports.gridNumY = 16; // y轴方向上的格子数目
+
+	var towerCost = exports.towerCost = {
+	    'simpleTower': 200
+	};
 
 /***/ }
 /******/ ]);
