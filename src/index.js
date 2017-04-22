@@ -81,7 +81,7 @@ sellButton.onclick = () => {
 
 
 const vehicleCountNode = document.createElement("p");
-vehicleCountNode.setAttribute("id", "vehicleCount");
-const textnode = document.createTextNode(`Vehicle Count: ${game.vehicles.length}`);
+vehicleCountNode.setAttribute("id", "enemyCount");
+const textnode = document.createTextNode(`Enemy Count: ${game.enemies.length}`);
 vehicleCountNode.appendChild(textnode);
 document.body.appendChild(vehicleCountNode);

@@ -1,3 +1,4 @@
 node_modules
 # bundle.js
 settings.json
+npm-debug.log

@@ -9,7 +9,7 @@ import { gridWidth, gridHeight } from './../constant';
 export default class BulletTower {
     constructor(ctx, x, y, bullets, gameObject) {
         console.log('*******************');
-        // console.log(game);
+
         this.x = x;
         this.y = y;
         this.coordX = Math.floor((x - gridWidth / 2) / gridWidth);
@@ -20,8 +20,6 @@ export default class BulletTower {
         this.cost = towerCost.simpleTower;
 
         this.ctx = gameObject.ctx;
-
-        console.log(this.game);
 
         this.range = 5 * gridWidth;
         this.targetIndex = -1;
@@ -42,8 +40,6 @@ export default class BulletTower {
             Math.sin(toRadians(this.direction))
         );
         vec2.normalize(this.directionVec, this.directionVec);
-
-        console.log(ctx === this.ctx);
 
         // bullet 出射位置
 
@@ -92,17 +88,15 @@ export default class BulletTower {
     }
 
     findTarget(enemies) {
-        // enemy 的位置用一个二维数组loation表示
-
         // let targetIndex = -1;
 
         for (let i = 0, len = enemies.length; i < len; i++) {
             const enemy = enemies[i];
-            if (Math.abs(enemy.location[0] - this.x) + Math.abs(enemy.location[1] - this.y) > this.range) {
+            if (Math.abs(enemy.x - this.x) + Math.abs(enemy.y - this.y) > this.range) {
                 continue;
             } else {
                 // console.log(calcuteDistance(...enemy.location, this.x, this.y));
-                if (calcuteDistance(...enemy.location, this.x, this.y) < this.range) {
+                if (calcuteDistance(enemy.x, enemy.y, this.x, this.y) < this.range) {
                     this.targetIndex = i;
                     break;
                 }
@@ -116,8 +110,8 @@ export default class BulletTower {
 
         if (this.targetIndex !== -1) {
             const target = enemies[this.targetIndex];
-            this.directionVec = vec2.fromValues(target.location[0] - this.x, target.location[1] - this.y);
-            this.direction = - Math.atan(target.location[1] - this.y, target.location[0] - this.x) * (180 / Math.PI);
+            this.directionVec = vec2.fromValues(target.x - this.x, target.y - this.y);
+            this.direction = - Math.atan(target.y - this.y, target.x - this.x) * (180 / Math.PI);
         }
     }
 

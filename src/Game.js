@@ -1,8 +1,8 @@
 import vec2 from 'gl-matrix/src/gl-matrix/vec2';
 import Path from './Entity/Path.js';
-import Vehicle from './Entity/Vehicle.js';
 import SimpleTower from './Entity/SimpleTower.js';
 import BulletTower from './Entity/BulletTower.js';
+import Enemy from './Entity/Enemy';
 import { calcuteDistance } from './utils/utils';
 import { gridWidth, gridHeight, gridNumX, gridNumY, towerCost } from './constant';
 
@@ -22,9 +22,9 @@ export default class Game {
         // Set path radius
         this.path.radius = gridWidth / 2;
 
-        this.vehicles = [];
         this.bullets = [];
         this.towers = [];
+        this.enemies = [];
 
         this.ctx = ctx;
 
@@ -33,8 +33,8 @@ export default class Game {
         this.coordX = 0;
         this.coordY = 0;
 
-        this.vehicleCreatedCount = 0;    // 目前已经创建的vehicle的总数
-        this.lastCreatedVehicleTime = new Date();
+        this.enemyCreatedCount = 0;    // 目前已经创建的enemy的总数
+        this.lastCreatedEnemyTime = new Date();
 
         this.map = [];
         for (let i = 0; i < gridNumX; i++) {
@@ -75,29 +75,10 @@ export default class Game {
 
     // Define path points
     setPoints() {
-        // Set path offset
-        // const offset = HEIGHT / 10;
-
-        // this.path.addPoint(offset, offset);
-        // this.path.addPoint(offset * 3, offset);
-        // this.path.addPoint(offset * 3, offset * 6);
-        // this.path.addPoint(offset * 6, offset * 6);
-        // this.path.addPoint(offset * 6, offset);
-        // this.path.addPoint(WIDTH - offset, offset);
-        // this.path.addPoint(WIDTH - offset, offset * 5);
-        // this.path.addPoint(WIDTH - offset - 200, offset * 5);
-        // this.path.addPoint(WIDTH - offset - 200, offset * 7);
-        // this.path.addPoint(WIDTH - offset, offset * 7);
-        // this.path.addPoint(WIDTH - offset, HEIGHT - offset);
-        // this.path.addPoint(0, HEIGHT - offset);
-        // this.path.addPoint(-100, HEIGHT - offset);
-
         for (let i = 0, len = this.pathCoord.length; i < len; i++) {
             const coord = this.pathCoord[i];
             this.path.addPoint(40 * coord[0] + 20, 40 * coord[1] + 20);
         }
-        // this.path.addPoint(-100, HEIGHT - offset);
-
     }
 
     // Specify what to draw
@@ -114,28 +95,24 @@ export default class Game {
         this.path.display();
 
         // 总数小于50，且间隔1000ms以上
-        if (this.vehicleCreatedCount < 100 && new Date() - this.lastCreatedVehicleTime > 1000) {
-            var mass = Math.random() * 3 + 3;
+        if (this.enemyCreatedCount < 20 && new Date() - this.lastCreatedEnemyTime > 1000) {
+            var enemy = new Enemy({
+                x: gridWidth / 2 + (Math.random() - 0.5) * 5,
+                y: gridHeight / 2 + (Math.random() - 0.5) * 5,
+                ctx: ctx
+            });
 
-            var vehicle = new Vehicle(
-                vec2.fromValues(
-                    gridWidth / 2 + (Math.random() - 0.5) * 5,
-                    gridHeight / 2 + (Math.random() - 0.5) * 5
-                ),
-                mass, ctx
-            );
-
-            this.vehicles.push(vehicle);
-            this.vehicleCreatedCount++;
-            this.lastCreatedVehicleTime = new Date();
+            this.enemies.push(enemy);
+            this.enemyCreatedCount++;
+            this.lastCreatedEnemyTime = new Date();
         }
 
-        for (var i = 0; i < this.vehicles.length; i++) {
-            this.vehicles[i].applyBehaviors(this.vehicles, this.path);
-            this.vehicles[i].run();
+        for (var i = 0; i < this.enemies.length; i++) {
+            this.enemies[i].step({path: this.pathCoord});
+            this.enemies[i].draw();
 
-            if (this.vehicles[i].dead === true) {
-                this.vehicles.remove(i);
+            if (this.enemies[i].dead === true) {
+                this.enemies.remove(i);
                 i--;
             }
         }
@@ -147,24 +124,20 @@ export default class Game {
 
         // 确定 bullet tower 的目标
         for (let i = 0, len = this.towers.length; i < len; i++) {
-            const index = this.towers[i].findTarget(this.vehicles);
+            const index = this.towers[i].findTarget(this.enemies);
             if (this.towers[i].targetIndex != -1) {
                 // console.log(`tower ${i} have target ${this.towers[i].targetIndex}`);
 
-                const target = this.vehicles[this.towers[i].targetIndex];
+                const target = this.enemies[this.towers[i].targetIndex];
                 // 调整其朝向
                 this.towers[i].directionVec = vec2.fromValues(
-                    target.location[0] - this.towers[i].x,
-                    target.location[1] - this.towers[i].y
+                    target.x - this.towers[i].x,
+                    target.y - this.towers[i].y
                 );
 
-                const theta = Math.atan2(target.location[1] - this.towers[i].y, 
-                target.location[0] - this.towers[i].x);
-                this.towers[i].direction =  theta < 0 ? theta * 180 / Math.PI : (theta+1) * 180 / Math.PI ;
-
-        
-
-
+                const theta = Math.atan2(target.y - this.towers[i].y,
+                    target.x - this.towers[i].x);
+                this.towers[i].direction = theta < 0 ? theta * 180 / Math.PI : (theta + 1) * 180 / Math.PI;
             }
         }
 
@@ -183,8 +156,8 @@ export default class Game {
             }
         }
 
-        if (document.getElementById('vehicleCount')) {
-            document.getElementById('vehicleCount').innerHTML = `Vehicle Count: ${this.vehicles.length}, Bullets: ${this.bullets.length}`;
+        if (document.getElementById('enemyCount')) {
+            document.getElementById('enemyCount').innerHTML = `Enemy Count: ${this.enemies.length}, Bullets: ${this.bullets.length}`;
         }
 
         if (this.mode === 'ADD_TOWER') {    // 添加塔模式
@@ -213,7 +186,7 @@ export default class Game {
     detectImpact() {
         for (var i = 0; i < this.bullets.length; i++) {
             let impact = false;
-            for (var j = 0; j < this.vehicles.length; j++) {
+            for (var j = 0; j < this.enemies.length; j++) {
 
                 // 求圆心至bullet的垂足
                 let normal = vec2.create();
@@ -221,19 +194,19 @@ export default class Game {
                 let aDotB = 1;
 
                 let aVec = vec2.fromValues(
-                    this.vehicles[j].location[0] - this.bullets[i].start[0],
-                    this.vehicles[j].location[1] - this.bullets[i].start[1]
+                    this.enemies[j].x - this.bullets[i].start[0],
+                    this.enemies[j].y - this.bullets[i].start[1]
                 );
                 vec2.multiply(aDotB, aVec, bVec);
                 vec2.scale(bVec, bVec, aDotB);
                 vec2.add(normal, this.bullets[i].start, bVec);
 
                 const distance = calcuteDistance(normal[0], normal[1],
-                    this.vehicles[j].location[0], this.vehicles[j].location[1]);
+                    this.enemies[j].x, this.enemies[j].y);
 
-                if (distance <= this.vehicles[j].radius + 5) {
+                if (distance <= this.enemies[j].radius + 5) {
                     impact = true;
-                    this.vehicles.remove(j); j--;
+                    this.enemies.remove(j); j--;
                     this.score += 100;
                     break;
                 }
@@ -268,7 +241,7 @@ export default class Game {
         const y = coordY * gridWidth + gridWidth / 2;
 
         let tower = null;
-        switch(towerType) {
+        switch (towerType) {
             case 'SIMPLE':
                 new SimpleTower(ctx, x, y, this.bullets, this);
             case 'BULLET':
