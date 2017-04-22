@@ -40,13 +40,6 @@ export default class Game {
             [16, 14], [-6, 14]
         ];
 
-        // Create an instance of Path object
-        this.path = new Path({
-            ctx,
-            radius: gridWidth / 2,
-            pathCoord: this.pathCoord
-        });
-
         const newTowerCoord = [8, 8];
         this.map = new Map({
             ctx,
@@ -77,8 +70,6 @@ export default class Game {
         this.towerSelect = false;
         this.towerSelectIndex = -1;
 
-        // Add points to the path
-        this.path.setPoints();
         this.draw();
     }
 
@@ -89,7 +80,6 @@ export default class Game {
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
         this.map.draw();
-        this.path.draw();
 
         // 总数小于50，且间隔1000ms以上
         if (this.enemyCreatedCount < 20 && new Date() - this.lastCreatedEnemyTime > 1000) {

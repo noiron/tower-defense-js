@@ -1,4 +1,5 @@
-import { gridWidth, gridHeight, gridNumX, gridNumY, towerCost } from './../constant';
+import { gridWidth, gridHeight, gridNumX, gridNumY } from './../constant';
+import Path from './Path';
 
 export default class Map {
     constructor(opt) {
@@ -17,6 +18,16 @@ export default class Map {
         if (this.newTowerCoord) {
             this.coord[this.newTowerCoord[0], this.newTowerCoord[1]] = 'T';
         }
+
+        // Create an instance of Path object
+        this.path = new Path({
+            ctx: this.ctx,
+            radius: gridWidth / 2,
+            pathCoord: this.pathCoord
+        });
+
+        // Add points to the path
+        this.path.setPoints();
     }
 
     draw() {
@@ -65,6 +76,7 @@ export default class Map {
 
         ctx.restore();
 
+        this.path.draw();
     }
 }
 
