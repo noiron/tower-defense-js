@@ -76,13 +76,16 @@ export default class SimpleTower {
 
     // 发射子弹
     shoot(ctx) {
-        this.bullets.push(new Bullet({
-            id: globalId.genId(),
-            ctx,
-            x: this.x + this.bulletStartPosVec[0],
-            y: this.y + this.bulletStartPosVec[1]
+        if (this.target) {
+            this.bullets.push(new Bullet({
+                id: globalId.genId(),
+                target: this.target,
+                ctx,
+                x: this.x + this.bulletStartPosVec[0],
+                y: this.y + this.bulletStartPosVec[1]
+            }
+            ));
         }
-        ));
     }
 
     findTarget(enemies) {

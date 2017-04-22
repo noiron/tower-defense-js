@@ -16,7 +16,7 @@ export default class Enemy {
         this.vx = 0;
         this.vy = 0;
         
-        this.speed = 4;
+        this.speed = 10;
 
         // 当前位置到目标点的距离
         this.dx = 0;

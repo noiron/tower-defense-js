@@ -69,9 +69,6 @@ export default class Game {
     draw() {
         this.map.draw();
 
-        // console.log(globalId.value);
-        console.log(this.towers[0].target);
-
         // 总数小于50，且间隔1000ms以上
         if (this.enemyCreatedCount < 20 && new Date() - this.lastCreatedEnemyTime > 1000) {
             var enemy = new Enemy({
