@@ -1,7 +1,8 @@
-import { gridSize } from './../constant';
+import { gridSize } from './../utils/constant';
 
 export default class Enemy {
     constructor(opt) {
+        this.id = opt.id;
         this.ctx = opt.ctx;
 
         // 用像素表示的当前位置
@@ -27,8 +28,6 @@ export default class Enemy {
 
         // 标记是否需要转弯
         this.angleFlag = 1;
-
-
     }
 
 

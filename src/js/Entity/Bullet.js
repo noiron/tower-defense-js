@@ -2,7 +2,8 @@ import vec2 from 'gl-matrix/src/gl-matrix/vec2';
 import { toRadians } from './../utils/utils';
 
 export default class Bullet {
-    constructor(ctx, x, y, directionVec) {
+    constructor({ctx, x, y, directionVec}) {
+        this.type = 'line';
         this.x = x;
         this.y = y;
         this.directionVec = directionVec;

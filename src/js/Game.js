@@ -5,7 +5,8 @@ import BulletTower from './Entity/BulletTower.js';
 import Enemy from './Entity/Enemy';
 import Map from './Entity/Map';
 import { calcuteDistance } from './utils/utils';
-import { gridWidth, gridHeight, gridNumX, gridNumY, towerCost } from './constant';
+import { gridWidth, gridHeight, gridNumX, gridNumY, towerCost } from './utils/constant';
+import globalId from './id';
 
 const WIDTH = 800;
 const HEIGHT = 640;
@@ -17,6 +18,8 @@ export default class Game {
         // Init
         canvas.width = WIDTH;
         canvas.height = HEIGHT;
+
+        this.genId = 0;
 
         this.bullets = [];
         this.towers = [];
@@ -35,7 +38,7 @@ export default class Game {
             [16, 14], [-6, 14]
         ];
 
-        const newTowerCoord = [8, 8];
+        const newTowerCoord = [4, 2];
         this.map = new Map({
             ctx,
             WIDTH,
@@ -44,15 +47,13 @@ export default class Game {
             pathCoord: this.pathCoord,
         })
 
-        // this.simpleTower = new SimpleTower(
-        this.simpleTower = new BulletTower(
+        const tower = new SimpleTower({
             ctx,
-            gridWidth / 2 + newTowerCoord[0] * gridWidth,
-            gridHeight / 2 + newTowerCoord[1] * gridHeight,
-            this.bullets,
-            this
-        );
-        this.towers.push(this.simpleTower);
+            x: gridWidth / 2 + newTowerCoord[0] * gridWidth,
+            y: gridHeight / 2 + newTowerCoord[1] * gridHeight,
+            bullets: this.bullets,
+        });
+        this.towers.push(tower);
 
         this.mode = '';
         this.score = 0;
@@ -66,15 +67,15 @@ export default class Game {
 
     // Specify what to draw
     draw() {
-        // Clear canvas
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
         this.map.draw();
+
+        // console.log(globalId.value);
+        console.log(this.towers[0].target);
 
         // 总数小于50，且间隔1000ms以上
         if (this.enemyCreatedCount < 20 && new Date() - this.lastCreatedEnemyTime > 1000) {
             var enemy = new Enemy({
+                id: globalId.genId(),
                 x: gridWidth / 2 + (Math.random() - 0.5) * 5,
                 y: gridHeight / 2 + (Math.random() - 0.5) * 5,
                 ctx: ctx
@@ -96,15 +97,12 @@ export default class Game {
         }
 
         // Draw our tower
-        for (let i = 0, len = this.towers.length; i < len; i++) {
-            this.towers[i].draw(ctx);
-        }
+        this.towers.forEach(tower => {tower.draw(ctx)});
 
         // 确定 bullet tower 的目标
         for (let i = 0, len = this.towers.length; i < len; i++) {
             const index = this.towers[i].findTarget(this.enemies);
             if (this.towers[i].targetIndex != -1) {
-                // console.log(`tower ${i} have target ${this.towers[i].targetIndex}`);
 
                 const target = this.enemies[this.towers[i].targetIndex];
                 // 调整其朝向
@@ -116,6 +114,9 @@ export default class Game {
                 const theta = Math.atan2(target.y - this.towers[i].y,
                     target.x - this.towers[i].x);
                 this.towers[i].direction = theta < 0 ? theta * 180 / Math.PI : (theta + 1) * 180 / Math.PI;
+            } else {
+                // 
+                // this.towers[i]
             }
         }
 
@@ -125,12 +126,22 @@ export default class Game {
 
         // 移除出界的bullet，画出剩下的bullet
         for (let i = 0; i < this.bullets.length; i++) {
-            if (this.bullets[i].start[0] < 0 || this.bullets[i].start[1] < 0 ||
-                this.bullets[i].start[0] > WIDTH || this.bullets[i].start[1] > HEIGHT) {
-                this.bullets.remove(i);
-                i--;
-            } else {
-                this.bullets[i].draw(ctx);
+            if (this.bullets[i].type === 'line') {  // 直线子弹
+                if (this.bullets[i].start[0] < 0 || this.bullets[i].start[1] < 0 ||
+                    this.bullets[i].start[0] > WIDTH || this.bullets[i].start[1] > HEIGHT) {
+                    this.bullets.remove(i);
+                    i--;
+                } else {
+                    this.bullets[i].draw(ctx);
+                }
+            } else if (this.bullets[i].type === 'circle') {
+                if (this.bullets[i].x < 0 || this.bullets[i].y < 0 ||
+                    this.bullets[i].x > WIDTH || this.bullets.y > HEIGHT) {
+                    this.bullets.remove(i);
+                    i--;
+                } else {
+                    this.bullets[i].draw(ctx);
+                }
             }
         }
 
@@ -160,23 +171,29 @@ export default class Game {
     detectImpact() {
         for (var i = 0; i < this.bullets.length; i++) {
             let impact = false;
+            let distance = 0;
+
             for (var j = 0; j < this.enemies.length; j++) {
 
-                // 求圆心至bullet的垂足
-                let normal = vec2.create();
-                let bVec = this.bullets[i].directionVec;
-                let aDotB = 1;
+                if (this.bullets[i].type === 'line') {
+                    // 求圆心至bullet的垂足
+                    let normal = vec2.create();
+                    let bVec = this.bullets[i].directionVec;
+                    let aDotB = 1;
 
-                let aVec = vec2.fromValues(
-                    this.enemies[j].x - this.bullets[i].start[0],
-                    this.enemies[j].y - this.bullets[i].start[1]
-                );
-                vec2.multiply(aDotB, aVec, bVec);
-                vec2.scale(bVec, bVec, aDotB);
-                vec2.add(normal, this.bullets[i].start, bVec);
+                    let aVec = vec2.fromValues(
+                        this.enemies[j].x - this.bullets[i].start[0],
+                        this.enemies[j].y - this.bullets[i].start[1]
+                    );
+                    vec2.multiply(aDotB, aVec, bVec);
+                    vec2.scale(bVec, bVec, aDotB);
+                    vec2.add(normal, this.bullets[i].start, bVec);
 
-                const distance = calcuteDistance(normal[0], normal[1],
-                    this.enemies[j].x, this.enemies[j].y);
+                    distance = calcuteDistance(normal[0], normal[1],
+                        this.enemies[j].x, this.enemies[j].y);
+                } else {
+                    distance = calcuteDistance(this.bullets[i].x, this.bullets[i].y, this.enemies[j].x, this.enemies[j].y)
+                }
 
                 if (distance <= this.enemies[j].radius + 5) {
                     impact = true;
@@ -219,9 +236,9 @@ export default class Game {
             case 'SIMPLE':
                 new SimpleTower(ctx, x, y, this.bullets, this);
             case 'BULLET':
-                tower = new BulletTower(ctx, x, y, this.bullets, this);
+                tower = new BulletTower({ ctx, x, y, bullets: this.bullets });
             default:
-                tower = new BulletTower(ctx, x, y, this.bullets, this);
+                tower = new BulletTower({ ctx, x, y, bullets: this.bullets });
         }
 
         // const tower = new SimpleTower(ctx, x, y, this.bullets);
@@ -244,7 +261,7 @@ export default class Game {
     }
 
     drawGhostTower(ctx, x, y, towerType) {
-        const tower = new SimpleTower(ctx, x, y, this.bullets);
+        const tower = new SimpleTower({ ctx, x, y, bullets: this.bullets });
         tower.draw(ctx);
     }
 }

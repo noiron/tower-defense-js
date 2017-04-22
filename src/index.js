@@ -1,5 +1,5 @@
-import Game from './Game';
-import { gridWidth, gridHeight, gridNumX, gridNumY } from './constant';
+import Game from './js/Game';
+import { gridWidth, gridHeight, gridNumX, gridNumY } from './js/utils/constant';
 
 const game = new Game();
 

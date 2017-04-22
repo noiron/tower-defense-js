@@ -1,4 +1,4 @@
-import { gridWidth, gridHeight, gridNumX, gridNumY } from './../constant';
+import { gridWidth, gridHeight, gridNumX, gridNumY } from './../utils/constant';
 import Path from './Path';
 
 export default class Map {
@@ -7,8 +7,8 @@ export default class Map {
         this.newTowerCoord = opt.newTowerCoord || null;
         this.pathCoord = opt.pathCoord;
         this.WIDTH = opt.WIDTH,
-        this.HEIGHT = opt.HEIGHT,
-        this.coord = [];
+            this.HEIGHT = opt.HEIGHT,
+            this.coord = [];
 
         for (let i = 0; i < gridNumX; i++) {
             this.coord[i] = [];
@@ -36,14 +36,17 @@ export default class Map {
         const HEIGHT = this.HEIGHT;
 
         ctx.save();
+
+        // Clear canvas
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
         ctx.strokeStyle = '#ddd';
         ctx.fillStyle = '#666';
         ctx.lineWidth = 1;
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
         // 横纵数目相等
         var size = 20;
-
-        // ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         ctx.beginPath();
         // Draw vertical lines
