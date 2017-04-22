@@ -23,16 +23,11 @@ export default class Game {
         this.enemies = [];
 
         this.ctx = ctx;
-
         this.money = 2000;
-
         this.coordX = 0;
         this.coordY = 0;
-
         this.enemyCreatedCount = 0;    // 目前已经创建的enemy的总数
         this.lastCreatedEnemyTime = new Date();
-
-        this.map = [];
 
         this.pathCoord = [
             [0, 0], [18, 0],
@@ -48,9 +43,6 @@ export default class Game {
             newTowerCoord,
             pathCoord: this.pathCoord,
         })
-        for (let i = 0; i < gridNumX; i++) {
-            this.map[i] = [];
-        }
 
         // this.simpleTower = new SimpleTower(
         this.simpleTower = new BulletTower(
@@ -60,7 +52,6 @@ export default class Game {
             this.bullets,
             this
         );
-        this.map[newTowerCoord[0]][newTowerCoord[1]] = 'T';
         this.towers.push(this.simpleTower);
 
         this.mode = '';
@@ -149,7 +140,7 @@ export default class Game {
 
         if (this.mode === 'ADD_TOWER') {    // 添加塔模式
             if (0 <= this.coordX && this.coordX < gridNumX && 0 <= this.coordY && this.coordY < gridNumY) {
-                if (this.map[this.coordX][this.coordY] !== 'T') {  // 该位置没有塔
+                if (this.map.coord[this.coordX][this.coordY] !== 'T') {  // 该位置没有塔
                     this.drawGhostTower(
                         ctx,
                         this.coordX * gridWidth + gridWidth / 2,
@@ -163,10 +154,6 @@ export default class Game {
         document.getElementById('money').innerHTML = `Money: ${this.money}`;
 
         requestAnimationFrame(() => this.draw(), 100);
-
-        // setTimeout( () => {
-        //     requestAnimationFrame(() => this.draw());
-        // }, 1000 / 100);
     }
 
     // 循环检测bullet是否和vehicle碰撞
@@ -212,7 +199,7 @@ export default class Game {
     createNewTower(coordX, coordY, towerType) {
 
         // 检查当前位置是否已有物体
-        if (this.map[coordX][coordY] === 'T') {
+        if (this.map.coord[coordX][coordY] === 'T') {
             console.log('You can not place tower here!');
             return -1;
         }
@@ -239,7 +226,7 @@ export default class Game {
 
         // const tower = new SimpleTower(ctx, x, y, this.bullets);
         // const tower = new BulletTower(ctx, x, y, this.bullets);
-        this.map[coordX][coordY] = 'T';
+        this.map.coord[coordX][coordY] = 'T';
         this.money -= cost;
         this.towers.push(tower);
     }
@@ -248,7 +235,8 @@ export default class Game {
         const coordX = this.towers[index].coordX;
         const coordY = this.towers[index].coordY;
         this.towers.remove(index);
-        this.map[coordX][coordY] = '';
+        console.log(index);
+        this.map.coord[coordX][coordY] = '';
 
         this.money += 400;
         this.towerSelect = false;

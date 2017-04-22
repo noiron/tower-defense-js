@@ -41,7 +41,7 @@ document.onclick = function (e) {
     /* 只在地图范围内进行操作 */
     if (0 <= coordX && coordX < gridNumX && 0 <= coordY && coordY < gridNumY) {
 
-        if (game.map[coordX][coordY] === 'T') {
+        if (game.map.coord[coordX][coordY] === 'T') {
             // 点击的格子内为塔
             game.towers.map((tower, index) => {
                 if (tower.coordX === coordX && tower.coordY === coordY) {

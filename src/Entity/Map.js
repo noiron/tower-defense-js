@@ -16,7 +16,7 @@ export default class Map {
 
         // 初始状态下的塔
         if (this.newTowerCoord) {
-            this.coord[this.newTowerCoord[0], this.newTowerCoord[1]] = 'T';
+            this.coord[this.newTowerCoord[0]][this.newTowerCoord[1]] = 'T';
         }
 
         // Create an instance of Path object
