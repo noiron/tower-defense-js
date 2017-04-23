@@ -61,13 +61,18 @@ export default class Game {
         // 当前是否选中塔
         this.towerSelect = false;
         this.towerSelectIndex = -1;
+        this.towerSelectId = -1;
 
         this.draw();
     }
 
     // Specify what to draw
     draw() {
-        this.map.draw();
+        this.map.draw({
+            towers: this.towers,
+            towerSelect: this.towerSelect,
+            towerSelectIndex: this.towerSelectIndex
+        });
 
         // 总数小于50，且间隔1000ms以上
         if (this.enemyCreatedCount < 20 && new Date() - this.lastCreatedEnemyTime > 1000) {

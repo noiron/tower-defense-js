@@ -11,6 +11,11 @@ Array.prototype.remove = function (from, to) {
     return this.push.apply(this, rest);
 };
 
+// 根据id删除元素
+Array.prototype.removeById = function(id) {
+    
+}
+
 Array.prototype.getEleById = function (id) {
     let result = null;
     this.forEach((ele, i) => {

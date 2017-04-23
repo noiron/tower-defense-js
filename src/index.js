@@ -50,15 +50,18 @@ document.onclick = function (e) {
                     // 已经选中的塔再次点击则取消
                     if (game.towerSelectIndex === index) {
                         game.towerSelectIndex = -1;
+                        game.towerSelectId = -1;
                         game.towerSelect = false;
                     } else {
                         game.towerSelectIndex = index;
+                        game.towerSelectId = tower.id;
                         game.towerSelect = true;
                     }
                 }
             })
         } else {
             game.towerSelect = false;
+            game.towerSelectId = -1;
             game.towerSelectIndex = -1;
         }
 

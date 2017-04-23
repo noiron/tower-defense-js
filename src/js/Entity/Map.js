@@ -30,7 +30,7 @@ export default class Map {
         this.path.setPoints();
     }
 
-    draw() {
+    draw({towers, towerSelect, towerSelectIndex}) {
         const ctx = this.ctx;
         const WIDTH = this.WIDTH;
         const HEIGHT = this.HEIGHT;
@@ -64,11 +64,11 @@ export default class Map {
         ctx.stroke();
 
         // 当前选中的格子突出显示
-        if (this.towerSelect) {
-            const coordX = this.towers[this.towerSelectIndex].coordX;
-            const coordY = this.towers[this.towerSelectIndex].coordY;
-
-            fillGrid(coordX, coordY, 'red')
+        // TODO: 这一部分移入game.js中
+        if (towerSelect) {
+            const coordX = towers[towerSelectIndex].coordX;
+            const coordY = towers[towerSelectIndex].coordY;
+            fillGrid(coordX, coordY, 'pink')
         }
 
         // 给一个格子上色

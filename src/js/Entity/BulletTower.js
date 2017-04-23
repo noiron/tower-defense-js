@@ -19,6 +19,8 @@ export default class BulletTower {
 
         this.range = 3 * gridWidth;
         this.targetIndex = -1;
+        this.target = null;
+        this.targetId = -1;
 
         this.lastShootTime = new Date();
         this.direction = 180;     // 用度数表示的tower指向
@@ -62,7 +64,7 @@ export default class BulletTower {
         ctx.stroke();
         ctx.closePath();
 
-        if (this.targetIndex !== -1 && new Date - this.lastShootTime >= 400) {
+        if (this.targetIndex !== -1 && new Date - this.lastShootTime >= 2000) {
             this.shoot(ctx);
             this.lastShootTime = new Date();
         }
@@ -84,30 +86,44 @@ export default class BulletTower {
     }
 
     findTarget(enemies) {
-        // let targetIndex = -1;
+        // 先判断原有的target是否仍在范围内
+        if (this.target !== null) {
+            const prevTgt = enemies.getEle(this.target);
+            if (prevTgt) {
+                if (calcuteDistance(prevTgt.x, prevTgt.y, this.x, this.y) < this.range) {
+                    return;
+                }
+            }
+        }
+
+        // 去寻找一个新的target
+        this.targetIndex = -1;
+        this.targetId = -1;
+        this.target = null;
 
         for (let i = 0, len = enemies.length; i < len; i++) {
             const enemy = enemies[i];
             if (Math.abs(enemy.x - this.x) + Math.abs(enemy.y - this.y) > this.range) {
                 continue;
             } else {
-                // console.log(calcuteDistance(...enemy.location, this.x, this.y));
                 if (calcuteDistance(enemy.x, enemy.y, this.x, this.y) < this.range) {
                     this.targetIndex = i;
+                    this.target = enemies[i];
+                    this.targetId = enemies[i].id;
                     break;
                 }
-            }
-
-            // 没有找到目标，将targetIndex 设为 -1
-            if (i === len) {
-                this.targetIndex = -1;
             }
         }
 
         if (this.targetIndex !== -1) {
-            const target = enemies[this.targetIndex];
-            this.directionVec = vec2.fromValues(target.x - this.x, target.y - this.y);
-            this.direction = - Math.atan(target.y - this.y, target.x - this.x) * (180 / Math.PI);
+            const target = enemies.getEleById(this.targetId);
+            if (target) {
+                this.directionVec = vec2.fromValues(target.x - this.x, target.y - this.y);
+                this.direction = Math.atan2(target.y - this.y, target.x - this.x) * (180 / Math.PI);
+
+                target.color = 'red';
+            }
+            return target;
         }
     }
 
