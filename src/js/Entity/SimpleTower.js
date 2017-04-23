@@ -14,6 +14,7 @@ export default class SimpleTower {
     constructor({ ctx, x, y, bullets, selected, damage }) {
         this.x = x;
         this.y = y;
+        this.ctx = ctx;
         this.coordX = Math.floor((x - gridWidth / 2) / gridWidth);
         this.coordY = Math.floor((y - gridHeight / 2) / gridHeight);
         this.radius = 12;
@@ -50,9 +51,9 @@ export default class SimpleTower {
         }
     }
 
-    draw(ctx) {
+    draw() {
         this.step();
-
+        const ctx = this.ctx;
 
         ctx.save();
         if (config.renderShadow) {

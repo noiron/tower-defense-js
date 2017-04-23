@@ -56,6 +56,7 @@ export default class Game {
         this.towers.push(tower);
 
         this.mode = '';
+        this.addTowerType = 'SIMPLE';
         this.score = 0;
 
         // 当前是否选中塔
@@ -158,7 +159,9 @@ export default class Game {
                     this.drawGhostTower(
                         ctx,
                         this.coordX * gridWidth + gridWidth / 2,
-                        this.coordY * gridHeight + gridHeight / 2);
+                        this.coordY * gridHeight + gridHeight / 2,
+                        this.addTowerType
+                    );
                 }
             }
         }
@@ -268,7 +271,12 @@ export default class Game {
     }
 
     drawGhostTower(ctx, x, y, towerType) {
-        const tower = new SimpleTower({ ctx, x, y, bullets: this.bullets, selected: true });
+        let tower = null;
+        if (towerType === 'SIMPLE') {
+            tower = new SimpleTower({ ctx, x, y, bullets: this.bullets, selected: true });
+        } else if (towerType === 'BULLET') {
+            tower = new BulletTower({ ctx, x, y, bullets: this.bullets, selected: true });
+        }
         tower.draw(ctx);
     }
 

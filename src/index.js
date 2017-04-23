@@ -1,12 +1,53 @@
 import Game from './js/Game';
 import { gridWidth, gridHeight, gridNumX, gridNumY } from './js/utils/constant';
+import SimpleTower from './js/Entity/SimpleTower';
+import BulletTower from './js/Entity/BulletTower';
 
 const game = new Game();
 
-const addTowerBlock = document.getElementById('add-tower');
-addTowerBlock.addEventListener('click', () => {
-    game.mode = game.mode === 'ADD_TOWER' ? '' : 'ADD_TOWER';
+// 添加塔的按钮，画出图形
+// SIMPLE tower
+const towerCanvas1 = document.getElementById('tower1');
+towerCanvas1.width = 50;
+towerCanvas1.height = 50;
+const ctx = towerCanvas1.getContext("2d");
+const showTower1 = new SimpleTower({ ctx, x: 25, y: 25 });
+showTower1.draw();
+towerCanvas1.addEventListener('click', () => {
+    if (game.mode === 'ADD_TOWER') {
+        if (game.addTowerType !== 'SIMPLE') {
+            game.addTowerType = 'SIMPLE';
+        } else {
+            game.mode = '';
+            game.addTowerType = '';
+        }
+    } else {
+        game.mode = 'ADD_TOWER';
+        game.addTowerType = 'SIMPLE';
+    }
 });
+
+// BULLET tower
+const towerCanvas2 = document.getElementById('tower2');
+towerCanvas2.width = 50;
+towerCanvas2.height = 50;
+const ctx2 = towerCanvas2.getContext("2d");
+const showTower2 = new BulletTower({ ctx: ctx2, x: 25, y: 25 });
+showTower2.draw();
+towerCanvas2.addEventListener('click', () => {
+    if (game.mode === 'ADD_TOWER') {
+        if (game.addTowerType !== 'BULLET') {
+            game.addTowerType = 'BULLET';
+        } else {
+            game.mode = '';
+            game.addTowerType = '';
+        }
+    } else {
+        game.mode = 'ADD_TOWER';
+        game.addTowerType = 'BULLET';
+    }
+});
+
 
 const canvas = document.getElementById("drawing");
 
@@ -66,7 +107,7 @@ document.onclick = function (e) {
         }
 
         if (game.mode === 'ADD_TOWER') {
-            game.createNewTower(coordX, coordY, 'SIMPLE');
+            game.createNewTower(coordX, coordY, game.addTowerType);
         }
     }
     // console.log(coordX, coordY);

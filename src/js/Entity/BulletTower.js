@@ -6,7 +6,7 @@ import { towerCost, gridWidth, gridHeight } from './../utils/constant';
 
 
 export default class BulletTower {
-    constructor({ ctx, x, y, bullets, damage }) {
+    constructor({ ctx, x, y, bullets, selected, damage }) {
         this.ctx = ctx;
         this.x = x;
         this.y = y;
@@ -28,6 +28,7 @@ export default class BulletTower {
         this.directionVec = vec2.create();
 
         this.damage = damage || 5;
+        this.selected = selected || false;
     }
 
     draw() {
