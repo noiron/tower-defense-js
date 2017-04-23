@@ -19,7 +19,8 @@ export default class Bullet1 {
     }
 
     step(enemies) {
-        // 新位置
+        // 计算新位置
+        
         if (this.target) {
             const target = enemies.getEleById(this.target.id);
             if (target) {

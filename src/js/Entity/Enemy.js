@@ -36,13 +36,9 @@ export default class Enemy {
 
     step({path}) {
         const speed = this.speed;
-        // debugger;
-
         const wp = path[this.wp];
-        // console.log(wp);
         this.dx = (wp[0] * gridSize) + gridSize * 0.5 - this.x;
         this.dy = (wp[1] * gridSize) + gridSize * 0.5 - this.y;
-        // console.log(this.dx, this.dy);
         this.dist = Math.sqrt( this.dx * this.dx + this.dy * this.dy);
 
         if (this.angleFlag) {

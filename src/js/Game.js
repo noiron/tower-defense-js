@@ -33,9 +33,7 @@ export default class Game {
         this.lastCreatedEnemyTime = new Date();
 
         this.pathCoord = [
-            [0, 0], [18, 0],
-            [18, 4], [10, 4], [10, 10], [16, 10],
-            [16, 14], [-1, 14]
+            [0, 0], [18, 0], [18, 4], [10, 4], [10, 10], [16, 10], [16, 14], [-1, 14]
         ];
 
         const newTowerCoord = [8, 3];
@@ -47,6 +45,7 @@ export default class Game {
             pathCoord: this.pathCoord,
         })
 
+        // 放置一个初始状态下的塔
         const tower = new SimpleTower({
             ctx,
             x: gridWidth / 2 + newTowerCoord[0] * gridWidth,
@@ -75,12 +74,13 @@ export default class Game {
             towerSelectIndex: this.towerSelectIndex
         });
 
+        // 生成enemy
         // 总数小于50，且间隔 x ms以上
-        if (this.enemyCreatedCount < 20 && new Date() - this.lastCreatedEnemyTime > 500) {
+        if (this.enemyCreatedCount < 50 && new Date() - this.lastCreatedEnemyTime > 500) {
             var enemy = new Enemy({
                 id: globalId.genId(),
-                x: gridWidth / 2 + (Math.random() - 0.5) * 5,
-                y: gridHeight / 2 + (Math.random() - 0.5) * 5,
+                x: gridWidth / 2 + (Math.random() - 0.5) * 10,
+                y: gridHeight / 2 + (Math.random() - 0.5) * 10,
                 ctx: ctx
             });
 
@@ -89,6 +89,7 @@ export default class Game {
             this.lastCreatedEnemyTime = new Date();
         }
 
+        // 对每一个enemy进行step操作，并绘制
         this.enemies.forEach((enemy, index) => {
             enemy.step({ path: this.pathCoord });
             enemy.draw();
@@ -111,23 +112,23 @@ export default class Game {
 
         // 确定 bullet tower 的目标
         for (let i = 0, len = this.towers.length; i < len; i++) {
-            this.towers[i].findTarget(this.enemies);
-            if (this.towers[i].target !== null) {
-
-                const target = this.towers[i].target;
+            const tower = this.towers[i];
+            tower.findTarget(this.enemies);
+            if (tower.target !== null) {
+                const target = tower.target;
                 // 调整其朝向
-                this.towers[i].directionVec = vec2.fromValues(
-                    target.x - this.towers[i].x,
-                    target.y - this.towers[i].y
+                tower.directionVec = vec2.fromValues(
+                    target.x - tower.x,
+                    target.y - tower.y
                 );
 
-                this.towers[i].direction = Math.atan2(target.y - this.towers[i].y,
-                    target.x - this.towers[i].x) * (180 / Math.PI);
+                tower.direction = Math.atan2(target.y - tower.y,
+                    target.x - tower.x) * (180 / Math.PI);
             }
         }
 
 
-        // 检查bullet是否与vehicle相撞
+        // 检查bullet是否与enemy相撞
         this.detectImpact();
 
         // 移除出界的bullet，画出剩下的bullet
@@ -241,10 +242,7 @@ export default class Game {
         let tower = null;
         switch (towerType) {
             case 'SIMPLE':
-                tower = new SimpleTower({
-                    ctx, x, y,
-                    bullets: this.bullets,
-                });
+                tower = new SimpleTower({ ctx, x, y, bullets: this.bullets });
                 break;
             case 'BULLET':
                 tower = new BulletTower({ ctx, x, y, bullets: this.bullets });
@@ -270,6 +268,7 @@ export default class Game {
         this.towerSelectIndex = -1;
     }
 
+    // 准备放置塔时，在鼠标所在位置画一个虚拟的塔
     drawGhostTower(ctx, x, y, towerType) {
         let tower = null;
         if (towerType === 'SIMPLE') {

@@ -59,13 +59,59 @@
 
 	var _constant = __webpack_require__(10);
 
+	var _SimpleTower = __webpack_require__(6);
+
+	var _SimpleTower2 = _interopRequireDefault(_SimpleTower);
+
+	var _BulletTower = __webpack_require__(12);
+
+	var _BulletTower2 = _interopRequireDefault(_BulletTower);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var game = new _Game2.default();
 
-	var addTowerBlock = document.getElementById('add-tower');
-	addTowerBlock.addEventListener('click', function () {
-	    game.mode = game.mode === 'ADD_TOWER' ? '' : 'ADD_TOWER';
+	// 添加塔的按钮，画出图形
+	// SIMPLE tower
+	var towerCanvas1 = document.getElementById('tower1');
+	towerCanvas1.width = 50;
+	towerCanvas1.height = 50;
+	var ctx = towerCanvas1.getContext("2d");
+	var showTower1 = new _SimpleTower2.default({ ctx: ctx, x: 25, y: 25 });
+	showTower1.draw();
+	towerCanvas1.addEventListener('click', function () {
+	    if (game.mode === 'ADD_TOWER') {
+	        if (game.addTowerType !== 'SIMPLE') {
+	            game.addTowerType = 'SIMPLE';
+	        } else {
+	            game.mode = '';
+	            game.addTowerType = '';
+	        }
+	    } else {
+	        game.mode = 'ADD_TOWER';
+	        game.addTowerType = 'SIMPLE';
+	    }
+	});
+
+	// BULLET tower
+	var towerCanvas2 = document.getElementById('tower2');
+	towerCanvas2.width = 50;
+	towerCanvas2.height = 50;
+	var ctx2 = towerCanvas2.getContext("2d");
+	var showTower2 = new _BulletTower2.default({ ctx: ctx2, x: 25, y: 25 });
+	showTower2.draw();
+	towerCanvas2.addEventListener('click', function () {
+	    if (game.mode === 'ADD_TOWER') {
+	        if (game.addTowerType !== 'BULLET') {
+	            game.addTowerType = 'BULLET';
+	        } else {
+	            game.mode = '';
+	            game.addTowerType = '';
+	        }
+	    } else {
+	        game.mode = 'ADD_TOWER';
+	        game.addTowerType = 'BULLET';
+	    }
 	});
 
 	var canvas = document.getElementById("drawing");
@@ -125,7 +171,7 @@
 	        }
 
 	        if (game.mode === 'ADD_TOWER') {
-	            game.createNewTower(coordX, coordY, 'SIMPLE');
+	            game.createNewTower(coordX, coordY, game.addTowerType);
 	        }
 	    }
 	    // console.log(coordX, coordY);
@@ -232,6 +278,7 @@
 	            pathCoord: this.pathCoord
 	        });
 
+	        // 放置一个初始状态下的塔
 	        var tower = new _SimpleTower2.default({
 	            ctx: ctx,
 	            x: _constant.gridWidth / 2 + newTowerCoord[0] * _constant.gridWidth,
@@ -241,6 +288,7 @@
 	        this.towers.push(tower);
 
 	        this.mode = '';
+	        this.addTowerType = 'SIMPLE';
 	        this.score = 0;
 
 	        // 当前是否选中塔
@@ -265,12 +313,13 @@
 	                towerSelectIndex: this.towerSelectIndex
 	            });
 
+	            // 生成enemy
 	            // 总数小于50，且间隔 x ms以上
-	            if (this.enemyCreatedCount < 20 && new Date() - this.lastCreatedEnemyTime > 500) {
+	            if (this.enemyCreatedCount < 50 && new Date() - this.lastCreatedEnemyTime > 500) {
 	                var enemy = new _Enemy2.default({
 	                    id: _id2.default.genId(),
-	                    x: _constant.gridWidth / 2 + (Math.random() - 0.5) * 5,
-	                    y: _constant.gridHeight / 2 + (Math.random() - 0.5) * 5,
+	                    x: _constant.gridWidth / 2 + (Math.random() - 0.5) * 10,
+	                    y: _constant.gridHeight / 2 + (Math.random() - 0.5) * 10,
 	                    ctx: ctx
 	                });
 
@@ -279,6 +328,7 @@
 	                this.lastCreatedEnemyTime = new Date();
 	            }
 
+	            // 对每一个enemy进行step操作，并绘制
 	            this.enemies.forEach(function (enemy, index) {
 	                enemy.step({ path: _this.pathCoord });
 	                enemy.draw();
@@ -301,18 +351,18 @@
 
 	            // 确定 bullet tower 的目标
 	            for (var i = 0, len = this.towers.length; i < len; i++) {
-	                this.towers[i].findTarget(this.enemies);
-	                if (this.towers[i].target !== null) {
-
-	                    var target = this.towers[i].target;
+	                var tower = this.towers[i];
+	                tower.findTarget(this.enemies);
+	                if (tower.target !== null) {
+	                    var target = tower.target;
 	                    // 调整其朝向
-	                    this.towers[i].directionVec = _vec2.default.fromValues(target.x - this.towers[i].x, target.y - this.towers[i].y);
+	                    tower.directionVec = _vec2.default.fromValues(target.x - tower.x, target.y - tower.y);
 
-	                    this.towers[i].direction = Math.atan2(target.y - this.towers[i].y, target.x - this.towers[i].x) * (180 / Math.PI);
+	                    tower.direction = Math.atan2(target.y - tower.y, target.x - tower.x) * (180 / Math.PI);
 	                }
 	            }
 
-	            // 检查bullet是否与vehicle相撞
+	            // 检查bullet是否与enemy相撞
 	            this.detectImpact();
 
 	            // 移除出界的bullet，画出剩下的bullet
@@ -341,7 +391,7 @@
 	                if (0 <= this.coordX && this.coordX < _constant.gridNumX && 0 <= this.coordY && this.coordY < _constant.gridNumY) {
 	                    if (this.map.coord[this.coordX][this.coordY] !== 'T') {
 	                        // 该位置没有塔
-	                        this.drawGhostTower(ctx, this.coordX * _constant.gridWidth + _constant.gridWidth / 2, this.coordY * _constant.gridHeight + _constant.gridHeight / 2);
+	                        this.drawGhostTower(ctx, this.coordX * _constant.gridWidth + _constant.gridWidth / 2, this.coordY * _constant.gridHeight + _constant.gridHeight / 2, this.addTowerType);
 	                    }
 	                }
 	            }
@@ -425,10 +475,7 @@
 	            var tower = null;
 	            switch (towerType) {
 	                case 'SIMPLE':
-	                    tower = new _SimpleTower2.default({
-	                        ctx: ctx, x: x, y: y,
-	                        bullets: this.bullets
-	                    });
+	                    tower = new _SimpleTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets });
 	                    break;
 	                case 'BULLET':
 	                    tower = new _BulletTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets });
@@ -456,10 +503,18 @@
 	            this.towerSelect = false;
 	            this.towerSelectIndex = -1;
 	        }
+
+	        // 准备放置塔时，在鼠标所在位置画一个虚拟的塔
+
 	    }, {
 	        key: 'drawGhostTower',
 	        value: function drawGhostTower(ctx, x, y, towerType) {
-	            var tower = new _SimpleTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets, selected: true });
+	            var tower = null;
+	            if (towerType === 'SIMPLE') {
+	                tower = new _SimpleTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets, selected: true });
+	            } else if (towerType === 'BULLET') {
+	                tower = new _BulletTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets, selected: true });
+	            }
 	            tower.draw(ctx);
 	        }
 	    }, {
@@ -1286,6 +1341,7 @@
 
 	        this.x = x;
 	        this.y = y;
+	        this.ctx = ctx;
 	        this.coordX = Math.floor((x - _constant.gridWidth / 2) / _constant.gridWidth);
 	        this.coordY = Math.floor((y - _constant.gridHeight / 2) / _constant.gridHeight);
 	        this.radius = 12;
@@ -1322,8 +1378,9 @@
 	        }
 	    }, {
 	        key: 'draw',
-	        value: function draw(ctx) {
+	        value: function draw() {
 	            this.step();
+	            var ctx = this.ctx;
 
 	            ctx.save();
 	            if (_config.config.renderShadow) {
@@ -1480,7 +1537,8 @@
 	    _createClass(Bullet1, [{
 	        key: 'step',
 	        value: function step(enemies) {
-	            // 新位置
+	            // 计算新位置
+
 	            if (this.target) {
 	                var target = enemies.getEleById(this.target.id);
 	                if (target) {
@@ -1705,6 +1763,7 @@
 	            x = _ref.x,
 	            y = _ref.y,
 	            bullets = _ref.bullets,
+	            selected = _ref.selected,
 	            damage = _ref.damage;
 
 	        _classCallCheck(this, BulletTower);
@@ -1730,6 +1789,7 @@
 	        this.directionVec = _vec2.default.create();
 
 	        this.damage = damage || 5;
+	        this.selected = selected || false;
 	    }
 
 	    _createClass(BulletTower, [{
@@ -1984,13 +2044,9 @@
 	            var path = _ref.path;
 
 	            var speed = this.speed;
-	            // debugger;
-
 	            var wp = path[this.wp];
-	            // console.log(wp);
 	            this.dx = wp[0] * _constant.gridSize + _constant.gridSize * 0.5 - this.x;
 	            this.dy = wp[1] * _constant.gridSize + _constant.gridSize * 0.5 - this.y;
-	            // console.log(this.dx, this.dy);
 	            this.dist = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
 
 	            if (this.angleFlag) {
