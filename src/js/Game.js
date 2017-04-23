@@ -38,7 +38,7 @@ export default class Game {
             [16, 14], [-6, 14]
         ];
 
-        const newTowerCoord = [4, 2];
+        const newTowerCoord = [8, 3];
         this.map = new Map({
             ctx,
             WIDTH,
@@ -83,37 +83,36 @@ export default class Game {
             this.lastCreatedEnemyTime = new Date();
         }
 
-        for (var i = 0; i < this.enemies.length; i++) {
-            this.enemies[i].step({ path: this.pathCoord });
-            this.enemies[i].draw();
+        this.enemies.forEach((enemy, index) => {
+            enemy.step({ path: this.pathCoord });
+            enemy.draw();
 
-            if (this.enemies[i].dead === true) {
-                this.enemies.remove(i);
-                i--;
+            if (enemy.dead) {
+                this.enemies.remove(index);
             }
-        }
+        });
 
         // Draw our tower
-        this.towers.forEach(tower => {tower.draw(ctx)});
+        this.towers.forEach(tower => { tower.draw(ctx) });
 
         // 确定 bullet tower 的目标
         for (let i = 0, len = this.towers.length; i < len; i++) {
-            const index = this.towers[i].findTarget(this.enemies);
-            if (this.towers[i].targetIndex != -1) {
+            this.towers[i].findTarget(this.enemies);
+            if (this.towers[i].target !== null) {
 
-                const target = this.enemies[this.towers[i].targetIndex];
+                const target = this.towers[i].target;
                 // 调整其朝向
                 this.towers[i].directionVec = vec2.fromValues(
                     target.x - this.towers[i].x,
                     target.y - this.towers[i].y
                 );
 
-                const theta = Math.atan2(target.y - this.towers[i].y,
-                    target.x - this.towers[i].x);
-                this.towers[i].direction = theta < 0 ? theta * 180 / Math.PI : (theta + 1) * 180 / Math.PI;
-            } else {
-                // 
-                // this.towers[i]
+                this.towers[i].direction = Math.atan2(target.y - this.towers[i].y,
+                    target.x - this.towers[i].x) * (180 / Math.PI);
+
+                // const theta = Math.atan2(target.y - this.towers[i].y,
+                //     target.x - this.towers[i].x);
+                // this.towers[i].direction = theta < 0 ? theta * 180 / Math.PI : (theta + 1) * 180 / Math.PI;
             }
         }
 
@@ -123,31 +122,29 @@ export default class Game {
 
         // 移除出界的bullet，画出剩下的bullet
         for (let i = 0; i < this.bullets.length; i++) {
-            if (this.bullets[i].type === 'line') {  // 直线子弹
-                if (this.bullets[i].start[0] < 0 || this.bullets[i].start[1] < 0 ||
-                    this.bullets[i].start[0] > WIDTH || this.bullets[i].start[1] > HEIGHT) {
+            const bullet = this.bullets[i];
+            if (bullet.type === 'line') {  // 直线子弹
+                if (bullet.start[0] < 0 || bullet.start[1] < 0 ||
+                    bullet.start[0] > WIDTH || bullet.start[1] > HEIGHT) {
                     this.bullets.remove(i);
                     i--;
                 } else {
-                    this.bullets[i].draw(ctx);
+                    bullet.draw(ctx, this.enemies);
                 }
-            } else if (this.bullets[i].type === 'circle') {
-                if (this.bullets[i].x < 0 || this.bullets[i].y < 0 ||
-                    this.bullets[i].x > WIDTH || this.bullets.y > HEIGHT) {
+            } else if (bullet.type === 'circle') {
+                if (bullet.x < 0 || bullet.y < 0 ||
+                    bullet.x > WIDTH || bullet.y > HEIGHT) {
                     this.bullets.remove(i);
                     i--;
                 } else {
-                    this.bullets[i].draw(ctx);
+                    bullet.draw(ctx, this.enemies);
                 }
             }
         }
 
-        if (document.getElementById('enemyCount')) {
-            document.getElementById('enemyCount').innerHTML = `Enemy Count: ${this.enemies.length}, Bullets: ${this.bullets.length}`;
-        }
-
         if (this.mode === 'ADD_TOWER') {    // 添加塔模式
-            if (0 <= this.coordX && this.coordX < gridNumX && 0 <= this.coordY && this.coordY < gridNumY) {
+            if (0 <= this.coordX && this.coordX < gridNumX
+                && 0 <= this.coordY && this.coordY < gridNumY) {
                 if (this.map.coord[this.coordX][this.coordY] !== 'T') {  // 该位置没有塔
                     this.drawGhostTower(
                         ctx,
@@ -157,9 +154,7 @@ export default class Game {
             }
         }
 
-        // 画面右侧信息的显示
-        document.getElementById('score').innerHTML = `Score: ${this.score}`;
-        document.getElementById('money').innerHTML = `Money: ${this.money}`;
+        this.displayInfo();
 
         requestAnimationFrame(() => this.draw(), 100);
     }
@@ -260,5 +255,16 @@ export default class Game {
     drawGhostTower(ctx, x, y, towerType) {
         const tower = new SimpleTower({ ctx, x, y, bullets: this.bullets });
         tower.draw(ctx);
+    }
+
+
+    displayInfo() {
+        // 画面信息的显示
+        if (document.getElementById('enemyCount')) {
+            document.getElementById('enemyCount').innerHTML = `Enemy Count: ${this.enemies.length}, Bullets: ${this.bullets.length}`;
+        }
+
+        document.getElementById('score').innerHTML = `Score: ${this.score}`;
+        document.getElementById('money').innerHTML = `Money: ${this.money}`;
     }
 }

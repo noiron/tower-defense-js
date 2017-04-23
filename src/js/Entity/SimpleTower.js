@@ -64,7 +64,7 @@ export default class SimpleTower {
         ctx.stroke();
         ctx.closePath();
 
-        if (new Date - this.lastShootTime >= 400) {
+        if (new Date - this.lastShootTime >= 1500) {
             this.shoot(ctx);
             this.lastShootTime = new Date();
         }
@@ -82,56 +82,55 @@ export default class SimpleTower {
                 target: this.target,
                 ctx,
                 x: this.x + this.bulletStartPosVec[0],
-                y: this.y + this.bulletStartPosVec[1]
+                y: this.y + this.bulletStartPosVec[1],
+                range: this.range,
             }
             ));
         }
     }
 
     findTarget(enemies) {
-
-        // if (this.targetIndex !== -1) {
-        //     console.log('-------------------', this.targetIndex, enemies.length, enemies[this.targetIndex]);
-        // }
-
         // 先判断原有的target是否仍在范围内
-        if (this.targetIndex !== -1) {
-            if (calcuteDistance(enemies[this.targetIndex].x, enemies[this.targetIndex].y, this.x, this.y) < this.range) {
-                return;
+        if (this.target !== null) {
+            const prevTgt = enemies.getEle(this.target);
+            if (prevTgt) {
+                if (calcuteDistance(prevTgt.x, prevTgt.y, this.x, this.y) < this.range) {
+                    return;
+                }
             }
         }
+
+        // 去寻找一个新的target
+        this.targetIndex = -1;
+        this.targetId = -1;
+        this.target = null;
 
         for (let i = 0, len = enemies.length; i < len; i++) {
             const enemy = enemies[i];
             if (Math.abs(enemy.x - this.x) + Math.abs(enemy.y - this.y) > this.range) {
+                // 简化计算
                 continue;
             } else {
                 if (calcuteDistance(enemy.x, enemy.y, this.x, this.y) < this.range) {
+                    if (this.target) this.target.color = 0;
                     this.targetIndex = i;
                     this.target = enemies[i];
                     this.targetId = enemies[i].id;
                     break;
                 }
             }
-
-            // 没有找到目标，将targetIndex 设为 -1
-            if (i === len) {
-                this.targetIndex = -1;
-                this.target = null;
-                this.targetId = -1;
-            }
         }
 
         if (this.targetIndex !== -1) {
-            const target = enemies[this.targetIndex];
-            this.directionVec = vec2.fromValues(target.x - this.x, target.y - this.y);
-            this.direction = - Math.atan2(target.y - this.y, target.x - this.x) * (180 / Math.PI);
+            const target = enemies.getEleById(this.targetId);
+            if (target) {
+                this.directionVec = vec2.fromValues(target.x - this.x, target.y - this.y);
+                this.direction =  Math.atan2(target.y - this.y, target.x - this.x) * (180 / Math.PI);
 
+                target.color = 'red';
+            }
             return target;
-        } else {
-
         }
-
     }
 
 }

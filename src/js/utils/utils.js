@@ -11,6 +11,25 @@ Array.prototype.remove = function (from, to) {
     return this.push.apply(this, rest);
 };
 
+Array.prototype.getEleById = function (id) {
+    let result = null;
+    this.forEach((ele, i) => {
+        if (ele.id === id) {
+            result = ele;
+        }
+    });
+    return result;
+};
+
+Array.prototype.getEle = function (ele) {
+    for (let i = 0; i < this.length; i++) {
+        if (this[i] === ele) {
+            return ele;
+        }
+    }
+    return null;
+}
+
 export function calcuteDistance(x1, y1, x2, y2) {
     const result = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
     return result;

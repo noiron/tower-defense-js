@@ -16,7 +16,7 @@ export default class Enemy {
         this.vx = 0;
         this.vy = 0;
         
-        this.speed = 10;
+        this.speed = 2;
 
         // 当前位置到目标点的距离
         this.dx = 0;
@@ -28,6 +28,8 @@ export default class Enemy {
 
         // 标记是否需要转弯
         this.angleFlag = 1;
+
+        this.color = 0;
     }
 
 
@@ -68,7 +70,7 @@ export default class Enemy {
 
     draw() {
         const ctx = this.ctx;
-        ctx.strokeStyle = '#eee';
+        ctx.strokeStyle = this.color || '#eee';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
