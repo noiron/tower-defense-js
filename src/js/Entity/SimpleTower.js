@@ -11,7 +11,7 @@ import globalId from './../id';
 
 
 export default class SimpleTower {
-    constructor({ ctx, x, y, bullets, selected }) {
+    constructor({ ctx, x, y, bullets, selected, damage }) {
         this.x = x;
         this.y = y;
         this.coordX = Math.floor((x - gridWidth / 2) / gridWidth);
@@ -30,9 +30,10 @@ export default class SimpleTower {
         this.targetId = -1;
         this.range = 3.5 * gridWidth;
         this.selected = selected || false;
+        this.damage = damage || 5;
     }
 
-    draw(ctx) {
+    step() {
         // 将方向向量归一化
         this.directionVec = vec2.fromValues(
             Math.cos(toRadians(this.direction)),
@@ -41,8 +42,17 @@ export default class SimpleTower {
         vec2.normalize(this.directionVec, this.directionVec);
 
         // bullet 出射位置
-
         vec2.scale(this.bulletStartPosVec, this.directionVec, 30);
+
+        if (new Date - this.lastShootTime >= this.shootInterval) {
+            this.shoot();
+            this.lastShootTime = new Date();
+        }
+    }
+
+    draw(ctx) {
+        this.step();
+
 
         ctx.save();
         if (config.renderShadow) {
@@ -74,26 +84,22 @@ export default class SimpleTower {
         ctx.stroke();
         ctx.closePath();
 
-        if (new Date - this.lastShootTime >= this.shootInterval) {
-            this.shoot(ctx);
-            this.lastShootTime = new Date();
-        }
-
         // this.direction = (this.direction + 0.6) % 360;
 
         ctx.restore();
     };
 
     // 发射子弹
-    shoot(ctx) {
+    shoot() {
         if (this.target) {
             this.bullets.push(new Bullet({
                 id: globalId.genId(),
                 target: this.target,
-                ctx,
+                ctx: this.ctx,
                 x: this.x + this.bulletStartPosVec[0],
                 y: this.y + this.bulletStartPosVec[1],
                 range: this.range,
+                damage: this.damage
             }
             ));
         }

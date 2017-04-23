@@ -30,6 +30,7 @@ export default class Enemy {
         this.angleFlag = 1;
 
         this.color = 0;
+        this.health = 20;
     }
 
 

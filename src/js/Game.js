@@ -196,10 +196,13 @@ export default class Game {
                     distance = calcuteDistance(this.bullets[i].x, this.bullets[i].y, this.enemies[j].x, this.enemies[j].y)
                 }
 
-                if (distance <= this.enemies[j].radius + 5) {
+                if (distance <= this.enemies[j].radius + 2) {
                     impact = true;
-                    this.enemies.remove(j); j--;
-                    this.score += 100;
+                    this.enemies[j].health -= this.bullets[i].damage;
+                    if (this.enemies[j].health <= 0) {
+                        this.enemies.remove(j); j--;
+                        this.score += 100;
+                    }
                     break;
                 }
             }

@@ -6,7 +6,7 @@ import { towerCost, gridWidth, gridHeight } from './../utils/constant';
 
 
 export default class BulletTower {
-    constructor({ ctx, x, y, bullets }) {
+    constructor({ ctx, x, y, bullets, damage }) {
         this.ctx = ctx;
         this.x = x;
         this.y = y;
@@ -26,6 +26,8 @@ export default class BulletTower {
         this.direction = 180;     // 用度数表示的tower指向
         this.bulletStartPosVec = vec2.fromValues(0, 0);
         this.directionVec = vec2.create();
+
+        this.damage = damage || 5;
     }
 
     draw() {

@@ -2,10 +2,11 @@ import vec2 from 'gl-matrix/src/gl-matrix/vec2';
 import { toRadians, calcuteDistance } from './../utils/utils';
 
 export default class Bullet1 {
-    constructor({ ctx, x, y, target, range }) {
+    constructor({ ctx, x, y, target, range, damage }) {
         this.type = 'circle';
         this.x = x;
         this.y = y;
+        this.ctx = ctx;
         this.target = target;
         this.radius = 3;
         this.speed = 8;
@@ -14,10 +15,10 @@ export default class Bullet1 {
         this.angle = 0;
         this.hue = 200;
         this.range = range;
+        this.damage = damage || 5;
     }
 
-
-    draw(ctx, enemies) {
+    step(enemies) {
         // 新位置
         if (this.target) {
             const target = enemies.getEleById(this.target.id);
@@ -35,6 +36,10 @@ export default class Bullet1 {
 
         this.x += this.vx;
         this.y += this.vy;
+    }
+
+    draw(ctx, enemies) {
+        this.step(enemies);
 
         // 绘图开始
         ctx.save();
