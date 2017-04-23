@@ -57,7 +57,7 @@
 
 	var _Game2 = _interopRequireDefault(_Game);
 
-	var _constant = __webpack_require__(11);
+	var _constant = __webpack_require__(10);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -100,7 +100,7 @@
 	    /* 只在地图范围内进行操作 */
 	    if (0 <= coordX && coordX < _constant.gridNumX && 0 <= coordY && coordY < _constant.gridNumY) {
 
-	        if (game.map[coordX][coordY] === 'T') {
+	        if (game.map.coord[coordX][coordY] === 'T') {
 	            // 点击的格子内为塔
 	            game.towers.map(function (tower, index) {
 	                if (tower.coordX === coordX && tower.coordY === coordY) {
@@ -109,20 +109,23 @@
 	                    // 已经选中的塔再次点击则取消
 	                    if (game.towerSelectIndex === index) {
 	                        game.towerSelectIndex = -1;
+	                        game.towerSelectId = -1;
 	                        game.towerSelect = false;
 	                    } else {
 	                        game.towerSelectIndex = index;
+	                        game.towerSelectId = tower.id;
 	                        game.towerSelect = true;
 	                    }
 	                }
 	            });
 	        } else {
 	            game.towerSelect = false;
+	            game.towerSelectId = -1;
 	            game.towerSelectIndex = -1;
 	        }
 
 	        if (game.mode === 'ADD_TOWER') {
-	            game.createNewTower(coordX, coordY);
+	            game.createNewTower(coordX, coordY, 'SIMPLE');
 	        }
 	    }
 	    // console.log(coordX, coordY);
@@ -139,8 +142,8 @@
 	};
 
 	var vehicleCountNode = document.createElement("p");
-	vehicleCountNode.setAttribute("id", "vehicleCount");
-	var textnode = document.createTextNode('Vehicle Count: ' + game.vehicles.length);
+	vehicleCountNode.setAttribute("id", "enemyCount");
+	var textnode = document.createTextNode('Enemy Count: ' + game.enemies.length);
 	vehicleCountNode.appendChild(textnode);
 	document.body.appendChild(vehicleCountNode);
 
@@ -164,17 +167,29 @@
 
 	var _Path2 = _interopRequireDefault(_Path);
 
-	var _Vehicle = __webpack_require__(6);
-
-	var _Vehicle2 = _interopRequireDefault(_Vehicle);
-
-	var _SimpleTower = __webpack_require__(8);
+	var _SimpleTower = __webpack_require__(6);
 
 	var _SimpleTower2 = _interopRequireDefault(_SimpleTower);
 
-	var _utils = __webpack_require__(10);
+	var _BulletTower = __webpack_require__(12);
 
-	var _constant = __webpack_require__(11);
+	var _BulletTower2 = _interopRequireDefault(_BulletTower);
+
+	var _Enemy = __webpack_require__(14);
+
+	var _Enemy2 = _interopRequireDefault(_Enemy);
+
+	var _Map = __webpack_require__(15);
+
+	var _Map2 = _interopRequireDefault(_Map);
+
+	var _utils = __webpack_require__(8);
+
+	var _constant = __webpack_require__(10);
+
+	var _id = __webpack_require__(11);
+
+	var _id2 = _interopRequireDefault(_id);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -193,161 +208,149 @@
 	        canvas.width = WIDTH;
 	        canvas.height = HEIGHT;
 
-	        // Create an instance of Path object
-	        this.path = new _Path2.default(ctx);
-	        // Set path radius
-	        this.path.radius = _constant.gridWidth / 2;
+	        this.genId = 0;
 
-	        this.vehicles = [];
 	        this.bullets = [];
 	        this.towers = [];
+	        this.enemies = [];
 
+	        this.ctx = ctx;
 	        this.money = 2000;
-
 	        this.coordX = 0;
 	        this.coordY = 0;
+	        this.enemyCreatedCount = 0; // 目前已经创建的enemy的总数
+	        this.lastCreatedEnemyTime = new Date();
 
-	        this.vehicleCreatedCount = 0; // 目前已经创建的vehicle的总数
-	        this.lastCreatedVehicleTime = new Date();
+	        this.pathCoord = [[0, 0], [18, 0], [18, 4], [10, 4], [10, 10], [16, 10], [16, 14], [-1, 14]];
 
-	        this.map = [];
-	        for (var i = 0; i < _constant.gridNumX; i++) {
-	            this.map[i] = [];
-	        }
+	        var newTowerCoord = [8, 3];
+	        this.map = new _Map2.default({
+	            ctx: ctx,
+	            WIDTH: WIDTH,
+	            HEIGHT: HEIGHT,
+	            newTowerCoord: newTowerCoord,
+	            pathCoord: this.pathCoord
+	        });
 
-	        var newTowerCoord = [8, 8];
-	        this.simpleTower = new _SimpleTower2.default(ctx, _constant.gridWidth / 2 + newTowerCoord[0] * _constant.gridWidth, _constant.gridHeight / 2 + newTowerCoord[1] * _constant.gridHeight, this.bullets);
-	        this.map[newTowerCoord[0]][newTowerCoord[1]] = 'T';
-	        this.towers.push(this.simpleTower);
+	        var tower = new _SimpleTower2.default({
+	            ctx: ctx,
+	            x: _constant.gridWidth / 2 + newTowerCoord[0] * _constant.gridWidth,
+	            y: _constant.gridHeight / 2 + newTowerCoord[1] * _constant.gridHeight,
+	            bullets: this.bullets
+	        });
+	        this.towers.push(tower);
 
 	        this.mode = '';
-
-	        this.pathCoord = [[0, 0], [18, 0], [18, 4], [10, 4], [10, 10], [16, 10], [16, 14], [-6, 14]];
-
 	        this.score = 0;
 
 	        // 当前是否选中塔
 	        this.towerSelect = false;
 	        this.towerSelectIndex = -1;
-
-	        // Add points to the path
-	        this.setPoints();
+	        this.towerSelectId = -1;
 
 	        this.draw();
 	    }
 
-	    // Define path points
+	    // Specify what to draw
 
 
 	    _createClass(Game, [{
-	        key: 'setPoints',
-	        value: function setPoints() {
-	            // Set path offset
-	            // const offset = HEIGHT / 10;
-
-	            // this.path.addPoint(offset, offset);
-	            // this.path.addPoint(offset * 3, offset);
-	            // this.path.addPoint(offset * 3, offset * 6);
-	            // this.path.addPoint(offset * 6, offset * 6);
-	            // this.path.addPoint(offset * 6, offset);
-	            // this.path.addPoint(WIDTH - offset, offset);
-	            // this.path.addPoint(WIDTH - offset, offset * 5);
-	            // this.path.addPoint(WIDTH - offset - 200, offset * 5);
-	            // this.path.addPoint(WIDTH - offset - 200, offset * 7);
-	            // this.path.addPoint(WIDTH - offset, offset * 7);
-	            // this.path.addPoint(WIDTH - offset, HEIGHT - offset);
-	            // this.path.addPoint(0, HEIGHT - offset);
-	            // this.path.addPoint(-100, HEIGHT - offset);
-
-	            for (var i = 0, len = this.pathCoord.length; i < len; i++) {
-	                var coord = this.pathCoord[i];
-	                this.path.addPoint(40 * coord[0] + 20, 40 * coord[1] + 20);
-	            }
-	            // this.path.addPoint(-100, HEIGHT - offset);
-	        }
-
-	        // Specify what to draw
-
-	    }, {
 	        key: 'draw',
 	        value: function draw() {
 	            var _this = this;
 
-	            // Clear canvas
+	            this.map.draw({
+	                towers: this.towers,
+	                towerSelect: this.towerSelect,
+	                towerSelectIndex: this.towerSelectIndex
+	            });
 
-	            ctx.fillStyle = '#000';
-	            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+	            // 总数小于50，且间隔 x ms以上
+	            if (this.enemyCreatedCount < 20 && new Date() - this.lastCreatedEnemyTime > 500) {
+	                var enemy = new _Enemy2.default({
+	                    id: _id2.default.genId(),
+	                    x: _constant.gridWidth / 2 + (Math.random() - 0.5) * 5,
+	                    y: _constant.gridHeight / 2 + (Math.random() - 0.5) * 5,
+	                    ctx: ctx
+	                });
 
-	            // 
-	            this.drawMap();
-
-	            // Render the path
-	            this.path.display();
-
-	            // 总数小于50，且间隔1000ms以上
-	            if (this.vehicleCreatedCount < 100 && new Date() - this.lastCreatedVehicleTime > 1000) {
-	                var mass = Math.random() * 3 + 3;
-
-	                var vehicle = new _Vehicle2.default(_vec2.default.fromValues(_constant.gridWidth / 2 + (Math.random() - 0.5) * 5, _constant.gridHeight / 2 + (Math.random() - 0.5) * 5), mass, ctx);
-
-	                this.vehicles.push(vehicle);
-	                this.vehicleCreatedCount++;
-	                this.lastCreatedVehicleTime = new Date();
+	                this.enemies.push(enemy);
+	                this.enemyCreatedCount++;
+	                this.lastCreatedEnemyTime = new Date();
 	            }
 
-	            for (var i = 0; i < this.vehicles.length; i++) {
-	                this.vehicles[i].applyBehaviors(this.vehicles, this.path);
-	                this.vehicles[i].run();
+	            this.enemies.forEach(function (enemy, index) {
+	                enemy.step({ path: _this.pathCoord });
+	                enemy.draw();
 
-	                if (this.vehicles[i].dead === true) {
-	                    this.vehicles.remove(i);
-	                    i--;
+	                if (enemy.dead) {
+	                    _this.enemies.remove(index);
 	                }
-	            }
+	            });
 
 	            // Draw our tower
-	            for (var _i = 0, len = this.towers.length; _i < len; _i++) {
-	                this.towers[_i].draw(ctx);
+	            this.towers.forEach(function (tower, index) {
+	                if (_this.towerSelect && _this.towerSelectIndex === index) {
+	                    // 选中的塔需画出其范围
+	                    tower.selected = true;
+	                } else {
+	                    tower.selected = false;
+	                }
+	                tower.draw(ctx);
+	            });
+
+	            // 确定 bullet tower 的目标
+	            for (var i = 0, len = this.towers.length; i < len; i++) {
+	                this.towers[i].findTarget(this.enemies);
+	                if (this.towers[i].target !== null) {
+
+	                    var target = this.towers[i].target;
+	                    // 调整其朝向
+	                    this.towers[i].directionVec = _vec2.default.fromValues(target.x - this.towers[i].x, target.y - this.towers[i].y);
+
+	                    this.towers[i].direction = Math.atan2(target.y - this.towers[i].y, target.x - this.towers[i].x) * (180 / Math.PI);
+	                }
 	            }
 
 	            // 检查bullet是否与vehicle相撞
 	            this.detectImpact();
 
 	            // 移除出界的bullet，画出剩下的bullet
-	            for (var _i2 = 0; _i2 < this.bullets.length; _i2++) {
-	                if (this.bullets[_i2].start[0] < 0 || this.bullets[_i2].start[1] < 0 || this.bullets[_i2].start[0] > WIDTH || this.bullets[_i2].start[1] > HEIGHT) {
-	                    this.bullets.remove(_i2);
-	                    _i2--;
-	                } else {
-	                    this.bullets[_i2].draw(ctx);
+	            for (var _i = 0; _i < this.bullets.length; _i++) {
+	                var bullet = this.bullets[_i];
+	                if (bullet.type === 'line') {
+	                    // 直线子弹
+	                    if (bullet.start[0] < 0 || bullet.start[1] < 0 || bullet.start[0] > WIDTH || bullet.start[1] > HEIGHT) {
+	                        this.bullets.remove(_i);
+	                        _i--;
+	                    } else {
+	                        bullet.draw(ctx, this.enemies);
+	                    }
+	                } else if (bullet.type === 'circle') {
+	                    if (bullet.x < 0 || bullet.y < 0 || bullet.x > WIDTH || bullet.y > HEIGHT) {
+	                        this.bullets.remove(_i);
+	                        _i--;
+	                    } else {
+	                        bullet.draw(ctx, this.enemies);
+	                    }
 	                }
-	            }
-
-	            if (document.getElementById('vehicleCount')) {
-	                document.getElementById('vehicleCount').innerHTML = 'Vehicle Count: ' + this.vehicles.length + ', Bullets: ' + this.bullets.length;
 	            }
 
 	            if (this.mode === 'ADD_TOWER') {
 	                // 添加塔模式
 	                if (0 <= this.coordX && this.coordX < _constant.gridNumX && 0 <= this.coordY && this.coordY < _constant.gridNumY) {
-	                    if (this.map[this.coordX][this.coordY] !== 'T') {
+	                    if (this.map.coord[this.coordX][this.coordY] !== 'T') {
 	                        // 该位置没有塔
 	                        this.drawGhostTower(ctx, this.coordX * _constant.gridWidth + _constant.gridWidth / 2, this.coordY * _constant.gridHeight + _constant.gridHeight / 2);
 	                    }
 	                }
 	            }
 
-	            // 画面右侧信息的显示
-	            document.getElementById('score').innerHTML = 'Score: ' + this.score;
-	            document.getElementById('money').innerHTML = 'Money: ' + this.money;
+	            this.displayInfo();
 
 	            requestAnimationFrame(function () {
 	                return _this.draw();
 	            }, 100);
-
-	            // setTimeout( () => {
-	            //     requestAnimationFrame(() => this.draw());
-	            // }, 1000 / 100);
 	        }
 
 	        // 循环检测bullet是否和vehicle碰撞
@@ -357,24 +360,33 @@
 	        value: function detectImpact() {
 	            for (var i = 0; i < this.bullets.length; i++) {
 	                var impact = false;
-	                for (var j = 0; j < this.vehicles.length; j++) {
+	                var distance = 0;
 
-	                    // 求圆心至bullet的垂足
-	                    var normal = _vec2.default.create();
-	                    var bVec = this.bullets[i].directionVec;
-	                    var aDotB = 1;
+	                for (var j = 0; j < this.enemies.length; j++) {
 
-	                    var aVec = _vec2.default.fromValues(this.vehicles[j].location[0] - this.bullets[i].start[0], this.vehicles[j].location[1] - this.bullets[i].start[1]);
-	                    _vec2.default.multiply(aDotB, aVec, bVec);
-	                    _vec2.default.scale(bVec, bVec, aDotB);
-	                    _vec2.default.add(normal, this.bullets[i].start, bVec);
+	                    if (this.bullets[i].type === 'line') {
+	                        // 求圆心至bullet的垂足
+	                        var normal = _vec2.default.create();
+	                        var bVec = this.bullets[i].directionVec;
+	                        var aDotB = 1;
 
-	                    var distance = (0, _utils.calcuteDistance)(normal[0], normal[1], this.vehicles[j].location[0], this.vehicles[j].location[1]);
+	                        var aVec = _vec2.default.fromValues(this.enemies[j].x - this.bullets[i].start[0], this.enemies[j].y - this.bullets[i].start[1]);
+	                        _vec2.default.multiply(aDotB, aVec, bVec);
+	                        _vec2.default.scale(bVec, bVec, aDotB);
+	                        _vec2.default.add(normal, this.bullets[i].start, bVec);
 
-	                    if (distance <= this.vehicles[j].radius) {
+	                        distance = (0, _utils.calcuteDistance)(normal[0], normal[1], this.enemies[j].x, this.enemies[j].y);
+	                    } else {
+	                        distance = (0, _utils.calcuteDistance)(this.bullets[i].x, this.bullets[i].y, this.enemies[j].x, this.enemies[j].y);
+	                    }
+
+	                    if (distance <= this.enemies[j].radius + 2) {
 	                        impact = true;
-	                        this.vehicles.remove(j);j--;
-	                        this.score += 100;
+	                        this.enemies[j].health -= this.bullets[i].damage;
+	                        if (this.enemies[j].health <= 0) {
+	                            this.enemies.remove(j);j--;
+	                            this.score += 100;
+	                        }
 	                        break;
 	                    }
 	                }
@@ -392,11 +404,10 @@
 
 	    }, {
 	        key: 'createNewTower',
-	        value: function createNewTower(coordX, coordY) {
-	            console.log(coordX, coordY);
+	        value: function createNewTower(coordX, coordY, towerType) {
 
 	            // 检查当前位置是否已有物体
-	            if (this.map[coordX][coordY] === 'T') {
+	            if (this.map.coord[coordX][coordY] === 'T') {
 	                console.log('You can not place tower here!');
 	                return -1;
 	            }
@@ -410,8 +421,23 @@
 
 	            var x = coordX * _constant.gridWidth + _constant.gridWidth / 2;
 	            var y = coordY * _constant.gridWidth + _constant.gridWidth / 2;
-	            var tower = new _SimpleTower2.default(ctx, x, y, this.bullets);
-	            this.map[coordX][coordY] = 'T';
+
+	            var tower = null;
+	            switch (towerType) {
+	                case 'SIMPLE':
+	                    tower = new _SimpleTower2.default({
+	                        ctx: ctx, x: x, y: y,
+	                        bullets: this.bullets
+	                    });
+	                    break;
+	                case 'BULLET':
+	                    tower = new _BulletTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets });
+	                    break;
+	                default:
+	                    tower = new _BulletTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets });
+	            }
+
+	            this.map.coord[coordX][coordY] = 'T';
 	            this.money -= cost;
 	            this.towers.push(tower);
 	        }
@@ -423,7 +449,8 @@
 	            var coordX = this.towers[index].coordX;
 	            var coordY = this.towers[index].coordY;
 	            this.towers.remove(index);
-	            this.map[coordX][coordY] = '';
+	            console.log(index);
+	            this.map.coord[coordX][coordY] = '';
 
 	            this.money += 400;
 	            this.towerSelect = false;
@@ -432,52 +459,19 @@
 	    }, {
 	        key: 'drawGhostTower',
 	        value: function drawGhostTower(ctx, x, y, towerType) {
-	            var tower = new _SimpleTower2.default(ctx, x, y, this.bullets);
+	            var tower = new _SimpleTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets, selected: true });
 	            tower.draw(ctx);
 	        }
 	    }, {
-	        key: 'drawMap',
-	        value: function drawMap() {
-	            ctx.save();
-	            ctx.strokeStyle = '#fff';
-	            ctx.fillStyle = '#010101';
-	            ctx.lineWidth = 1;
-	            ctx.fillRect(0, 0, WIDTH, HEIGHT);
-	            // 横纵数目相等
-	            var size = 20;
-
-	            // ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-	            ctx.beginPath();
-	            // Draw vertical lines
-	            for (var i = 0; i < size + 1; i++) {
-	                ctx.moveTo(i * _constant.gridWidth, 0);
-	                ctx.lineTo(i * _constant.gridWidth, size * _constant.gridHeight);
-	            }
-	            ctx.stroke();
-
-	            // Draw horizontal lines
-	            for (i = 0; i < size + 1; i++) {
-	                ctx.moveTo(0, i * _constant.gridWidth);
-	                ctx.lineTo(size * _constant.gridWidth, i * _constant.gridWidth);
-	            }
-	            ctx.stroke();
-
-	            // 当前选中的格子突出显示
-	            if (this.towerSelect) {
-	                var coordX = this.towers[this.towerSelectIndex].coordX;
-	                var coordY = this.towers[this.towerSelectIndex].coordY;
-
-	                fillGrid(coordX, coordY, 'red');
+	        key: 'displayInfo',
+	        value: function displayInfo() {
+	            // 画面信息的显示
+	            if (document.getElementById('enemyCount')) {
+	                document.getElementById('enemyCount').innerHTML = 'Enemy Count: ' + this.enemies.length + ', Bullets: ' + this.bullets.length;
 	            }
 
-	            // 给一个格子上色
-	            function fillGrid(x, y, color) {
-	                ctx.fillStyle = color || "#666";
-	                ctx.fillRect(x * _constant.gridWidth + 1, y * _constant.gridHeight + 1, _constant.gridWidth - 2, _constant.gridHeight - 2);
-	            }
-
-	            ctx.restore();
+	            document.getElementById('score').innerHTML = 'Score: ' + this.score;
+	            document.getElementById('money').innerHTML = 'Money: ' + this.money;
 	        }
 	    }]);
 
@@ -1157,7 +1151,7 @@
 
 /***/ },
 /* 5 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	'use strict';
 
@@ -1165,60 +1159,81 @@
 	    value: true
 	});
 
-	var _vec = __webpack_require__(3);
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _vec2 = _interopRequireDefault(_vec);
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	var Path = function () {
+	    function Path(opt) {
+	        _classCallCheck(this, Path);
 
-	var Path = function Path(ctx) {
-	    'use strict';
+	        this.ctx = opt.ctx;
+	        this.radius = opt.radius;
+	        this.pathCoord = opt.pathCoord;
+	        this.points = [];
 
-	    this.points = [];
-	    this.radius = 0;
+	        /**
+	         * Add a point to path
+	         */
+	        this.addPoint = function (x, y) {
+	            this.points.push([x, y]);
+	        };
 
-	    /**
-	     * Add a point to path
-	     */
-	    this.addPoint = function (x, y) {
-	        var point = _vec2.default.fromValues(x, y);
-	        this.points.push(point);
-	    };
+	        // Define path points
+	        this.setPoints = function () {
+	            for (var i = 0, len = this.pathCoord.length; i < len; i++) {
+	                var coord = this.pathCoord[i];
+	                this.addPoint(40 * coord[0] + 20, 40 * coord[1] + 20);
+	            }
+	        };
+	    }
 
 	    /**
 	     * Render path
 	     */
-	    this.display = function () {
-	        ctx.lineJoin = 'round';
-	        ctx.strokeStyle = '#151515';
-	        ctx.lineWidth = this.radius * 2;
-	        ctx.fillStyle = "red";
-	        ctx.shadowBlur = 0;
-	        ctx.beginPath();
-	        for (var i = 0; i < this.points.length; i++) {
-	            ctx.lineTo(this.points[i][0], this.points[i][1]);
+
+
+	    _createClass(Path, [{
+	        key: 'draw',
+	        value: function draw() {
+	            var ctx = this.ctx;
+	            ctx.save();
+
+	            ctx.beginPath();
+	            ctx.lineJoin = 'round';
+	            ctx.strokeStyle = '#151515';
+	            ctx.lineWidth = this.radius * 2;
+	            ctx.shadowBlur = 0;
+
+	            for (var i = 0; i < this.points.length; i++) {
+	                ctx.lineTo(this.points[i][0], this.points[i][1]);
+	            }
+	            ctx.stroke();
+
+	            ctx.beginPath();
+	            ctx.lineWidth = 1;
+	            ctx.fillStyle = '#151515';
+	            ctx.arc(this.points[0][0], this.points[0][1], this.radius, 0.5 * Math.PI, 1.5 * Math.PI, false);
+	            ctx.fill();
+
+	            // Draw a line in the middle of the path
+	            ctx.strokeStyle = '#aaa';
+	            ctx.lineWidth = 1;
+	            ctx.beginPath();
+	            for (var _i = 0; _i < this.points.length; _i++) {
+	                ctx.lineTo(this.points[_i][0], this.points[_i][1]);
+	            }
+	            // ctx.closePath();
+	            ctx.stroke();
+
+	            ctx.restore();
 	        }
+	    }]);
 
-	        // ctx.closePath();
-	        ctx.stroke();
+	    return Path;
+	}();
 
-	        ctx.beginPath();
-	        ctx.lineWidth = 1;
-	        ctx.fillStyle = '#151515';
-	        ctx.arc(this.points[0][0], this.points[0][1], this.radius, 0.5 * Math.PI, 1.5 * Math.PI, false);
-	        ctx.fill();
-
-	        // Draw a line in the middle of the path
-	        ctx.strokeStyle = '#233333';
-	        ctx.lineWidth = 1;
-	        ctx.beginPath();
-	        for (i = 0; i < this.points.length; i++) {
-	            ctx.lineTo(this.points[i][0], this.points[i][1]);
-	        }
-	        // ctx.closePath();
-	        ctx.stroke();
-	    };
-	};
+	;
 
 	exports.default = Path;
 
@@ -1232,292 +1247,41 @@
 	    value: true
 	});
 
-	var _vec = __webpack_require__(3);
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 用于发射圆形子弹的塔
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
 
-	var _vec2 = _interopRequireDefault(_vec);
+	var _CircleBullet = __webpack_require__(7);
 
-	var _config = __webpack_require__(7);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	// The "Vehicle" class
-	function Vehicle(location, mass, ctx) {
-	    'use strict';
-
-	    var predict = _vec2.default.create();
-	    var dir = _vec2.default.create();
-	    var a = _vec2.default.create();
-	    var b = _vec2.default.create();
-	    var ap = _vec2.default.create();
-	    var ab = _vec2.default.create();
-	    var clonea = _vec2.default.create();
-	    var predictLoc = _vec2.default.create();
-	    var accelerationVec = _vec2.default.fromValues(0, 0);
-	    var steerVec = _vec2.default.create();
-	    var diffVec = _vec2.default.create();
-
-	    this.location = location;
-	    this.mass = mass;
-	    this.maxspeed = 5 / this.mass;
-	    this.maxforce = 1 / 5;
-	    this.radius = this.mass * 1.5;
-	    this.acceleration = _vec2.default.create();
-	    this.velocity = _vec2.default.fromValues(this.maxspeed, 0);
-
-	    this.hue = Math.random() * 360;
-
-	    this.dead = false;
-
-	    this.applyBehaviors = function (vehicles, path) {
-	        var f = this.follow(path);
-	        var s = this.separate(vehicles);
-
-	        // Scale up forces to produce stronger impact
-	        _vec2.default.scale(f, f, 2); // f = f * 2
-	        _vec2.default.scale(s, s, 4); // s = s * 4
-
-	        // Calculate the average force
-	        var forces = _vec2.default.add(_vec2.default.create(), f, s);
-	        _vec2.default.scale(forces, forces, 1 / this.mass); // divide force by its mass
-
-	        // Apply force
-	        this.applyForce(forces);
-	    };
-
-	    /**
-	     * Apply force on the vehicle
-	     */
-	    this.applyForce = function (force) {
-	        _vec2.default.add(this.acceleration, this.acceleration, force);
-	    };
-
-	    /**
-	     * Run Vehicle loop
-	     */
-	    this.run = function () {
-	        this.update();
-	        this.borders();
-	        this.render();
-	    };
-
-	    /**
-	     * Implement Craig Reynolds' path following algorithm
-	     */
-	    this.follow = function (path) {
-
-	        // Predict future location
-	        predict.set(this.velocity);
-
-	        _vec2.default.normalize(predict, predict);
-	        _vec2.default.scale(predict, predict, 25);
-
-	        predictLoc.set([0, 0]);
-	        _vec2.default.add(predictLoc, predict, this.location);
-
-	        // Define things
-	        var target = null;
-	        // Will be updated with shortest distance to path. Start with a very high value.
-	        var worldRecord = 1000000;
-
-	        // Loop through each point of the path
-	        for (var i = 0, len = path.points.length; i < len; i++) {
-
-	            // Get current and next point of the path
-	            a.set(path.points[i]);
-	            b.set(path.points[(i + 1) % path.points.length]);
-
-	            // Calculate a normal point
-	            var normalPoint = this.getNormalPoint(predictLoc, a, b);
-
-	            // Calculate direction towards the next point
-	            dir.set(b);
-	            _vec2.default.sub(dir, dir, a);
-
-	            // Set a normal point to the end of the current path segment and recalculate direction if the vehicle is not within it
-	            if (normalPoint[0] < Math.min(a[0], b[0]) || normalPoint[0] > Math.max(a[0], b[0]) || normalPoint[1] < Math.min(a[1], b[1]) || normalPoint[1] > Math.max(a[1], b[1])) {
-
-	                normalPoint.set(b);
-	                a.set(path.points[(i + 1) % path.points.length]);
-	                b.set(path.points[(i + 2) % path.points.length]);
-
-	                dir.set(b);
-	                _vec2.default.sub(dir, dir, a);
-	            }
-
-	            // Get a distance between future location and normal point
-	            var d = _vec2.default.dist(predictLoc, normalPoint);
-
-	            // Calculate steering target for current path segment if the vehicle is going in segment direction
-	            if (d < worldRecord) {
-	                worldRecord = d;
-	                target = normalPoint;
-
-	                _vec2.default.normalize(dir, dir);
-	                _vec2.default.scale(dir, dir, 25);
-	                _vec2.default.add(target, target, dir);
-	            }
-	        }
-
-	        // Steer if the vehicle is out of the 1/5 of the path's radius
-	        if (worldRecord > path.radius / 5) {
-	            return this.seek(target);
-	        } else {
-	            return _vec2.default.fromValues(0, 0);
-	        }
-	    };
-
-	    // Find normal point of the future location on current path segment
-	    this.getNormalPoint = function (p, a, b) {
-	        ap.set(p);
-	        _vec2.default.sub(ap, ap, a);
-	        ab.set(b);
-	        _vec2.default.sub(ab, ab, a);
-
-	        _vec2.default.normalize(ab, ab);
-	        _vec2.default.scale(ab, ab, _vec2.default.dot(ap, ab));
-
-	        clonea.set(a);
-
-	        return _vec2.default.add(_vec2.default.create(), clonea, ab);
-	    };
-
-	    // Update vehicle's location
-	    this.update = function () {
-	        // New location = current location + (velocity + acceleration) limited by maximum speed
-	        // Reset acceleration to avoid permanent increasing
-	        _vec2.default.add(this.velocity, this.velocity, this.acceleration);
-	        _vec2.default.limit(this.velocity, this.velocity, this.maxspeed);
-	        _vec2.default.add(this.location, this.location, this.velocity);
-
-	        accelerationVec.set([0, 0]);
-	        this.acceleration = accelerationVec;
-	    };
-
-	    // Produce path following behavior
-	    // @param {Array} target Point on the Path where vehicle is steering to
-	    this.seek = function (target) {
-	        _vec2.default.sub(target, target, this.location);
-	        var steer;
-
-	        _vec2.default.normalize(target, target);
-	        _vec2.default.scale(target, target, this.maxspeed);
-
-	        steer = target;
-
-	        _vec2.default.sub(steer, steer, this.velocity);
-	        _vec2.default.limit(steer, steer, this.maxforce);
-
-	        return steer;
-	    };
-
-	    this.separate = function (boids) {
-	        var desiredSepartion = this.radius * 2 + 2,
-	            count = 0,
-	            steer;
-
-	        steerVec.set([0, 0]);
-	        steer = steerVec;
-
-	        // Loop through each vehicle
-	        for (var i = 0, len = boids.length; i < len; i++) {
-	            var other = boids[i],
-	                d = this.location;
-
-	            // Get distance between current and other vehicle
-	            d = _vec2.default.dist(d, other.location);
-
-	            if (d > 0 && d < desiredSepartion) {
-
-	                // Point away from the vehicle
-	                _vec2.default.sub(diffVec, this.location, other.location);
-
-	                _vec2.default.normalize(diffVec, diffVec);
-
-	                // The closer the other vehicle is, the more current one will flee
-	                _vec2.default.scale(diffVec, diffVec, 1 / d);
-
-	                _vec2.default.add(steer, steer, diffVec);
-
-	                count++;
-	            }
-	        }
-
-	        if (count > 0) {
-	            _vec2.default.scale(steer, steer, 1 / count);
-	        }
-	        return steer;
-	    };
-
-	    this.borders = function () {
-	        if (this.location[0] < -50) {
-	            this.dead = true;
-	        }
-	    };
-
-	    this.render = function () {
-	        if (_config.config.renderShadow) {
-	            ctx.shadowBlur = this.radius;
-	            ctx.shadowColor = 'hsl(' + this.hue + ',100%,60%)';
-	        }
-	        // ctx.fillStyle = 'hsl(' + this.hue + ',100%,60%';
-	        ctx.strokeStyle = 'hsl(' + this.hue + ',100%,80%';
-	        ctx.lineWidth = Math.max(3, this.radius / 8);
-
-	        ctx.beginPath();
-	        ctx.arc(this.location[0], this.location[1], this.radius, 0, 2 * Math.PI);
-	        ctx.closePath();
-	        // ctx.fill();
-	        ctx.stroke();
-	    };
-	}
-
-	exports.default = Vehicle;
-
-/***/ },
-/* 7 */
-/***/ function(module, exports) {
-
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	var config = exports.config = {
-	    renderShadow: false
-	};
-
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	var _Bullet = __webpack_require__(9);
-
-	var _Bullet2 = _interopRequireDefault(_Bullet);
+	var _CircleBullet2 = _interopRequireDefault(_CircleBullet);
 
 	var _vec = __webpack_require__(3);
 
 	var _vec2 = _interopRequireDefault(_vec);
 
-	var _utils = __webpack_require__(10);
+	var _utils = __webpack_require__(8);
 
-	var _config = __webpack_require__(7);
+	var _config = __webpack_require__(9);
 
-	var _constant = __webpack_require__(11);
+	var _constant = __webpack_require__(10);
+
+	var _id = __webpack_require__(11);
+
+	var _id2 = _interopRequireDefault(_id);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var SimpleTower = function () {
-	    function SimpleTower(ctx, x, y, bullets) {
+	    function SimpleTower(_ref) {
+	        var ctx = _ref.ctx,
+	            x = _ref.x,
+	            y = _ref.y,
+	            bullets = _ref.bullets,
+	            selected = _ref.selected,
+	            damage = _ref.damage;
+
 	        _classCallCheck(this, SimpleTower);
 
 	        this.x = x;
@@ -1529,26 +1293,50 @@
 	        this.bullets = bullets;
 	        this.cost = _constant.towerCost.simpleTower;
 	        this.lastShootTime = new Date();
+	        this.shootInterval = 500; // 发射间隔，单位ms
 	        this.direction = 180; // 用度数表示的tower指向
 	        this.bulletStartPosVec = _vec2.default.fromValues(0, 0);
 	        this.directionVec = _vec2.default.create();
+	        this.targetIndex = -1;
+	        this.target = null;
+	        this.targetId = -1;
+	        this.range = 3.5 * _constant.gridWidth;
+	        this.selected = selected || false;
+	        this.damage = damage || 5;
 	    }
 
 	    _createClass(SimpleTower, [{
-	        key: 'draw',
-	        value: function draw(ctx) {
+	        key: 'step',
+	        value: function step() {
 	            // 将方向向量归一化
 	            this.directionVec = _vec2.default.fromValues(Math.cos((0, _utils.toRadians)(this.direction)), Math.sin((0, _utils.toRadians)(this.direction)));
 	            _vec2.default.normalize(this.directionVec, this.directionVec);
 
 	            // bullet 出射位置
-
 	            _vec2.default.scale(this.bulletStartPosVec, this.directionVec, 30);
+
+	            if (new Date() - this.lastShootTime >= this.shootInterval) {
+	                this.shoot();
+	                this.lastShootTime = new Date();
+	            }
+	        }
+	    }, {
+	        key: 'draw',
+	        value: function draw(ctx) {
+	            this.step();
 
 	            ctx.save();
 	            if (_config.config.renderShadow) {
 	                ctx.shadowBlur = this.radius;
 	                ctx.shadowColor = 'hsl(' + this.hue + ',100%,60%)';
+	            }
+
+	            // 在选中的情况下，画出其射程范围
+	            if (this.selected) {
+	                ctx.beginPath();
+	                ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+	                ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
+	                ctx.fill();
 	            }
 
 	            ctx.strokeStyle = 'hsl(' + this.hue + ',100%,80%';
@@ -1567,12 +1355,7 @@
 	            ctx.stroke();
 	            ctx.closePath();
 
-	            if (new Date() - this.lastShootTime >= 400) {
-	                this.shoot(ctx);
-	                this.lastShootTime = new Date();
-	            }
-
-	            this.direction = (this.direction + 0.2) % 360;
+	            // this.direction = (this.direction + 0.6) % 360;
 
 	            ctx.restore();
 	        }
@@ -1581,8 +1364,63 @@
 
 
 	        // 发射子弹
-	        value: function shoot(ctx) {
-	            this.bullets.push(new _Bullet2.default(ctx, this.x + this.bulletStartPosVec[0], this.y + this.bulletStartPosVec[1], this.directionVec));
+	        value: function shoot() {
+	            if (this.target) {
+	                this.bullets.push(new _CircleBullet2.default({
+	                    id: _id2.default.genId(),
+	                    target: this.target,
+	                    ctx: this.ctx,
+	                    x: this.x + this.bulletStartPosVec[0],
+	                    y: this.y + this.bulletStartPosVec[1],
+	                    range: this.range,
+	                    damage: this.damage
+	                }));
+	            }
+	        }
+	    }, {
+	        key: 'findTarget',
+	        value: function findTarget(enemies) {
+	            // 先判断原有的target是否仍在范围内
+	            if (this.target !== null) {
+	                var prevTgt = enemies.getEle(this.target);
+	                if (prevTgt) {
+	                    if ((0, _utils.calcuteDistance)(prevTgt.x, prevTgt.y, this.x, this.y) < this.range) {
+	                        return;
+	                    }
+	                }
+	            }
+
+	            // 去寻找一个新的target
+	            this.targetIndex = -1;
+	            this.targetId = -1;
+	            this.target = null;
+
+	            for (var i = 0, len = enemies.length; i < len; i++) {
+	                var enemy = enemies[i];
+	                if (Math.abs(enemy.x - this.x) + Math.abs(enemy.y - this.y) > this.range) {
+	                    // 简化计算
+	                    continue;
+	                } else {
+	                    if ((0, _utils.calcuteDistance)(enemy.x, enemy.y, this.x, this.y) < this.range) {
+	                        if (this.target) this.target.color = 0;
+	                        this.targetIndex = i;
+	                        this.target = enemies[i];
+	                        this.targetId = enemies[i].id;
+	                        break;
+	                    }
+	                }
+	            }
+
+	            if (this.targetIndex !== -1) {
+	                var target = enemies.getEleById(this.targetId);
+	                if (target) {
+	                    this.directionVec = _vec2.default.fromValues(target.x - this.x, target.y - this.y);
+	                    this.direction = Math.atan2(target.y - this.y, target.x - this.x) * (180 / Math.PI);
+
+	                    target.color = 'red';
+	                }
+	                return target;
+	            }
 	        }
 	    }]);
 
@@ -1592,7 +1430,425 @@
 	exports.default = SimpleTower;
 
 /***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _vec = __webpack_require__(3);
+
+	var _vec2 = _interopRequireDefault(_vec);
+
+	var _utils = __webpack_require__(8);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var Bullet1 = function () {
+	    function Bullet1(_ref) {
+	        var ctx = _ref.ctx,
+	            x = _ref.x,
+	            y = _ref.y,
+	            target = _ref.target,
+	            range = _ref.range,
+	            damage = _ref.damage;
+
+	        _classCallCheck(this, Bullet1);
+
+	        this.type = 'circle';
+	        this.x = x;
+	        this.y = y;
+	        this.ctx = ctx;
+	        this.target = target;
+	        this.radius = 3;
+	        this.speed = 8;
+	        this.vx = 0;
+	        this.vy = 0;
+	        this.angle = 0;
+	        this.hue = 200;
+	        this.range = range;
+	        this.damage = damage || 5;
+	    }
+
+	    _createClass(Bullet1, [{
+	        key: 'step',
+	        value: function step(enemies) {
+	            // 新位置
+	            if (this.target) {
+	                var target = enemies.getEleById(this.target.id);
+	                if (target) {
+	                    var curDis = (0, _utils.calcuteDistance)(target.x, target.y, this.x, this.y);
+	                    if (curDis < this.range) {
+	                        var dx = target.x - this.x;
+	                        var dy = target.y - this.y;
+	                        this.angle = Math.atan2(dy, dx);
+	                    }
+	                }
+	            }
+	            this.vx = Math.cos(this.angle) * this.speed;
+	            this.vy = Math.sin(this.angle) * this.speed;
+
+	            this.x += this.vx;
+	            this.y += this.vy;
+	        }
+	    }, {
+	        key: 'draw',
+	        value: function draw(ctx, enemies) {
+	            this.step(enemies);
+
+	            // 绘图开始
+	            ctx.save();
+	            ctx.strokeStyle = 'hsl(' + this.hue + ', 100%, 80%)';
+	            ctx.beginPath();
+	            ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+	            ctx.stroke();
+	            ctx.restore();
+	        }
+	    }]);
+
+	    return Bullet1;
+	}();
+
+	exports.default = Bullet1;
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.toRadians = toRadians;
+	exports.calcuteDistance = calcuteDistance;
+
+	var _vec = __webpack_require__(3);
+
+	var _vec2 = _interopRequireDefault(_vec);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function toRadians(angle) {
+	    return angle * (Math.PI / 180);
+	}
+
+	// Array Remove - By John Resig (MIT Licensed)
+	Array.prototype.remove = function (from, to) {
+	    var rest = this.slice((to || from) + 1 || this.length);
+	    this.length = from < 0 ? this.length + from : from;
+	    return this.push.apply(this, rest);
+	};
+
+	// 根据id删除元素
+	Array.prototype.removeById = function (id) {};
+
+	Array.prototype.getEleById = function (id) {
+	    var result = null;
+	    this.forEach(function (ele, i) {
+	        if (ele.id === id) {
+	            result = ele;
+	        }
+	    });
+	    return result;
+	};
+
+	Array.prototype.getEle = function (ele) {
+	    for (var i = 0; i < this.length; i++) {
+	        if (this[i] === ele) {
+	            return ele;
+	        }
+	    }
+	    return null;
+	};
+
+	function calcuteDistance(x1, y1, x2, y2) {
+	    var result = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+	    return result;
+	}
+
+	// Make sure v is smaller than high
+	_vec2.default.limit = function (out, v, high) {
+	    'use strict';
+
+	    var x = v[0],
+	        y = v[1];
+
+	    var len = x * x + y * y;
+
+	    if (len > high * high && len > 0) {
+	        out[0] = x;
+	        out[1] = y;
+	        _vec2.default.normalize(out, out);
+	        _vec2.default.scale(out, out, high);
+	    }
+	    return out;
+	};
+
+/***/ },
 /* 9 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	var config = exports.config = {
+	    renderShadow: false
+	};
+
+/***/ },
+/* 10 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	var gridWidth = exports.gridWidth = 40;
+	var gridHeight = exports.gridHeight = gridWidth;
+	var gridSize = exports.gridSize = 40;
+	var gridNumX = exports.gridNumX = 20; // x轴方向上的格子数目
+	var gridNumY = exports.gridNumY = 16; // y轴方向上的格子数目
+
+	var towerCost = exports.towerCost = {
+	    'simpleTower': 200
+	};
+
+/***/ },
+/* 11 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var globalId = function () {
+	    function globalId() {
+	        _classCallCheck(this, globalId);
+
+	        this.value = [];
+	    }
+
+	    _createClass(globalId, [{
+	        key: "genId",
+	        value: function genId() {
+	            if (this.getLength() === 0) {
+	                this.value.push(0);
+	                return 0;
+	            } else {
+	                var id = this.value[this.getLength() - 1] + 1;
+	                this.value.push(id);
+	                return id;
+	            }
+	        }
+	    }, {
+	        key: "getLength",
+	        value: function getLength() {
+	            return this.value.length;
+	        }
+	    }]);
+
+	    return globalId;
+	}();
+
+	exports.default = new globalId();
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _Bullet = __webpack_require__(13);
+
+	var _Bullet2 = _interopRequireDefault(_Bullet);
+
+	var _vec = __webpack_require__(3);
+
+	var _vec2 = _interopRequireDefault(_vec);
+
+	var _utils = __webpack_require__(8);
+
+	var _config = __webpack_require__(9);
+
+	var _constant = __webpack_require__(10);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var BulletTower = function () {
+	    function BulletTower(_ref) {
+	        var ctx = _ref.ctx,
+	            x = _ref.x,
+	            y = _ref.y,
+	            bullets = _ref.bullets,
+	            damage = _ref.damage;
+
+	        _classCallCheck(this, BulletTower);
+
+	        this.ctx = ctx;
+	        this.x = x;
+	        this.y = y;
+	        this.coordX = Math.floor((x - _constant.gridWidth / 2) / _constant.gridWidth);
+	        this.coordY = Math.floor((y - _constant.gridHeight / 2) / _constant.gridHeight);
+	        this.radius = 12;
+	        this.hue = 100;
+	        this.bullets = bullets;
+	        this.cost = _constant.towerCost.simpleTower;
+
+	        this.range = 3 * _constant.gridWidth;
+	        this.targetIndex = -1;
+	        this.target = null;
+	        this.targetId = -1;
+
+	        this.lastShootTime = new Date();
+	        this.direction = 180; // 用度数表示的tower指向
+	        this.bulletStartPosVec = _vec2.default.fromValues(0, 0);
+	        this.directionVec = _vec2.default.create();
+
+	        this.damage = damage || 5;
+	    }
+
+	    _createClass(BulletTower, [{
+	        key: 'draw',
+	        value: function draw() {
+	            var ctx = this.ctx;
+
+	            // 将方向向量归一化
+	            this.directionVec = _vec2.default.fromValues(Math.cos((0, _utils.toRadians)(this.direction)), Math.sin((0, _utils.toRadians)(this.direction)));
+	            _vec2.default.normalize(this.directionVec, this.directionVec);
+
+	            // bullet 出射位置
+
+	            _vec2.default.scale(this.bulletStartPosVec, this.directionVec, 30);
+
+	            ctx.save();
+	            if (_config.config.renderShadow) {
+	                ctx.shadowBlur = this.radius;
+	                ctx.shadowColor = 'hsl(' + this.hue + ',100%,60%)';
+	            }
+
+	            // 在选中的情况下，画出其射程范围
+	            if (this.selected) {
+	                ctx.beginPath();
+	                ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+	                ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
+	                ctx.fill();
+	            }
+
+	            ctx.strokeStyle = 'hsl(' + this.hue + ',100%,80%';
+	            ctx.fillStyle = 'hsl(' + this.hue + ',100%,80%';
+	            ctx.lineWidth = Math.max(3, this.radius / 8);
+
+	            ctx.beginPath();
+	            ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+	            ctx.closePath();
+	            ctx.stroke();
+	            ctx.fill();
+
+	            ctx.beginPath();
+	            ctx.moveTo(this.x, this.y);
+	            ctx.lineTo(this.x + this.bulletStartPosVec[0], this.y + this.bulletStartPosVec[1]);
+	            ctx.stroke();
+	            ctx.closePath();
+
+	            if (this.targetIndex !== -1 && new Date() - this.lastShootTime >= 2000) {
+	                this.shoot(ctx);
+	                this.lastShootTime = new Date();
+	            }
+
+	            // this.direction = (this.direction + 0.2) % 360;
+
+	            ctx.restore();
+	        }
+	    }, {
+	        key: 'shoot',
+
+
+	        // 发射子弹
+	        value: function shoot(ctx) {
+	            this.bullets.push(new _Bullet2.default({
+	                ctx: ctx,
+	                x: this.x + this.bulletStartPosVec[0],
+	                y: this.y + this.bulletStartPosVec[1],
+	                directionVec: this.directionVec
+	            }));
+	        }
+	    }, {
+	        key: 'findTarget',
+	        value: function findTarget(enemies) {
+	            // 先判断原有的target是否仍在范围内
+	            if (this.target !== null) {
+	                var prevTgt = enemies.getEle(this.target);
+	                if (prevTgt) {
+	                    if ((0, _utils.calcuteDistance)(prevTgt.x, prevTgt.y, this.x, this.y) < this.range) {
+	                        return;
+	                    }
+	                }
+	            }
+
+	            // 去寻找一个新的target
+	            this.targetIndex = -1;
+	            this.targetId = -1;
+	            this.target = null;
+
+	            for (var i = 0, len = enemies.length; i < len; i++) {
+	                var enemy = enemies[i];
+	                if (Math.abs(enemy.x - this.x) + Math.abs(enemy.y - this.y) > this.range) {
+	                    continue;
+	                } else {
+	                    if ((0, _utils.calcuteDistance)(enemy.x, enemy.y, this.x, this.y) < this.range) {
+	                        this.targetIndex = i;
+	                        this.target = enemies[i];
+	                        this.targetId = enemies[i].id;
+	                        break;
+	                    }
+	                }
+	            }
+
+	            if (this.targetIndex !== -1) {
+	                var target = enemies.getEleById(this.targetId);
+	                if (target) {
+	                    this.directionVec = _vec2.default.fromValues(target.x - this.x, target.y - this.y);
+	                    this.direction = Math.atan2(target.y - this.y, target.x - this.x) * (180 / Math.PI);
+
+	                    target.color = 'red';
+	                }
+	                return target;
+	            }
+	        }
+	    }]);
+
+	    return BulletTower;
+	}();
+
+	exports.default = BulletTower;
+
+/***/ },
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1607,16 +1863,22 @@
 
 	var _vec2 = _interopRequireDefault(_vec);
 
-	var _utils = __webpack_require__(10);
+	var _utils = __webpack_require__(8);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var Bullet = function () {
-	        function Bullet(ctx, x, y, directionVec) {
+	        function Bullet(_ref) {
+	                var ctx = _ref.ctx,
+	                    x = _ref.x,
+	                    y = _ref.y,
+	                    directionVec = _ref.directionVec;
+
 	                _classCallCheck(this, Bullet);
 
+	                this.type = 'line';
 	                this.x = x;
 	                this.y = y;
 	                this.directionVec = directionVec;
@@ -1666,7 +1928,7 @@
 	exports.default = Bullet;
 
 /***/ },
-/* 10 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1674,66 +1936,218 @@
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	exports.toRadians = toRadians;
-	exports.calcuteDistance = calcuteDistance;
 
-	var _vec = __webpack_require__(3);
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _vec2 = _interopRequireDefault(_vec);
+	var _constant = __webpack_require__(10);
 
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function toRadians(angle) {
-	    return angle * (Math.PI / 180);
-	}
+	var Enemy = function () {
+	    function Enemy(opt) {
+	        _classCallCheck(this, Enemy);
 
-	// Array Remove - By John Resig (MIT Licensed)
-	Array.prototype.remove = function (from, to) {
-	    var rest = this.slice((to || from) + 1 || this.length);
-	    this.length = from < 0 ? this.length + from : from;
-	    return this.push.apply(this, rest);
-	};
+	        this.id = opt.id;
+	        this.ctx = opt.ctx;
 
-	function calcuteDistance(x1, y1, x2, y2) {
-	    var result = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-	    return result;
-	}
+	        // 用像素表示的当前位置
+	        this.x = opt.x;
+	        this.y = opt.y;
 
-	// Make sure v is smaller than high
-	_vec2.default.limit = function (out, v, high) {
-	    'use strict';
+	        // 当前目标点waypoint的index
+	        this.wp = 1;
 
-	    var x = v[0],
-	        y = v[1];
+	        // 速度在两个方向上的分量
+	        this.vx = 0;
+	        this.vy = 0;
 
-	    var len = x * x + y * y;
+	        this.speed = 2;
 
-	    if (len > high * high && len > 0) {
-	        out[0] = x;
-	        out[1] = y;
-	        _vec2.default.normalize(out, out);
-	        _vec2.default.scale(out, out, high);
+	        // 当前位置到目标点的距离
+	        this.dx = 0;
+	        this.dy = 0;
+	        this.dist = 0;
+
+	        // 需要绘制的半径大小
+	        this.radius = 10;
+
+	        // 标记是否需要转弯
+	        this.angleFlag = 1;
+
+	        this.color = 0;
+	        this.health = 20;
 	    }
-	    return out;
-	};
+
+	    _createClass(Enemy, [{
+	        key: 'step',
+	        value: function step(_ref) {
+	            var path = _ref.path;
+
+	            var speed = this.speed;
+	            // debugger;
+
+	            var wp = path[this.wp];
+	            // console.log(wp);
+	            this.dx = wp[0] * _constant.gridSize + _constant.gridSize * 0.5 - this.x;
+	            this.dy = wp[1] * _constant.gridSize + _constant.gridSize * 0.5 - this.y;
+	            // console.log(this.dx, this.dy);
+	            this.dist = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
+
+	            if (this.angleFlag) {
+	                this.angle = Math.atan2(this.dy, this.dx);
+	                this.angleFlag = 0;
+	            }
+	            this.vx = Math.cos(this.angle) * speed;
+	            this.vy = Math.sin(this.angle) * speed;
+
+	            if (Math.abs(this.dist) > speed) {
+	                this.x += this.vx;
+	                this.y += this.vy;
+	            } else {
+	                this.x = (wp[0] + 0.5) * _constant.gridSize;
+	                this.y = (wp[1] + 0.5) * _constant.gridSize;
+	                if (this.wp + 1 >= path.length) {
+	                    // 到达终点
+	                    console.log('reach destination');
+	                    this.dead = true;
+	                } else {
+	                    this.wp++;
+	                    this.angleFlag = 1;
+	                }
+	            }
+	        }
+	    }, {
+	        key: 'draw',
+	        value: function draw() {
+	            var ctx = this.ctx;
+	            ctx.strokeStyle = this.color || '#eee';
+	            ctx.lineWidth = 2;
+	            ctx.beginPath();
+	            ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+	            ctx.closePath();
+	            ctx.stroke();
+	        }
+	    }]);
+
+	    return Enemy;
+	}();
+
+	exports.default = Enemy;
 
 /***/ },
-/* 11 */
-/***/ function(module, exports) {
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	        value: true
 	});
-	var gridWidth = exports.gridWidth = 40;
-	var gridHeight = exports.gridHeight = gridWidth;
-	var gridNumX = exports.gridNumX = 20; // x轴方向上的格子数目
-	var gridNumY = exports.gridNumY = 16; // y轴方向上的格子数目
 
-	var towerCost = exports.towerCost = {
-	    'simpleTower': 200
-	};
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _constant = __webpack_require__(10);
+
+	var _Path = __webpack_require__(5);
+
+	var _Path2 = _interopRequireDefault(_Path);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var Map = function () {
+	        function Map(opt) {
+	                _classCallCheck(this, Map);
+
+	                this.ctx = opt.ctx;
+	                this.newTowerCoord = opt.newTowerCoord || null;
+	                this.pathCoord = opt.pathCoord;
+	                this.WIDTH = opt.WIDTH, this.HEIGHT = opt.HEIGHT, this.coord = [];
+
+	                for (var i = 0; i < _constant.gridNumX; i++) {
+	                        this.coord[i] = [];
+	                }
+
+	                // 初始状态下的塔
+	                if (this.newTowerCoord) {
+	                        this.coord[this.newTowerCoord[0]][this.newTowerCoord[1]] = 'T';
+	                }
+
+	                // Create an instance of Path object
+	                this.path = new _Path2.default({
+	                        ctx: this.ctx,
+	                        radius: _constant.gridWidth / 2,
+	                        pathCoord: this.pathCoord
+	                });
+
+	                // Add points to the path
+	                this.path.setPoints();
+	        }
+
+	        _createClass(Map, [{
+	                key: 'draw',
+	                value: function draw(_ref) {
+	                        var towers = _ref.towers,
+	                            towerSelect = _ref.towerSelect,
+	                            towerSelectIndex = _ref.towerSelectIndex;
+
+	                        var ctx = this.ctx;
+	                        var WIDTH = this.WIDTH;
+	                        var HEIGHT = this.HEIGHT;
+
+	                        ctx.save();
+
+	                        // Clear canvas
+	                        ctx.fillStyle = '#000';
+	                        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+	                        ctx.strokeStyle = '#ddd';
+	                        ctx.fillStyle = '#666';
+	                        ctx.lineWidth = 1;
+	                        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+	                        // 横纵数目相等
+	                        var size = 20;
+
+	                        ctx.beginPath();
+	                        // Draw vertical lines
+	                        for (var i = 0; i < size + 1; i++) {
+	                                ctx.moveTo(i * _constant.gridWidth, 0);
+	                                ctx.lineTo(i * _constant.gridWidth, size * _constant.gridHeight);
+	                        }
+	                        ctx.stroke();
+
+	                        // Draw horizontal lines
+	                        for (i = 0; i < size + 1; i++) {
+	                                ctx.moveTo(0, i * _constant.gridWidth);
+	                                ctx.lineTo(size * _constant.gridWidth, i * _constant.gridWidth);
+	                        }
+	                        ctx.stroke();
+
+	                        // 当前选中的格子突出显示
+	                        // TODO: 这一部分移入game.js中
+	                        if (towerSelect) {
+	                                var coordX = towers[towerSelectIndex].coordX;
+	                                var coordY = towers[towerSelectIndex].coordY;
+	                                fillGrid(coordX, coordY, 'pink');
+	                        }
+
+	                        // 给一个格子上色
+	                        function fillGrid(x, y, color) {
+	                                ctx.fillStyle = color || "#666";
+	                                ctx.fillRect(x * _constant.gridWidth + 1, y * _constant.gridHeight + 1, _constant.gridWidth - 2, _constant.gridHeight - 2);
+	                        }
+
+	                        ctx.restore();
+
+	                        this.path.draw();
+	                }
+	        }]);
+
+	        return Map;
+	}();
+
+	exports.default = Map;
 
 /***/ }
 /******/ ]);

@@ -1,4 +1,5 @@
 node_modules
 # bundle.js
+*.js.map
 settings.json
 npm-debug.log
