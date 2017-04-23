@@ -11,7 +11,7 @@ import globalId from './../id';
 
 
 export default class SimpleTower {
-    constructor({ ctx, x, y, bullets }) {
+    constructor({ ctx, x, y, bullets, selected }) {
         this.x = x;
         this.y = y;
         this.coordX = Math.floor((x - gridWidth / 2) / gridWidth);
@@ -21,13 +21,15 @@ export default class SimpleTower {
         this.bullets = bullets;
         this.cost = towerCost.simpleTower;
         this.lastShootTime = new Date();
+        this.shootInterval = 500;   // 发射间隔，单位ms
         this.direction = 180;     // 用度数表示的tower指向
         this.bulletStartPosVec = vec2.fromValues(0, 0);
         this.directionVec = vec2.create();
         this.targetIndex = -1;
         this.target = null;
         this.targetId = -1;
-        this.range = 6 * gridWidth;
+        this.range = 3.5 * gridWidth;
+        this.selected = selected || false;
     }
 
     draw(ctx) {
@@ -48,6 +50,14 @@ export default class SimpleTower {
             ctx.shadowColor = 'hsl(' + this.hue + ',100%,60%)';
         }
 
+        // 在选中的情况下，画出其射程范围
+        if (this.selected) {
+            ctx.beginPath();
+            ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+            ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
         ctx.strokeStyle = 'hsl(' + this.hue + ',100%,80%';
         ctx.fillStyle = 'hsl(' + this.hue + ',100%,80%';
         ctx.lineWidth = Math.max(3, this.radius / 8);
@@ -64,7 +74,7 @@ export default class SimpleTower {
         ctx.stroke();
         ctx.closePath();
 
-        if (new Date - this.lastShootTime >= 1500) {
+        if (new Date - this.lastShootTime >= this.shootInterval) {
             this.shoot(ctx);
             this.lastShootTime = new Date();
         }
@@ -125,7 +135,7 @@ export default class SimpleTower {
             const target = enemies.getEleById(this.targetId);
             if (target) {
                 this.directionVec = vec2.fromValues(target.x - this.x, target.y - this.y);
-                this.direction =  Math.atan2(target.y - this.y, target.x - this.x) * (180 / Math.PI);
+                this.direction = Math.atan2(target.y - this.y, target.x - this.x) * (180 / Math.PI);
 
                 target.color = 'red';
             }

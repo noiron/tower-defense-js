@@ -35,7 +35,7 @@ export default class Game {
         this.pathCoord = [
             [0, 0], [18, 0],
             [18, 4], [10, 4], [10, 10], [16, 10],
-            [16, 14], [-6, 14]
+            [16, 14], [-1, 14]
         ];
 
         const newTowerCoord = [8, 3];
@@ -74,8 +74,8 @@ export default class Game {
             towerSelectIndex: this.towerSelectIndex
         });
 
-        // 总数小于50，且间隔1000ms以上
-        if (this.enemyCreatedCount < 20 && new Date() - this.lastCreatedEnemyTime > 1000) {
+        // 总数小于50，且间隔 x ms以上
+        if (this.enemyCreatedCount < 20 && new Date() - this.lastCreatedEnemyTime > 500) {
             var enemy = new Enemy({
                 id: globalId.genId(),
                 x: gridWidth / 2 + (Math.random() - 0.5) * 5,
@@ -98,7 +98,15 @@ export default class Game {
         });
 
         // Draw our tower
-        this.towers.forEach(tower => { tower.draw(ctx) });
+        this.towers.forEach((tower, index) => {
+            if (this.towerSelect && this.towerSelectIndex === index) {
+                // 选中的塔需画出其范围
+                tower.selected = true;
+            } else {
+                tower.selected = false;
+            }
+            tower.draw(ctx)
+        });
 
         // 确定 bullet tower 的目标
         for (let i = 0, len = this.towers.length; i < len; i++) {
@@ -114,10 +122,6 @@ export default class Game {
 
                 this.towers[i].direction = Math.atan2(target.y - this.towers[i].y,
                     target.x - this.towers[i].x) * (180 / Math.PI);
-
-                // const theta = Math.atan2(target.y - this.towers[i].y,
-                //     target.x - this.towers[i].x);
-                // this.towers[i].direction = theta < 0 ? theta * 180 / Math.PI : (theta + 1) * 180 / Math.PI;
             }
         }
 
@@ -231,15 +235,18 @@ export default class Game {
         let tower = null;
         switch (towerType) {
             case 'SIMPLE':
-                new SimpleTower(ctx, x, y, this.bullets, this);
+                tower = new SimpleTower({
+                    ctx, x, y,
+                    bullets: this.bullets,
+                });
+                break;
             case 'BULLET':
                 tower = new BulletTower({ ctx, x, y, bullets: this.bullets });
+                break;
             default:
                 tower = new BulletTower({ ctx, x, y, bullets: this.bullets });
         }
 
-        // const tower = new SimpleTower(ctx, x, y, this.bullets);
-        // const tower = new BulletTower(ctx, x, y, this.bullets);
         this.map.coord[coordX][coordY] = 'T';
         this.money -= cost;
         this.towers.push(tower);
@@ -258,7 +265,7 @@ export default class Game {
     }
 
     drawGhostTower(ctx, x, y, towerType) {
-        const tower = new SimpleTower({ ctx, x, y, bullets: this.bullets });
+        const tower = new SimpleTower({ ctx, x, y, bullets: this.bullets, selected: true });
         tower.draw(ctx);
     }
 

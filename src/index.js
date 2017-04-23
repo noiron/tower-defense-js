@@ -66,7 +66,7 @@ document.onclick = function (e) {
         }
 
         if (game.mode === 'ADD_TOWER') {
-            game.createNewTower(coordX, coordY);
+            game.createNewTower(coordX, coordY, 'SIMPLE');
         }
     }
     // console.log(coordX, coordY);
