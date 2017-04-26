@@ -29,7 +29,7 @@ export default class SimpleTower {
         this.targetIndex = -1;
         this.target = null;
         this.targetId = -1;
-        this.range = 3.5 * gridWidth;
+        this.range = 4 * gridWidth;
         this.selected = selected || false;
         this.damage = damage || 5;
     }

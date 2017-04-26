@@ -13,6 +13,8 @@ const HEIGHT = 640;
 const canvas = document.getElementById("drawing");
 const ctx = canvas.getContext("2d");
 
+const gameOverEle = document.getElementById('game-over');
+
 export default class Game {
     constructor() {
         // Init
@@ -63,11 +65,22 @@ export default class Game {
         this.towerSelectIndex = -1;
         this.towerSelectId = -1;
 
+        this.status = 'running';
+
         this.draw();
     }
 
     // Specify what to draw
     draw() {
+        if (this.status === 'gameOver') {
+            gameOverEle.style.display = 'block';
+            return;
+        }
+
+        if (this.status === 'pause') {
+            return;
+        }
+
         this.map.draw({
             towers: this.towers,
             towerSelect: this.towerSelect,
@@ -109,6 +122,13 @@ export default class Game {
             }
             tower.draw(ctx)
         });
+
+        // 如何确定游戏结束?
+        if (this.enemyCreatedCount > 0  && this.enemies.length === 0) {
+            setTimeout(() => {
+                this.status = 'gameOver';
+            }, 1000);
+        }
 
         // 确定 bullet tower 的目标
         for (let i = 0, len = this.towers.length; i < len; i++) {

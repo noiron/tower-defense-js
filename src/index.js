@@ -26,6 +26,9 @@ towerCanvas1.addEventListener('click', () => {
         game.addTowerType = 'SIMPLE';
     }
 });
+console.log(towerCanvas1.toDataURL());
+
+const tower1DataURL = towerCanvas1.toDataURL();
 
 // BULLET tower
 const towerCanvas2 = document.getElementById('tower2');
@@ -35,18 +38,19 @@ const ctx2 = towerCanvas2.getContext("2d");
 const showTower2 = new BulletTower({ ctx: ctx2, x: 25, y: 25 });
 showTower2.draw();
 towerCanvas2.addEventListener('click', () => {
-    if (game.mode === 'ADD_TOWER') {
-        if (game.addTowerType !== 'BULLET') {
-            game.addTowerType = 'BULLET';
-        } else {
-            game.mode = '';
-            game.addTowerType = '';
-        }
+    if (game.mode === 'ADD_TOWER' && game.addTowerType === 'BULLET') {
+        game.mode = '';
+        game.addTowerType = '';
     } else {
         game.mode = 'ADD_TOWER';
         game.addTowerType = 'BULLET';
     }
 });
+// var img = new Image();
+// img.src = tower1DataURL;
+// img.onload = function () {
+//     ctx2.drawImage(img, 0, 0);
+// };
 
 
 const canvas = document.getElementById("drawing");
@@ -58,7 +62,7 @@ canvas.oncontextmenu = function (e) {
 };
 
 
-document.onmousemove = function (e) {
+canvas.onmousemove = function (e) {
     if (game.mode === 'ADD_TOWER') {
         game.cursorX = e.pageX;
         game.cursorY = e.pageY;
@@ -123,9 +127,11 @@ sellButton.onclick = () => {
     }
 };
 
-
-const vehicleCountNode = document.createElement("p");
-vehicleCountNode.setAttribute("id", "enemyCount");
-const textnode = document.createTextNode(`Enemy Count: ${game.enemies.length}`);
-vehicleCountNode.appendChild(textnode);
-document.body.appendChild(vehicleCountNode);
+// 暂停功能
+const pauseButton = document.getElementById('pause');
+pauseButton.onclick = () => {
+    game.status = game.status === 'running' ? 'pause' : 'running';
+    if (game.status === 'running') {
+        game.draw();
+    }
+}

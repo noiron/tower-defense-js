@@ -1,9 +1,26 @@
 body {
-    background: #aaa;
+    background: #eee;
 }
 
 main {
     display: flex;
+    border: 1px solid;
+}
+
+#game-over {
+    border: 2px solid #000;
+    border-radius: 20px;
+    width: 400px;
+    height: 100px;
+    position: absolute;
+    color: red;
+    font-size: 40px;
+    background: #fff;
+    text-align: center;
+    line-height: 92px;
+    left: 200px;
+    top: 250px;
+    box-shadow: 4px 4px 5px red;
 }
 
 #add-tower {
@@ -15,15 +32,12 @@ main {
     height: 50px;
     background-color: #fff;
     display: inline-block;
-    /*position: absolute;*/
     margin-left: 20px;
-    /*top: 20px;*/
     border: 1px solid #000;
 }
 
 canvas {
-    margin-top: 10px;
-    /*margin-left: 20px;*/
+    /*margin-top: 10px;*/
 }
 
 #game-info {
@@ -33,15 +47,8 @@ canvas {
     margin-left: 20px;
 }
 
-#action {
-    width: 200px;
-    height: 30px;
-    margin: auto;
-}
-
-#sell-tower {
-    width: 50px;
-    height: 20px;
-    border: 1px solid #000;
-    text-align: center;
+button {
+    width: 80px;
+    height: 40px;
+    margin: 10px;
 }

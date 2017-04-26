@@ -38,11 +38,11 @@ export default class Map {
         ctx.save();
 
         // Clear canvas
-        ctx.fillStyle = '#000';
+        ctx.fillStyle = '#fff';
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-        ctx.strokeStyle = '#ddd';
-        ctx.fillStyle = '#666';
+        ctx.strokeStyle = '#eee';
+        ctx.fillStyle = '#fff';
         ctx.lineWidth = 1;
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
         // 横纵数目相等

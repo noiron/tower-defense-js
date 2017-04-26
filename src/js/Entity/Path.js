@@ -30,7 +30,7 @@ class Path {
 
         ctx.beginPath();
         ctx.lineJoin = 'round';
-        ctx.strokeStyle = '#151515';
+        ctx.strokeStyle = '#333';
         ctx.lineWidth = this.radius * 2;
         ctx.shadowBlur = 0;
 
@@ -41,12 +41,12 @@ class Path {
 
         ctx.beginPath();
         ctx.lineWidth = 1;
-        ctx.fillStyle = '#151515';
+        ctx.fillStyle = '#555';
         ctx.arc(this.points[0][0], this.points[0][1], this.radius, 0.5 * Math.PI, 1.5 * Math.PI, false);
         ctx.fill();
 
         // Draw a line in the middle of the path
-        ctx.strokeStyle = '#aaa';
+        ctx.strokeStyle = '#111';
         ctx.lineWidth = 1;
         ctx.beginPath();
         for (let i = 0; i < this.points.length; i++) {

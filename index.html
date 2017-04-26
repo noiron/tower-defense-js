@@ -10,6 +10,7 @@
 <body>
   <main>
     <canvas id="drawing"></canvas>
+    <div id="game-over" style="display: none">Game Over</div>
     <section id="game-control">
       <div id="add-tower">
         <canvas id="tower1" class="add-tower-pic"></canvas>
@@ -18,12 +19,13 @@
       <div id="game-info">
         <p id="score">Score: 0</p>
         <p id="money">Money: 1000</p>
+        <button id="pause">Pause</button>
+        <button id="sell-tower">Sell</button>
       </div>
     </section>
-    <div id="action">
-      <p id="sell-tower">Sell</p>
-    </div>
   </main>
+  
+  <p id="enemyCount">Enemy Count: </p>
 
   <script src="./static/bundle.js"></script>
 </body>
