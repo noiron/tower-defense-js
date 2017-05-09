@@ -2,12 +2,12 @@
  * 用于发射圆形子弹的塔
  */
 
-import Bullet from './CircleBullet';
+import Bullet from './../bullet/CircleBullet';
 import vec2 from 'gl-matrix/src/gl-matrix/vec2';
-import { toRadians, calcuteDistance } from '../utils/utils';
-import { config } from './../utils/config';
-import { towerCost, gridWidth, gridHeight } from './../utils/constant';
-import globalId from './../id';
+import { toRadians, calcuteDistance } from './../../utils/utils';
+import { config } from './../../utils/config';
+import { towerCost, gridWidth, gridHeight } from './../../utils/constant';
+import globalId from './../../id';
 
 
 export default class SimpleTower {

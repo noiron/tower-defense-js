@@ -1,7 +1,7 @@
 import vec2 from 'gl-matrix/src/gl-matrix/vec2';
 import Path from './Entity/Path.js';
-import SimpleTower from './Entity/SimpleTower.js';
-import BulletTower from './Entity/BulletTower.js';
+import SimpleTower from './Entity/tower/SimpleTower.js';
+import BulletTower from './Entity/tower/BulletTower.js';
 import Enemy from './Entity/Enemy';
 import Map from './Entity/Map';
 import { calcuteDistance } from './utils/utils';

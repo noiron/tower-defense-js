@@ -1,7 +1,7 @@
 import Game from './js/Game';
 import { gridWidth, gridHeight, gridNumX, gridNumY, towerDataURL } from './js/utils/constant';
-import SimpleTower from './js/Entity/SimpleTower';
-import BulletTower from './js/Entity/BulletTower';
+import SimpleTower from './js/Entity/tower/SimpleTower';
+import BulletTower from './js/Entity/tower/BulletTower';
 
 const game = new Game();
 
@@ -26,7 +26,7 @@ towerCanvas1.addEventListener('click', () => {
         game.addTowerType = 'SIMPLE';
     }
 });
-console.log(towerCanvas1.toDataURL());
+// console.log(towerCanvas1.toDataURL());
 
 const tower1DataURL = towerCanvas1.toDataURL();
 

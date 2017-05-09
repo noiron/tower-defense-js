@@ -1,5 +1,5 @@
 import vec2 from 'gl-matrix/src/gl-matrix/vec2';
-import { toRadians, calcuteDistance } from './../utils/utils';
+import { toRadians, calcuteDistance } from './../../utils/utils';
 
 export default class Bullet1 {
     constructor({ ctx, x, y, target, range, damage }) {
