@@ -59,9 +59,9 @@
 
 	var _constant = __webpack_require__(10);
 
-	var _SimpleTower = __webpack_require__(6);
+	var _BaseTower = __webpack_require__(6);
 
-	var _SimpleTower2 = _interopRequireDefault(_SimpleTower);
+	var _BaseTower2 = _interopRequireDefault(_BaseTower);
 
 	var _BulletTower = __webpack_require__(12);
 
@@ -72,47 +72,64 @@
 	var game = new _Game2.default();
 
 	// 添加塔的按钮，画出图形
-	// SIMPLE tower
+	// Base tower
 	var towerCanvas1 = document.getElementById('tower1');
 	towerCanvas1.width = 50;
 	towerCanvas1.height = 50;
 	var ctx = towerCanvas1.getContext("2d");
-	var showTower1 = new _SimpleTower2.default({ ctx: ctx, x: 25, y: 25 });
+	var showTower1 = new _BaseTower2.default({ ctx: ctx, x: 25, y: 25 });
 	showTower1.draw();
 	towerCanvas1.addEventListener('click', function () {
 	    if (game.mode === 'ADD_TOWER') {
-	        if (game.addTowerType !== 'SIMPLE') {
-	            game.addTowerType = 'SIMPLE';
+	        if (game.addTowerType !== 'BASE') {
+	            game.addTowerType = 'BASE';
 	        } else {
 	            game.mode = '';
 	            game.addTowerType = '';
 	        }
 	    } else {
 	        game.mode = 'ADD_TOWER';
-	        game.addTowerType = 'SIMPLE';
+	        game.addTowerType = 'BASE';
 	    }
 	});
+	// console.log(towerCanvas1.toDataURL());
+
+	var tower1DataURL = towerCanvas1.toDataURL();
 
 	// BULLET tower
 	var towerCanvas2 = document.getElementById('tower2');
 	towerCanvas2.width = 50;
 	towerCanvas2.height = 50;
 	var ctx2 = towerCanvas2.getContext("2d");
-	var showTower2 = new _BulletTower2.default({ ctx: ctx2, x: 25, y: 25 });
-	showTower2.draw();
 	towerCanvas2.addEventListener('click', function () {
-	    if (game.mode === 'ADD_TOWER') {
-	        if (game.addTowerType !== 'BULLET') {
-	            game.addTowerType = 'BULLET';
-	        } else {
-	            game.mode = '';
-	            game.addTowerType = '';
-	        }
+	    if (game.mode === 'ADD_TOWER' && game.addTowerType === 'BULLET') {
+	        game.mode = '';
+	        game.addTowerType = '';
 	    } else {
 	        game.mode = 'ADD_TOWER';
 	        game.addTowerType = 'BULLET';
 	    }
 	});
+	var img2 = new Image();
+	img2.src = _constant.towerDataURL.bullet;
+	img2.onload = function () {
+	    ctx2.drawImage(img2, 0, 0);
+	};
+
+	var tipText = document.getElementById('tip-text');
+	towerCanvas2.onmouseover = function (e) {
+	    tipText.innerHTML = '<p>This is tip text.</p>';
+
+	    var left = e.clientX + "px";
+	    var top = e.clientY + "px";
+	    tipText.style.display = 'block';
+	    tipText.style.left = left - 200;
+	    tipText.style.top = top + 1200;
+	};
+	towerCanvas2.onmouseout = function (e) {
+	    tipText.innerHTML = '';
+	    tipText.style.display = 'none';
+	};
 
 	var canvas = document.getElementById("drawing");
 
@@ -187,11 +204,14 @@
 	    }
 	};
 
-	var vehicleCountNode = document.createElement("p");
-	vehicleCountNode.setAttribute("id", "enemyCount");
-	var textnode = document.createTextNode('Enemy Count: ' + game.enemies.length);
-	vehicleCountNode.appendChild(textnode);
-	document.body.appendChild(vehicleCountNode);
+	// 暂停功能
+	var pauseButton = document.getElementById('pause');
+	pauseButton.onclick = function () {
+	    game.status = game.status === 'running' ? 'pause' : 'running';
+	    if (game.status === 'running') {
+	        game.draw();
+	    }
+	};
 
 /***/ },
 /* 2 */
@@ -213,9 +233,9 @@
 
 	var _Path2 = _interopRequireDefault(_Path);
 
-	var _SimpleTower = __webpack_require__(6);
+	var _BaseTower = __webpack_require__(6);
 
-	var _SimpleTower2 = _interopRequireDefault(_SimpleTower);
+	var _BaseTower2 = _interopRequireDefault(_BaseTower);
 
 	var _BulletTower = __webpack_require__(12);
 
@@ -245,6 +265,8 @@
 	var HEIGHT = 640;
 	var canvas = document.getElementById("drawing");
 	var ctx = canvas.getContext("2d");
+
+	var gameOverEle = document.getElementById('game-over');
 
 	var Game = function () {
 	    function Game() {
@@ -279,7 +301,7 @@
 	        });
 
 	        // 放置一个初始状态下的塔
-	        var tower = new _SimpleTower2.default({
+	        var tower = new _BaseTower2.default({
 	            ctx: ctx,
 	            x: _constant.gridWidth / 2 + newTowerCoord[0] * _constant.gridWidth,
 	            y: _constant.gridHeight / 2 + newTowerCoord[1] * _constant.gridHeight,
@@ -288,13 +310,15 @@
 	        this.towers.push(tower);
 
 	        this.mode = '';
-	        this.addTowerType = 'SIMPLE';
+	        this.addTowerType = 'BASE';
 	        this.score = 0;
 
 	        // 当前是否选中塔
 	        this.towerSelect = false;
 	        this.towerSelectIndex = -1;
 	        this.towerSelectId = -1;
+
+	        this.status = 'running';
 
 	        this.draw();
 	    }
@@ -306,6 +330,15 @@
 	        key: 'draw',
 	        value: function draw() {
 	            var _this = this;
+
+	            if (this.status === 'gameOver') {
+	                gameOverEle.style.display = 'block';
+	                return;
+	            }
+
+	            if (this.status === 'pause') {
+	                return;
+	            }
 
 	            this.map.draw({
 	                towers: this.towers,
@@ -348,6 +381,13 @@
 	                }
 	                tower.draw(ctx);
 	            });
+
+	            // 如何确定游戏结束?
+	            if (this.enemyCreatedCount > 0 && this.enemies.length === 0) {
+	                setTimeout(function () {
+	                    _this.status = 'gameOver';
+	                }, 1000);
+	            }
 
 	            // 确定 bullet tower 的目标
 	            for (var i = 0, len = this.towers.length; i < len; i++) {
@@ -462,7 +502,7 @@
 	                return -1;
 	            }
 
-	            var cost = _constant.towerCost.simpleTower;
+	            var cost = _constant.towerCost.baseTower;
 	            // 检查是否有足够金钱
 	            if (this.money - cost < 0) {
 	                console.log('You do not have enough money.');
@@ -474,8 +514,8 @@
 
 	            var tower = null;
 	            switch (towerType) {
-	                case 'SIMPLE':
-	                    tower = new _SimpleTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets });
+	                case 'BASE':
+	                    tower = new _BaseTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets });
 	                    break;
 	                case 'BULLET':
 	                    tower = new _BulletTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets });
@@ -510,8 +550,8 @@
 	        key: 'drawGhostTower',
 	        value: function drawGhostTower(ctx, x, y, towerType) {
 	            var tower = null;
-	            if (towerType === 'SIMPLE') {
-	                tower = new _SimpleTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets, selected: true });
+	            if (towerType === 'BASE') {
+	                tower = new _BaseTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets, selected: true });
 	            } else if (towerType === 'BULLET') {
 	                tower = new _BulletTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets, selected: true });
 	            }
@@ -1256,7 +1296,7 @@
 
 	            ctx.beginPath();
 	            ctx.lineJoin = 'round';
-	            ctx.strokeStyle = '#151515';
+	            ctx.strokeStyle = '#333';
 	            ctx.lineWidth = this.radius * 2;
 	            ctx.shadowBlur = 0;
 
@@ -1267,12 +1307,12 @@
 
 	            ctx.beginPath();
 	            ctx.lineWidth = 1;
-	            ctx.fillStyle = '#151515';
+	            ctx.fillStyle = '#555';
 	            ctx.arc(this.points[0][0], this.points[0][1], this.radius, 0.5 * Math.PI, 1.5 * Math.PI, false);
 	            ctx.fill();
 
 	            // Draw a line in the middle of the path
-	            ctx.strokeStyle = '#aaa';
+	            ctx.strokeStyle = '#111';
 	            ctx.lineWidth = 1;
 	            ctx.beginPath();
 	            for (var _i = 0; _i < this.points.length; _i++) {
@@ -1328,8 +1368,8 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var SimpleTower = function () {
-	    function SimpleTower(_ref) {
+	var BaseTower = function () {
+	    function BaseTower(_ref) {
 	        var ctx = _ref.ctx,
 	            x = _ref.x,
 	            y = _ref.y,
@@ -1337,7 +1377,7 @@
 	            selected = _ref.selected,
 	            damage = _ref.damage;
 
-	        _classCallCheck(this, SimpleTower);
+	        _classCallCheck(this, BaseTower);
 
 	        this.x = x;
 	        this.y = y;
@@ -1347,7 +1387,7 @@
 	        this.radius = 12;
 	        this.hue = 200;
 	        this.bullets = bullets;
-	        this.cost = _constant.towerCost.simpleTower;
+	        this.cost = _constant.towerCost.baseTower;
 	        this.lastShootTime = new Date();
 	        this.shootInterval = 500; // 发射间隔，单位ms
 	        this.direction = 180; // 用度数表示的tower指向
@@ -1356,12 +1396,12 @@
 	        this.targetIndex = -1;
 	        this.target = null;
 	        this.targetId = -1;
-	        this.range = 3.5 * _constant.gridWidth;
+	        this.range = 4 * _constant.gridWidth;
 	        this.selected = selected || false;
 	        this.damage = damage || 5;
 	    }
 
-	    _createClass(SimpleTower, [{
+	    _createClass(BaseTower, [{
 	        key: 'step',
 	        value: function step() {
 	            // 将方向向量归一化
@@ -1396,14 +1436,14 @@
 	                ctx.fill();
 	            }
 
-	            ctx.strokeStyle = 'hsl(' + this.hue + ',100%,80%';
-	            ctx.fillStyle = 'hsl(' + this.hue + ',100%,80%';
+	            ctx.strokeStyle = 'hsl(' + this.hue + ',100%, 40%';
+	            ctx.fillStyle = 'hsl(' + this.hue + ',100%, 40%';
 	            ctx.lineWidth = Math.max(3, this.radius / 8);
 
 	            ctx.beginPath();
 	            ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
 	            ctx.closePath();
-	            ctx.stroke();
+	            // ctx.stroke();
 	            ctx.fill();
 
 	            ctx.beginPath();
@@ -1481,10 +1521,10 @@
 	        }
 	    }]);
 
-	    return SimpleTower;
+	    return BaseTower;
 	}();
 
-	exports.default = SimpleTower;
+	exports.default = BaseTower;
 
 /***/ },
 /* 7 */
@@ -1563,7 +1603,7 @@
 
 	            // 绘图开始
 	            ctx.save();
-	            ctx.strokeStyle = 'hsl(' + this.hue + ', 100%, 80%)';
+	            ctx.strokeStyle = 'hsl(' + this.hue + ', 100%, 40%)';
 	            ctx.beginPath();
 	            ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
 	            ctx.stroke();
@@ -1679,7 +1719,13 @@
 	var gridNumY = exports.gridNumY = 16; // y轴方向上的格子数目
 
 	var towerCost = exports.towerCost = {
-	    'simpleTower': 200
+	    'baseTower': 200,
+	    'bulletTower': 200
+	};
+
+	var towerDataURL = exports.towerDataURL = {
+	    'base': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAACmUlEQVRoQ+2XP2gTcRTHPy+pfwd1K9gugmAmJfWyuLhpB6GCCMVB1Em3Ts0FpdUhTSKCoy4KHXRRwU7azVHJRRQHKS4KUl11UIN4T661GqFJ7/dyp6XcTYG87/e97/d79/sjbJBHNogOMiHrLckskSyRlBzIXq2UjDXTZomYrUsJmCWSkrFm2uQTaTT3oTKKcgS0gMjgr+k+oiygzDOQf8Rk8Y156lWAyQlpvBwm/F4BPYfI1p5Dqn5DuIVsrlM+8D4JQckImWkdQ8I7iOxwGkr1M8Jp/NKcEy7xRFSFejCNyBSYT9IKTFE+WEUk+m16+kuk1jyByH1T506QEgLjVLx7Vi67kGprP/nwKcg2a/O/cfqV3MAhJosvLHx2IfXgITBmadoDM4fvHbdw2oRUXw2Sb3/o47voNqvygyEuehG302MTUgvOI9xw6hS3WLlAxbsZt3ylziik+QSRw67NYtbP43ujMWt/lwm15mVXECI+sMUZFw/wCd/bFa/0T1W0D5jXbtdmMevb+F7vk8EqROtRiDERy6sFE4jsjOmwY5ku4JcKjiDjsSKdPWRldtNeYlu1Gq0JVK+7uhar/p8uvzNBgRyvYw3mWqT5PVSKb11htkSiLvXgMXDUteEa9abXKuK0C1lOJTrgJbWftJFNe60XLbuQyIZG6yyqtxNJRThD2Zu1cvUnJOoaLd8i09YBlnCqV6iU3E8YHU37F7L0vTTHULmLsN1JkPIF0VP//6rbOXXj+W7C8BrC+JrfXnQjFJ1F8pcojyw6ie9SnEwineRXgxFCToKWgGFUhpb/1kVE3gHPyOUfWG+C3UQnLyQJew0cmRCDaalCskRStddAniViMC1VSJZIqvYayLNEDKalCskSSdVeA/lPe7ybM8uL3icAAAAASUVORK5CYII=',
+	    'bullet': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAACdElEQVRoQ+2YUU7jMBCG/8kJepPlBlskklfYEwAvm3KKLacofaLcILy2D7Q34CbLM6DMynFM02ylxGMPQsh+aSN5nPnmn7HHIXyTQd+EAwnkqymZFEmKKEUgpZZSYMXLJkXEoVMyVFHkie8nb3j7QagnAJ1Y3/mZkb0U9HunwRIVZM2LK0J2DuBiwNmKgOqMyodYUFFANryYAvQHoCnA4NY7szi3XZD9b57o4xfgLcC3Od1sQ4GCQVoV7tv0AUa2bwbWvZxRXxd0swqBCQJZ83JFwGVTAW20fZyxNmY0Kq0Kml372HfnikEOlZC+3tlZfUKUEYHYmsieQt3f23f1rE8lNSMCWfNyS8BPk1Bja2IY+mMr2OY0Ox2efzjDG2SfUjEhwlPMG2TDdxVA5qxQGW21POY0GzqLDt7vBWJO7He8/o2bUv14WJScSi/fvCa7ItdIqv/l9St62vByPj5H+EQzrXrnwq8zKquxvhkQ11GMtVGd19mIb3MqRwf5y4F0ouQNMpoa+IzUshVIgF9q+eTJ/kTXLHe3tmex+4CYufo19QnbrwW5qxh07rVve0Wr2Xt0D0Tzhrhd7/HDUNIFiwJrmka0TWNTlhHG/vaIXUHl1HdJkRfx2/iu235F7ixFIFopJkmpYBAL4666Iduxux3ioaDyyjelooD0lRl/bz8ED1EiGojdkhdTRja3t0Y3+i2c/SBkhv0o1DztCPVccrXtKyeukWMpYLdmuhjukPmRwVXoJ6CuD1FBugsblQjZhIHmkykBz4z6JUb0jwVRDURatFK7BCKNnJZdUkQrstJ1kyLSyGnZJUW0IitdNykijZyW3T96vecztfd3vwAAAABJRU5ErkJggg=='
 	};
 
 /***/ },
@@ -1739,6 +1785,12 @@
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+	var _BaseTower2 = __webpack_require__(6);
+
+	var _BaseTower3 = _interopRequireDefault(_BaseTower2);
+
 	var _Bullet = __webpack_require__(13);
 
 	var _Bullet2 = _interopRequireDefault(_Bullet);
@@ -1757,39 +1809,33 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var BulletTower = function () {
-	    function BulletTower(_ref) {
-	        var ctx = _ref.ctx,
-	            x = _ref.x,
-	            y = _ref.y,
-	            bullets = _ref.bullets,
-	            selected = _ref.selected,
-	            damage = _ref.damage;
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var BulletTower = function (_BaseTower) {
+	    _inherits(BulletTower, _BaseTower);
+
+	    function BulletTower(opt) {
 	        _classCallCheck(this, BulletTower);
 
-	        this.ctx = ctx;
-	        this.x = x;
-	        this.y = y;
-	        this.coordX = Math.floor((x - _constant.gridWidth / 2) / _constant.gridWidth);
-	        this.coordY = Math.floor((y - _constant.gridHeight / 2) / _constant.gridHeight);
-	        this.radius = 12;
-	        this.hue = 100;
-	        this.bullets = bullets;
-	        this.cost = _constant.towerCost.simpleTower;
+	        var ctx = opt.ctx,
+	            x = opt.x,
+	            y = opt.y,
+	            bullets = opt.bullets,
+	            selected = opt.selected,
+	            damage = opt.damage;
 
-	        this.range = 3 * _constant.gridWidth;
-	        this.targetIndex = -1;
-	        this.target = null;
-	        this.targetId = -1;
+	        var _this = _possibleConstructorReturn(this, (BulletTower.__proto__ || Object.getPrototypeOf(BulletTower)).call(this, opt));
 
-	        this.lastShootTime = new Date();
-	        this.direction = 180; // 用度数表示的tower指向
-	        this.bulletStartPosVec = _vec2.default.fromValues(0, 0);
-	        this.directionVec = _vec2.default.create();
+	        _this.hue = 100;
+	        _this.cost = _constant.towerCost.bulletTower;
+	        _this.range = 3 * _constant.gridWidth;
 
-	        this.damage = damage || 5;
-	        this.selected = selected || false;
+	        _this.direction = 0; // 用度数表示的tower指向
+	        _this.bulletStartPosVec = _vec2.default.fromValues(0, 0);
+	        _this.directionVec = _vec2.default.create();
+	        return _this;
 	    }
 
 	    _createClass(BulletTower, [{
@@ -1835,12 +1881,10 @@
 	            ctx.stroke();
 	            ctx.closePath();
 
-	            if (this.targetIndex !== -1 && new Date() - this.lastShootTime >= 2000) {
+	            if (this.targetIndex !== -1 && new Date() - this.lastShootTime >= 500) {
 	                this.shoot(ctx);
 	                this.lastShootTime = new Date();
 	            }
-
-	            // this.direction = (this.direction + 0.2) % 360;
 
 	            ctx.restore();
 	        }
@@ -1860,50 +1904,12 @@
 	    }, {
 	        key: 'findTarget',
 	        value: function findTarget(enemies) {
-	            // 先判断原有的target是否仍在范围内
-	            if (this.target !== null) {
-	                var prevTgt = enemies.getEle(this.target);
-	                if (prevTgt) {
-	                    if ((0, _utils.calcuteDistance)(prevTgt.x, prevTgt.y, this.x, this.y) < this.range) {
-	                        return;
-	                    }
-	                }
-	            }
-
-	            // 去寻找一个新的target
-	            this.targetIndex = -1;
-	            this.targetId = -1;
-	            this.target = null;
-
-	            for (var i = 0, len = enemies.length; i < len; i++) {
-	                var enemy = enemies[i];
-	                if (Math.abs(enemy.x - this.x) + Math.abs(enemy.y - this.y) > this.range) {
-	                    continue;
-	                } else {
-	                    if ((0, _utils.calcuteDistance)(enemy.x, enemy.y, this.x, this.y) < this.range) {
-	                        this.targetIndex = i;
-	                        this.target = enemies[i];
-	                        this.targetId = enemies[i].id;
-	                        break;
-	                    }
-	                }
-	            }
-
-	            if (this.targetIndex !== -1) {
-	                var target = enemies.getEleById(this.targetId);
-	                if (target) {
-	                    this.directionVec = _vec2.default.fromValues(target.x - this.x, target.y - this.y);
-	                    this.direction = Math.atan2(target.y - this.y, target.x - this.x) * (180 / Math.PI);
-
-	                    target.color = 'red';
-	                }
-	                return target;
-	            }
+	            _get(BulletTower.prototype.__proto__ || Object.getPrototypeOf(BulletTower.prototype), 'findTarget', this).call(this, enemies);
 	        }
 	    }]);
 
 	    return BulletTower;
-	}();
+	}(_BaseTower3.default);
 
 	exports.default = BulletTower;
 
@@ -2155,11 +2161,11 @@
 	                        ctx.save();
 
 	                        // Clear canvas
-	                        ctx.fillStyle = '#000';
+	                        ctx.fillStyle = '#fff';
 	                        ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-	                        ctx.strokeStyle = '#ddd';
-	                        ctx.fillStyle = '#666';
+	                        ctx.strokeStyle = '#eee';
+	                        ctx.fillStyle = '#fff';
 	                        ctx.lineWidth = 1;
 	                        ctx.fillRect(0, 0, WIDTH, HEIGHT);
 	                        // 横纵数目相等
