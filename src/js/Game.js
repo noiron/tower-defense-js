@@ -1,6 +1,6 @@
 import vec2 from 'gl-matrix/src/gl-matrix/vec2';
 import Path from './Entity/Path.js';
-import SimpleTower from './Entity/tower/SimpleTower.js';
+import BaseTower from './Entity/tower/BaseTower.js';
 import BulletTower from './Entity/tower/BulletTower.js';
 import Enemy from './Entity/Enemy';
 import Map from './Entity/Map';
@@ -48,7 +48,7 @@ export default class Game {
         })
 
         // 放置一个初始状态下的塔
-        const tower = new SimpleTower({
+        const tower = new BaseTower({
             ctx,
             x: gridWidth / 2 + newTowerCoord[0] * gridWidth,
             y: gridHeight / 2 + newTowerCoord[1] * gridHeight,
@@ -57,7 +57,7 @@ export default class Game {
         this.towers.push(tower);
 
         this.mode = '';
-        this.addTowerType = 'SIMPLE';
+        this.addTowerType = 'BASE';
         this.score = 0;
 
         // 当前是否选中塔
@@ -249,7 +249,7 @@ export default class Game {
             return -1;
         }
 
-        const cost = towerCost.simpleTower;
+        const cost = towerCost.baseTower;
         // 检查是否有足够金钱
         if (this.money - cost < 0) {
             console.log('You do not have enough money.');
@@ -261,8 +261,8 @@ export default class Game {
 
         let tower = null;
         switch (towerType) {
-            case 'SIMPLE':
-                tower = new SimpleTower({ ctx, x, y, bullets: this.bullets });
+            case 'BASE':
+                tower = new BaseTower({ ctx, x, y, bullets: this.bullets });
                 break;
             case 'BULLET':
                 tower = new BulletTower({ ctx, x, y, bullets: this.bullets });
@@ -291,8 +291,8 @@ export default class Game {
     // 准备放置塔时，在鼠标所在位置画一个虚拟的塔
     drawGhostTower(ctx, x, y, towerType) {
         let tower = null;
-        if (towerType === 'SIMPLE') {
-            tower = new SimpleTower({ ctx, x, y, bullets: this.bullets, selected: true });
+        if (towerType === 'BASE') {
+            tower = new BaseTower({ ctx, x, y, bullets: this.bullets, selected: true });
         } else if (towerType === 'BULLET') {
             tower = new BulletTower({ ctx, x, y, bullets: this.bullets, selected: true });
         }

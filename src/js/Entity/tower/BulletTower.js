@@ -1,4 +1,4 @@
-import BaseTower from './SimpleTower';
+import BaseTower from './BaseTower';
 import Bullet from './../bullet/Bullet';
 import vec2 from 'gl-matrix/src/gl-matrix/vec2';
 import { toRadians, calcuteDistance } from './../../utils/utils';

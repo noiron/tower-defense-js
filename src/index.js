@@ -1,29 +1,29 @@
 import Game from './js/Game';
 import { gridWidth, gridHeight, gridNumX, gridNumY, towerDataURL } from './js/utils/constant';
-import SimpleTower from './js/Entity/tower/SimpleTower';
+import BaseTower from './js/Entity/tower/BaseTower';
 import BulletTower from './js/Entity/tower/BulletTower';
 
 const game = new Game();
 
 // 添加塔的按钮，画出图形
-// SIMPLE tower
+// Base tower
 const towerCanvas1 = document.getElementById('tower1');
 towerCanvas1.width = 50;
 towerCanvas1.height = 50;
 const ctx = towerCanvas1.getContext("2d");
-const showTower1 = new SimpleTower({ ctx, x: 25, y: 25 });
+const showTower1 = new BaseTower({ ctx, x: 25, y: 25 });
 showTower1.draw();
 towerCanvas1.addEventListener('click', () => {
     if (game.mode === 'ADD_TOWER') {
-        if (game.addTowerType !== 'SIMPLE') {
-            game.addTowerType = 'SIMPLE';
+        if (game.addTowerType !== 'BASE') {
+            game.addTowerType = 'BASE';
         } else {
             game.mode = '';
             game.addTowerType = '';
         }
     } else {
         game.mode = 'ADD_TOWER';
-        game.addTowerType = 'SIMPLE';
+        game.addTowerType = 'BASE';
     }
 });
 // console.log(towerCanvas1.toDataURL());

@@ -10,7 +10,7 @@ import { towerCost, gridWidth, gridHeight } from './../../utils/constant';
 import globalId from './../../id';
 
 
-export default class SimpleTower {
+export default class BaseTower {
     constructor({ ctx, x, y, bullets, selected, damage }) {
         this.x = x;
         this.y = y;
@@ -20,7 +20,7 @@ export default class SimpleTower {
         this.radius = 12;
         this.hue = 200;
         this.bullets = bullets;
-        this.cost = towerCost.simpleTower;
+        this.cost = towerCost.baseTower;
         this.lastShootTime = new Date();
         this.shootInterval = 500;   // 发射间隔，单位ms
         this.direction = 180;     // 用度数表示的tower指向
