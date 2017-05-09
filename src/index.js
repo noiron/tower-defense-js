@@ -1,5 +1,5 @@
 import Game from './js/Game';
-import { gridWidth, gridHeight, gridNumX, gridNumY } from './js/utils/constant';
+import { gridWidth, gridHeight, gridNumX, gridNumY, towerDataURL } from './js/utils/constant';
 import SimpleTower from './js/Entity/SimpleTower';
 import BulletTower from './js/Entity/BulletTower';
 
@@ -35,8 +35,6 @@ const towerCanvas2 = document.getElementById('tower2');
 towerCanvas2.width = 50;
 towerCanvas2.height = 50;
 const ctx2 = towerCanvas2.getContext("2d");
-const showTower2 = new BulletTower({ ctx: ctx2, x: 25, y: 25 });
-showTower2.draw();
 towerCanvas2.addEventListener('click', () => {
     if (game.mode === 'ADD_TOWER' && game.addTowerType === 'BULLET') {
         game.mode = '';
@@ -46,11 +44,28 @@ towerCanvas2.addEventListener('click', () => {
         game.addTowerType = 'BULLET';
     }
 });
-// var img = new Image();
-// img.src = tower1DataURL;
-// img.onload = function () {
-//     ctx2.drawImage(img, 0, 0);
-// };
+const img2 = new Image();
+img2.src = towerDataURL.bullet;
+img2.onload = function () {
+    ctx2.drawImage(img2, 0, 0);
+};
+
+
+const tipText = document.getElementById('tip-text');
+towerCanvas2.onmouseover = (e) => {
+    tipText.innerHTML = '<p>This is tip text.</p>';
+
+    var left = e.clientX + "px";
+    var top = e.clientY + "px";
+    tipText.style.display = 'block';
+    tipText.style.left = left - 200;
+    tipText.style.top = top + 1200;
+}
+towerCanvas2.onmouseout = (e) => {
+    tipText.innerHTML = '';
+    tipText.style.display = 'none';
+}
+
 
 
 const canvas = document.getElementById("drawing");
@@ -62,7 +77,7 @@ canvas.oncontextmenu = function (e) {
 };
 
 
-canvas.onmousemove = function (e) {
+document.onmousemove = function (e) {
     if (game.mode === 'ADD_TOWER') {
         game.cursorX = e.pageX;
         game.cursorY = e.pageY;

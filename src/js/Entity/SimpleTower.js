@@ -69,14 +69,14 @@ export default class SimpleTower {
             ctx.fill();
         }
 
-        ctx.strokeStyle = 'hsl(' + this.hue + ',100%,80%';
-        ctx.fillStyle = 'hsl(' + this.hue + ',100%,80%';
+        ctx.strokeStyle = 'hsl(' + this.hue + ',100%, 40%';
+        ctx.fillStyle = 'hsl(' + this.hue + ',100%, 40%';
         ctx.lineWidth = Math.max(3, this.radius / 8);
 
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
         ctx.closePath();
-        ctx.stroke();
+        // ctx.stroke();
         ctx.fill();
 
         ctx.beginPath();

@@ -52,3 +52,11 @@ button {
     height: 40px;
     margin: 10px;
 }
+
+#tip-text {
+    width: 100px;
+    height: 40px;
+    border: 1px solid #aaa;
+    background-color: rgba(0, 0, 255, 0.3);
+    position: absolute;
+}

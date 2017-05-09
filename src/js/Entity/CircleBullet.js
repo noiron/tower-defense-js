@@ -44,7 +44,7 @@ export default class Bullet1 {
 
         // 绘图开始
         ctx.save();
-        ctx.strokeStyle = 'hsl(' + this.hue + ', 100%, 80%)';
+        ctx.strokeStyle = 'hsl(' + this.hue + ', 100%, 40%)';
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
         ctx.stroke();
