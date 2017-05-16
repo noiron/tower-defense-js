@@ -16,10 +16,11 @@ const ctx = canvas.getContext("2d");
 const gameOverEle = document.getElementById('game-over');
 
 export default class Game {
-    constructor() {
+    constructor(opt) {
         // Init
         canvas.width = WIDTH;
         canvas.height = HEIGHT;
+        this.element = opt.element;
 
         this.genId = 0;
 
@@ -28,7 +29,7 @@ export default class Game {
         this.enemies = [];
 
         this.ctx = ctx;
-        this.money = 2000;
+        this.money = 5000;
         this.coordX = 0;
         this.coordY = 0;
         this.enemyCreatedCount = 0;    // 目前已经创建的enemy的总数
@@ -68,6 +69,7 @@ export default class Game {
         this.status = 'running';
 
         this.draw();
+        this.bindEvent();
     }
 
     // Specify what to draw
@@ -305,8 +307,10 @@ export default class Game {
         if (document.getElementById('enemyCount')) {
             document.getElementById('enemyCount').innerHTML = `Enemy Count: ${this.enemies.length}, Bullets: ${this.bullets.length}`;
         }
+    }
 
-        document.getElementById('score').innerHTML = `Score: ${this.score}`;
-        document.getElementById('money').innerHTML = `Money: ${this.money}`;
+    bindEvent() {
+        const element = this.element;
+        // console.log(element);
     }
 }

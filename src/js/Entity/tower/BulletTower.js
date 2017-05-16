@@ -15,7 +15,7 @@ export default class BulletTower extends BaseTower {
         this.cost = towerCost.bulletTower;
         this.range = 3 * gridWidth;
 
-        this.direction = 0;     // 用度数表示的tower指向
+        this.direction = opt.direction || 0;     // 用度数表示的tower指向
         this.bulletStartPosVec = vec2.fromValues(0, 0);
         this.directionVec = vec2.create();
     }
@@ -43,7 +43,7 @@ export default class BulletTower extends BaseTower {
         // 在选中的情况下，画出其射程范围
         if (this.selected) {
             ctx.beginPath();
-            ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+            ctx.fillStyle = "rgba(200, 200, 200, 0.3)";
             ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
             ctx.fill();
         }

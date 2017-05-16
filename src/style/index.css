@@ -4,7 +4,7 @@ body {
 
 main {
     display: flex;
-    border: 1px solid;
+    /*border: 1px solid;*/
 }
 
 #game-over {
@@ -36,27 +36,8 @@ main {
     border: 1px solid #000;
 }
 
-canvas {
-    /*margin-top: 10px;*/
-}
-
-#game-info {
-    display: inline-block;
-    position: absolute;
-    top: 100px;
-    margin-left: 20px;
-}
-
 button {
     width: 80px;
     height: 40px;
     margin: 10px;
-}
-
-#tip-text {
-    width: 100px;
-    height: 40px;
-    border: 1px solid #aaa;
-    background-color: rgba(0, 0, 255, 0.3);
-    position: absolute;
 }

@@ -57,6 +57,10 @@
 
 	var _Game2 = _interopRequireDefault(_Game);
 
+	var _GameControl = __webpack_require__(16);
+
+	var _GameControl2 = _interopRequireDefault(_GameControl);
+
 	var _constant = __webpack_require__(10);
 
 	var _BaseTower = __webpack_require__(6);
@@ -69,69 +73,18 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var game = new _Game2.default();
-
-	// 添加塔的按钮，画出图形
-	// Base tower
-	var towerCanvas1 = document.getElementById('tower1');
-	towerCanvas1.width = 50;
-	towerCanvas1.height = 50;
-	var ctx = towerCanvas1.getContext("2d");
-	var showTower1 = new _BaseTower2.default({ ctx: ctx, x: 25, y: 25 });
-	showTower1.draw();
-	towerCanvas1.addEventListener('click', function () {
-	    if (game.mode === 'ADD_TOWER') {
-	        if (game.addTowerType !== 'BASE') {
-	            game.addTowerType = 'BASE';
-	        } else {
-	            game.mode = '';
-	            game.addTowerType = '';
-	        }
-	    } else {
-	        game.mode = 'ADD_TOWER';
-	        game.addTowerType = 'BASE';
-	    }
+	var game = new _Game2.default({
+	    element: document.getElementById('drawing')
 	});
-	// console.log(towerCanvas1.toDataURL());
 
-	var tower1DataURL = towerCanvas1.toDataURL();
-
-	// BULLET tower
-	var towerCanvas2 = document.getElementById('tower2');
-	towerCanvas2.width = 50;
-	towerCanvas2.height = 50;
-	var ctx2 = towerCanvas2.getContext("2d");
-	towerCanvas2.addEventListener('click', function () {
-	    if (game.mode === 'ADD_TOWER' && game.addTowerType === 'BULLET') {
-	        game.mode = '';
-	        game.addTowerType = '';
-	    } else {
-	        game.mode = 'ADD_TOWER';
-	        game.addTowerType = 'BULLET';
-	    }
+	var gameControlEle = document.getElementById('game-control-canvas');
+	var gameControl = new _GameControl2.default({
+	    element: gameControlEle,
+	    game: game
 	});
-	var img2 = new Image();
-	img2.src = _constant.towerDataURL.bullet;
-	img2.onload = function () {
-	    ctx2.drawImage(img2, 0, 0);
-	};
+	gameControl.draw();
 
-	var tipText = document.getElementById('tip-text');
-	towerCanvas2.onmouseover = function (e) {
-	    tipText.innerHTML = '<p>This is tip text.</p>';
-
-	    var left = e.clientX + "px";
-	    var top = e.clientY + "px";
-	    tipText.style.display = 'block';
-	    tipText.style.left = left - 200;
-	    tipText.style.top = top + 1200;
-	};
-	towerCanvas2.onmouseout = function (e) {
-	    tipText.innerHTML = '';
-	    tipText.style.display = 'none';
-	};
-
-	var canvas = document.getElementById("drawing");
+	var canvas = document.getElementById('drawing');
 
 	// 在canvas上进行右键操作
 	canvas.oncontextmenu = function (e) {
@@ -162,7 +115,6 @@
 
 	    /* 只在地图范围内进行操作 */
 	    if (0 <= coordX && coordX < _constant.gridNumX && 0 <= coordY && coordY < _constant.gridNumY) {
-
 	        if (game.map.coord[coordX][coordY] === 'T') {
 	            // 点击的格子内为塔
 	            game.towers.map(function (tower, index) {
@@ -190,26 +142,6 @@
 	        if (game.mode === 'ADD_TOWER') {
 	            game.createNewTower(coordX, coordY, game.addTowerType);
 	        }
-	    }
-	    // console.log(coordX, coordY);
-	};
-
-	var sellButton = document.getElementById('sell-tower');
-	sellButton.onclick = function () {
-	    if (game.towerSelect === true) {
-	        console.log('you sell a tower');
-	        game.sellTower();
-	    } else {
-	        // console.log('do nothing');
-	    }
-	};
-
-	// 暂停功能
-	var pauseButton = document.getElementById('pause');
-	pauseButton.onclick = function () {
-	    game.status = game.status === 'running' ? 'pause' : 'running';
-	    if (game.status === 'running') {
-	        game.draw();
 	    }
 	};
 
@@ -269,12 +201,13 @@
 	var gameOverEle = document.getElementById('game-over');
 
 	var Game = function () {
-	    function Game() {
+	    function Game(opt) {
 	        _classCallCheck(this, Game);
 
 	        // Init
 	        canvas.width = WIDTH;
 	        canvas.height = HEIGHT;
+	        this.element = opt.element;
 
 	        this.genId = 0;
 
@@ -283,7 +216,7 @@
 	        this.enemies = [];
 
 	        this.ctx = ctx;
-	        this.money = 2000;
+	        this.money = 5000;
 	        this.coordX = 0;
 	        this.coordY = 0;
 	        this.enemyCreatedCount = 0; // 目前已经创建的enemy的总数
@@ -321,6 +254,7 @@
 	        this.status = 'running';
 
 	        this.draw();
+	        this.bindEvent();
 	    }
 
 	    // Specify what to draw
@@ -564,9 +498,12 @@
 	            if (document.getElementById('enemyCount')) {
 	                document.getElementById('enemyCount').innerHTML = 'Enemy Count: ' + this.enemies.length + ', Bullets: ' + this.bullets.length;
 	            }
-
-	            document.getElementById('score').innerHTML = 'Score: ' + this.score;
-	            document.getElementById('money').innerHTML = 'Money: ' + this.money;
+	        }
+	    }, {
+	        key: 'bindEvent',
+	        value: function bindEvent() {
+	            var element = this.element;
+	            // console.log(element);
 	        }
 	    }]);
 
@@ -1375,7 +1312,8 @@
 	            y = _ref.y,
 	            bullets = _ref.bullets,
 	            selected = _ref.selected,
-	            damage = _ref.damage;
+	            damage = _ref.damage,
+	            radius = _ref.radius;
 
 	        _classCallCheck(this, BaseTower);
 
@@ -1384,7 +1322,7 @@
 	        this.ctx = ctx;
 	        this.coordX = Math.floor((x - _constant.gridWidth / 2) / _constant.gridWidth);
 	        this.coordY = Math.floor((y - _constant.gridHeight / 2) / _constant.gridHeight);
-	        this.radius = 12;
+	        this.radius = radius || 12;
 	        this.hue = 200;
 	        this.bullets = bullets;
 	        this.cost = _constant.towerCost.baseTower;
@@ -1409,7 +1347,7 @@
 	            _vec2.default.normalize(this.directionVec, this.directionVec);
 
 	            // bullet 出射位置
-	            _vec2.default.scale(this.bulletStartPosVec, this.directionVec, 30);
+	            _vec2.default.scale(this.bulletStartPosVec, this.directionVec, this.radius * 2.5);
 
 	            if (new Date() - this.lastShootTime >= this.shootInterval) {
 	                this.shoot();
@@ -1431,7 +1369,7 @@
 	            // 在选中的情况下，画出其射程范围
 	            if (this.selected) {
 	                ctx.beginPath();
-	                ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+	                ctx.fillStyle = "rgba(200, 200, 200, 0.3)";
 	                ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
 	                ctx.fill();
 	            }
@@ -1832,7 +1770,7 @@
 	        _this.cost = _constant.towerCost.bulletTower;
 	        _this.range = 3 * _constant.gridWidth;
 
-	        _this.direction = 0; // 用度数表示的tower指向
+	        _this.direction = opt.direction || 0; // 用度数表示的tower指向
 	        _this.bulletStartPosVec = _vec2.default.fromValues(0, 0);
 	        _this.directionVec = _vec2.default.create();
 	        return _this;
@@ -1860,7 +1798,7 @@
 	            // 在选中的情况下，画出其射程范围
 	            if (this.selected) {
 	                ctx.beginPath();
-	                ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+	                ctx.fillStyle = "rgba(200, 200, 200, 0.3)";
 	                ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
 	                ctx.fill();
 	            }
@@ -2210,6 +2148,284 @@
 	}();
 
 	exports.default = Map;
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _BaseTower = __webpack_require__(6);
+
+	var _BaseTower2 = _interopRequireDefault(_BaseTower);
+
+	var _BulletTower = __webpack_require__(12);
+
+	var _BulletTower2 = _interopRequireDefault(_BulletTower);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var GRID_WIDTH = 60;
+	var GRID_HEIGHT = 60;
+	var GRID_NUM_X = 3;
+	var GRID_NUM_Y = 2;
+	var WIDTH = 250;
+	var HEIGHT = 640;
+
+	var GameControl = function () {
+	    function GameControl(opt) {
+	        _classCallCheck(this, GameControl);
+
+	        this.option = Object.assign({
+	            offsetX: 25,
+	            offsetY: 25
+	        }, opt);
+
+	        var element = this.option.element;
+	        this.game = opt.game;
+
+	        element.width = WIDTH;
+	        element.height = HEIGHT;
+
+	        this.ctx = element.getContext('2d');
+	        this.offsetX = this.option.offsetX;
+	        this.offsetY = this.option.offsetY;
+
+	        this.towerArea = {
+	            x: this.offsetX,
+	            y: this.offsetY,
+	            width: GRID_NUM_X * GRID_WIDTH,
+	            height: GRID_NUM_Y * GRID_HEIGHT
+	        };
+
+	        this.pauseBtn = {
+	            x: this.offsetX,
+	            y: 350,
+	            width: 100,
+	            height: 40,
+	            text: 'Pause',
+	            status: ''
+	        };
+
+	        this.sellBtn = {
+	            x: this.offsetX,
+	            y: 420,
+	            width: 100,
+	            height: 40,
+	            text: 'Sell',
+	            status: ''
+	        };
+
+	        this.bindEvent();
+	    }
+
+	    _createClass(GameControl, [{
+	        key: 'draw',
+	        value: function draw() {
+	            var _this = this;
+
+	            var ctx = this.ctx;
+	            ctx.fillStyle = '#eee';
+	            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+	            this.drawGrid();
+	            this.drawText();
+	            this.drawButton();
+
+	            var baseTower = new _BaseTower2.default({
+	                x: this.offsetX + GRID_WIDTH / 2 + 10,
+	                y: this.offsetY + GRID_HEIGHT / 2,
+	                ctx: ctx,
+	                radius: 12
+	            });
+	            baseTower.draw(ctx);
+
+	            var bulletTower = new _BulletTower2.default({
+	                x: this.offsetX + GRID_WIDTH * 1.5 + 10,
+	                y: this.offsetY + GRID_HEIGHT / 2,
+	                ctx: ctx,
+	                direction: 180,
+	                radius: 12
+	            });
+	            bulletTower.draw(ctx);
+
+	            requestAnimationFrame(function () {
+	                return _this.draw();
+	            }, 100);
+	        }
+	    }, {
+	        key: 'drawGrid',
+	        value: function drawGrid() {
+	            var ctx = this.ctx;
+
+	            ctx.strokeStyle = '#000';
+	            ctx.lineWidth = 3;
+
+	            ctx.beginPath();
+	            ctx.moveTo(0, 0);
+	            ctx.lineTo(WIDTH, 0);
+	            ctx.lineTo(WIDTH, HEIGHT);
+	            ctx.lineTo(0, HEIGHT);
+	            ctx.closePath();
+	            ctx.stroke();
+
+	            ctx.lineWidth = 1;
+	            // 横线
+	            ctx.beginPath();
+	            for (var i = 0; i < GRID_NUM_Y + 1; i++) {
+	                ctx.moveTo(this.offsetX, i * GRID_WIDTH + this.offsetY);
+	                ctx.lineTo(this.offsetX + GRID_NUM_X * GRID_WIDTH, i * GRID_WIDTH + this.offsetY);
+	            }
+	            ctx.stroke();
+
+	            // 纵线
+	            ctx.beginPath();
+	            for (var _i = 0; _i < GRID_NUM_X + 1; _i++) {
+	                ctx.moveTo(_i * GRID_WIDTH + this.offsetX, this.offsetY);
+	                ctx.lineTo(_i * GRID_WIDTH + this.offsetX, this.offsetY + GRID_NUM_Y * GRID_HEIGHT);
+	            }
+	            ctx.stroke();
+	        }
+	    }, {
+	        key: 'drawText',
+	        value: function drawText() {
+	            var ctx = this.ctx;
+	            var game = this.game;
+	            ctx.fillStyle = '#000';
+	            ctx.font = '20px Arial';
+	            ctx.fillText('Score:' + game.score, this.offsetX, 250);
+	            ctx.fillText('Money:' + game.money, this.offsetX, 300);
+	        }
+	    }, {
+	        key: 'drawButton',
+	        value: function drawButton() {
+	            var ctx = this.ctx;
+	            // console.log(this.sellBtn);
+
+	            [this.pauseBtn, this.sellBtn].forEach(function (btn) {
+	                if (btn.status === 'hover') {
+	                    ctx.strokeStyle = 'red';
+	                    ctx.fillStyle = 'red';
+	                } else {
+	                    ctx.strokeStyle = '#000';
+	                    ctx.fillStyle = '#000';
+	                }
+	                ctx.strokeRect(btn.x, btn.y, btn.width, btn.height);
+	                ctx.fillText(btn.text, btn.x + btn.width / 5, btn.y + btn.height / 1.6);
+	            });
+	        }
+
+	        // 在游戏的控制区域绑定事件
+
+	    }, {
+	        key: 'bindEvent',
+	        value: function bindEvent() {
+	            var _this2 = this;
+
+	            var $element = $(this.option.element);
+	            var game = this.game;
+	            var x = 0;
+	            var y = 0;
+
+	            $element.click(function (e) {
+	                var $canvas = $(e.target);
+	                var game = _this2.game;
+	                var offset = $canvas.offset();
+	                x = e.clientX - offset.left;
+	                y = e.clientY - offset.top;
+
+	                // 检查点击位置是否在 tower area 内
+	                if (isInside({ x: x, y: y }, _this2.towerArea)) {
+	                    var xIdx = Math.floor((x - _this2.offsetX) / GRID_WIDTH);
+	                    var yIdx = Math.floor((y - _this2.offsetY) / GRID_HEIGHT);
+
+	                    // 点击了 BaseTower
+	                    if (xIdx === 0 && yIdx === 0) {
+	                        if (game.mode === 'ADD_TOWER') {
+	                            if (game.addTowerType !== 'BASE') {
+	                                game.addTowerType = 'BASE';
+	                            } else {
+	                                game.mode = '';
+	                                game.addTowerType = '';
+	                            }
+	                        } else {
+	                            game.mode = 'ADD_TOWER';
+	                            game.addTowerType = 'BASE';
+	                        }
+	                    } else if (xIdx === 1 && yIdx === 0) {
+	                        // 点击了 BulletTower
+	                        if (game.mode === 'ADD_TOWER' && game.addTowerType === 'BULLET') {
+	                            game.mode = '';
+	                            game.addTowerType = '';
+	                        } else {
+	                            game.mode = 'ADD_TOWER';
+	                            game.addTowerType = 'BULLET';
+	                        }
+	                    }
+	                } else {
+	                    console.log('out');
+	                }
+
+	                if (isInside({ x: x, y: y }, _this2.pauseBtn)) {
+	                    game.status = game.status === 'running' ? 'pause' : 'running';
+	                    if (game.status === 'running') {
+	                        game.draw();
+	                    }
+	                }
+
+	                if (isInside({ x: x, y: y }, _this2.sellBtn)) {
+	                    if (game.towerSelect === true) {
+	                        console.log('you sell a tower');
+	                        game.sellTower();
+	                    } else {
+	                        // console.log('do nothing');
+	                    }
+	                }
+	            });
+
+	            $element.mousemove(function (e) {
+	                // e.stopPropagation()
+	                var pauseBtn = _this2.pauseBtn;
+	                var sellBtn = _this2.sellBtn;
+	                var game = _this2.game;
+
+	                var $canvas = $(e.target);
+	                var offset = $canvas.offset();
+	                x = e.clientX - offset.left;
+	                y = e.clientY - offset.top;
+
+	                // 鼠标hover在暂停按钮上
+	                if (isInside({ x: x, y: y }, pauseBtn)) {
+	                    pauseBtn.status = 'hover';
+	                } else {
+	                    pauseBtn.status = '';
+	                }
+
+	                if (isInside({ x: x, y: y }, sellBtn)) {
+	                    sellBtn.status = 'hover';
+	                } else {
+	                    sellBtn.status = '';
+	                }
+	            });
+	        }
+	    }]);
+
+	    return GameControl;
+	}();
+
+	exports.default = GameControl;
+
+
+	function isInside(pos, rect) {
+	    return pos.x > rect.x && pos.x < rect.x + rect.width && pos.y < rect.y + rect.height && pos.y > rect.y;
+	}
 
 /***/ }
 /******/ ]);

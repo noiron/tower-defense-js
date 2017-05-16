@@ -11,13 +11,13 @@ import globalId from './../../id';
 
 
 export default class BaseTower {
-    constructor({ ctx, x, y, bullets, selected, damage }) {
+    constructor({ ctx, x, y, bullets, selected, damage, radius }) {
         this.x = x;
         this.y = y;
         this.ctx = ctx;
         this.coordX = Math.floor((x - gridWidth / 2) / gridWidth);
         this.coordY = Math.floor((y - gridHeight / 2) / gridHeight);
-        this.radius = 12;
+        this.radius = radius || 12;
         this.hue = 200;
         this.bullets = bullets;
         this.cost = towerCost.baseTower;
@@ -43,7 +43,7 @@ export default class BaseTower {
         vec2.normalize(this.directionVec, this.directionVec);
 
         // bullet 出射位置
-        vec2.scale(this.bulletStartPosVec, this.directionVec, 30);
+        vec2.scale(this.bulletStartPosVec, this.directionVec, this.radius * 2.5);
 
         if (new Date - this.lastShootTime >= this.shootInterval) {
             this.shoot();
@@ -64,7 +64,7 @@ export default class BaseTower {
         // 在选中的情况下，画出其射程范围
         if (this.selected) {
             ctx.beginPath();
-            ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+            ctx.fillStyle = "rgba(200, 200, 200, 0.3)";
             ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
             ctx.fill();
         }
