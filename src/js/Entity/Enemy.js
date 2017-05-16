@@ -15,7 +15,7 @@ export default class Enemy {
         // 速度在两个方向上的分量
         this.vx = 0;
         this.vy = 0;
-        
+
         this.speed = 2;
 
         // 当前位置到目标点的距离
@@ -30,16 +30,16 @@ export default class Enemy {
         this.angleFlag = 1;
 
         this.color = 0;
-        this.health = 20;
+        this.maxHealth = 20;
+        this.health = this.maxHealth;
     }
 
-
-    step({path}) {
+    step({ path }) {
         const speed = this.speed;
         const wp = path[this.wp];
-        this.dx = (wp[0] * gridSize) + gridSize * 0.5 - this.x;
-        this.dy = (wp[1] * gridSize) + gridSize * 0.5 - this.y;
-        this.dist = Math.sqrt( this.dx * this.dx + this.dy * this.dy);
+        this.dx = wp[0] * gridSize + gridSize * 0.5 - this.x;
+        this.dy = wp[1] * gridSize + gridSize * 0.5 - this.y;
+        this.dist = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
 
         if (this.angleFlag) {
             this.angle = Math.atan2(this.dy, this.dx);
@@ -73,5 +73,15 @@ export default class Enemy {
         ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
         ctx.closePath();
         ctx.stroke();
+
+        this.drawHealth();
     }
-} 
+
+    drawHealth() {
+        const ctx = this.ctx;
+        ctx.beginPath();
+        ctx.moveTo(this.x - this.radius, this.y);
+        ctx.lineTo(this.x - this.radius + this.health, this.y);
+        ctx.stroke();
+    }
+}

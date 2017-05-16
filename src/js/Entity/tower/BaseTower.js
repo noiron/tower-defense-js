@@ -144,7 +144,7 @@ export default class BaseTower {
                 this.directionVec = vec2.fromValues(target.x - this.x, target.y - this.y);
                 this.direction = Math.atan2(target.y - this.y, target.x - this.x) * (180 / Math.PI);
 
-                target.color = 'red';
+                // target.color = 'red';
             }
             return target;
         }

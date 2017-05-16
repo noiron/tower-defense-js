@@ -75,7 +75,7 @@ export default class Game {
     // Specify what to draw
     draw() {
         if (this.status === 'gameOver') {
-            gameOverEle.style.display = 'block';
+            // gameOverEle.style.display = 'block';
             return;
         }
 
