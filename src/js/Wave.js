@@ -16,19 +16,19 @@ export default class Wave {
             a: {
                 radius: 10,
                 speed: 2,
-                color: 'red',
+                color: '#FFDDA0',
                 health: 20,
             },
             b: {
                 radius: 8,
                 speed: 3,
-                color: 'green',
+                color: '#0280B2',
                 health: 16,
             },
             c: {
                 radius: 6,
                 speed: 4,
-                color: 'orange',
+                color: '#FFD387',
                 health: 12
             }
         };

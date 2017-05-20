@@ -1,5 +1,6 @@
 import BaseTower from './tower/BaseTower';
 import BulletTower from './tower/BulletTower';
+import { isInside } from './../utils/utils';
 
 const GRID_WIDTH = 60;
 const GRID_HEIGHT = 60;
@@ -28,7 +29,7 @@ class GameControl {
         this.offsetX = this.option.offsetX;
         this.offsetY = this.option.offsetY;
 
-        this.towerArea = {
+        this.towerAreaRect = {
             x: this.offsetX,
             y: this.offsetY,
             width: GRID_NUM_X * GRID_WIDTH,
@@ -53,6 +54,12 @@ class GameControl {
             status: ''
         };
 
+        this.towerArea = new TowerArea({
+            ctx: this.ctx,
+            x: this.offsetX,
+            y: this.offsetY
+        });
+
         this.bindEvent();
     }
 
@@ -61,64 +68,27 @@ class GameControl {
         ctx.fillStyle = '#eee';
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
         this.drawGrid();
+
+        if (this.game.mode !== 'ADD_TOWER') {
+            this.towerArea.selected = -1;
+        }
+        this.towerArea.draw();
         this.drawText();
         this.drawButton();
-
-        const baseTower = new BaseTower({
-            x: this.offsetX + GRID_WIDTH / 2 + 10,
-            y: this.offsetY + GRID_HEIGHT / 2,
-            ctx,
-            radius: 12
-        });
-        baseTower.draw(ctx);
-
-        const bulletTower = new BulletTower({
-            x: this.offsetX + GRID_WIDTH * 1.5 + 10,
-            y: this.offsetY + GRID_HEIGHT / 2,
-            ctx,
-            direction: 180,
-            radius: 12
-        });
-        bulletTower.draw(ctx);
 
         requestAnimationFrame(() => this.draw(), 100);
     }
 
     drawGrid() {
         const ctx = this.ctx;
-
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 3;
-
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(WIDTH, 0);
         ctx.lineTo(WIDTH, HEIGHT);
         ctx.lineTo(0, HEIGHT);
         ctx.closePath();
-        ctx.stroke();
-
-        ctx.lineWidth = 1;
-        // 横线
-        ctx.beginPath();
-        for (let i = 0; i < GRID_NUM_Y + 1; i++) {
-            ctx.moveTo(this.offsetX, i * GRID_WIDTH + this.offsetY);
-            ctx.lineTo(
-                this.offsetX + GRID_NUM_X * GRID_WIDTH,
-                i * GRID_WIDTH + this.offsetY
-            );
-        }
-        ctx.stroke();
-
-        // 纵线
-        ctx.beginPath();
-        for (let i = 0; i < GRID_NUM_X + 1; i++) {
-            ctx.moveTo(i * GRID_WIDTH + this.offsetX, this.offsetY);
-            ctx.lineTo(
-                i * GRID_WIDTH + this.offsetX,
-                this.offsetY + GRID_NUM_Y * GRID_HEIGHT
-            );
-        }
         ctx.stroke();
     }
 
@@ -169,7 +139,7 @@ class GameControl {
             y = e.clientY - offset.top;
 
             // 检查点击位置是否在 tower area 内
-            if (isInside({ x, y }, this.towerArea)) {
+            if (isInside({ x, y }, this.towerAreaRect)) {
                 const xIdx = Math.floor((x - this.offsetX) / GRID_WIDTH);
                 const yIdx = Math.floor((y - this.offsetY) / GRID_HEIGHT);
 
@@ -178,6 +148,7 @@ class GameControl {
                     if (game.mode === 'ADD_TOWER') {
                         if (game.addTowerType !== 'BASE') {
                             game.addTowerType = 'BASE';
+                            this.towerArea.selected = [0, 0];
                         } else {
                             game.mode = '';
                             game.addTowerType = '';
@@ -185,6 +156,7 @@ class GameControl {
                     } else {
                         game.mode = 'ADD_TOWER';
                         game.addTowerType = 'BASE';
+                        this.towerArea.selected = [0, 0]; // 突出显示
                     }
                 } else if (xIdx === 1 && yIdx === 0) {
                     // 点击了 BulletTower
@@ -197,7 +169,10 @@ class GameControl {
                     } else {
                         game.mode = 'ADD_TOWER';
                         game.addTowerType = 'BULLET';
+                        this.towerArea.selected = [1, 0];
                     }
+                } else {
+                    this.towerArea.selected = -1;
                 }
             } else {
                 console.log('out');
@@ -249,11 +224,125 @@ class GameControl {
 
 export default GameControl;
 
-function isInside(pos, rect) {
-    return (
-        pos.x > rect.x &&
-        pos.x < rect.x + rect.width &&
-        pos.y < rect.y + rect.height &&
-        pos.y > rect.y
-    );
+class TowerArea {
+    constructor(opt) {
+        this.ctx = opt.ctx;
+        this.selected = -1;
+        this.offsetX = opt.x;
+        this.offsetY = opt.y;
+
+        this.baseTower = new BaseTower({
+            x: this.offsetX + GRID_WIDTH / 2 + 10,
+            y: this.offsetY + GRID_HEIGHT / 2,
+            ctx: this.ctx,
+            radius: 12
+        });
+
+        this.bulletTower = new BulletTower({
+            x: this.offsetX + GRID_WIDTH * 1.5 + 10,
+            y: this.offsetY + GRID_HEIGHT / 2,
+            ctx: this.ctx,
+            direction: 180,
+            radius: 12
+        });
+    }
+
+    draw() {
+        const ctx = this.ctx;
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1;
+        // 横线
+        ctx.beginPath();
+        for (let i = 0; i < GRID_NUM_Y + 1; i++) {
+            ctx.moveTo(this.offsetX, i * GRID_WIDTH + this.offsetY);
+            ctx.lineTo(
+                this.offsetX + GRID_NUM_X * GRID_WIDTH,
+                i * GRID_WIDTH + this.offsetY
+            );
+        }
+        ctx.stroke();
+
+        // 纵线
+        ctx.beginPath();
+        for (let i = 0; i < GRID_NUM_X + 1; i++) {
+            ctx.moveTo(i * GRID_WIDTH + this.offsetX, this.offsetY);
+            ctx.lineTo(
+                i * GRID_WIDTH + this.offsetX,
+                this.offsetY + GRID_NUM_Y * GRID_HEIGHT
+            );
+        }
+        ctx.stroke();
+
+        if (this.selected !== -1)
+            this.highlightTower(this.selected[0], this.selected[1]);
+        this.baseTower.draw(ctx);
+        this.bulletTower.draw(ctx);
+    }
+
+    // 选中的tower突出显示
+    highlightTower(x, y) {
+        const ctx = this.ctx;
+        ctx.strokeStyle = 'pink';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(
+            x * GRID_WIDTH + this.offsetX + 3,
+            y * GRID_HEIGHT + this.offsetY + 3
+        );
+        ctx.lineTo(
+            (x + 0.35) * GRID_WIDTH + this.offsetX + 3,
+            y * GRID_HEIGHT + this.offsetY + 3
+        );
+
+        ctx.moveTo(
+            (x + 0.65) * GRID_WIDTH + this.offsetX,
+            y * GRID_HEIGHT + this.offsetY + 3
+        );
+        ctx.lineTo(
+            (x + 1) * GRID_WIDTH + this.offsetX - 3,
+            y * GRID_HEIGHT + this.offsetY + 3
+        );
+        ctx.lineTo(
+            (x + 1) * GRID_WIDTH + this.offsetX - 3,
+            (y + 0.35) * GRID_HEIGHT + this.offsetY
+        );
+
+        ctx.moveTo(
+            (x + 1) * GRID_WIDTH + this.offsetX - 3,
+            (y + 0.65) * GRID_HEIGHT + this.offsetY -3
+        );
+        ctx.lineTo(
+            (x + 1) * GRID_WIDTH + this.offsetX - 3,
+            (y + 1) * GRID_HEIGHT + this.offsetY - 3
+        );
+        ctx.lineTo(
+            (x + 0.65) * GRID_WIDTH + this.offsetX,
+            (y + 1) * GRID_HEIGHT + this.offsetY - 3
+        );
+
+        ctx.moveTo(
+            (x + 0.35) * GRID_WIDTH + this.offsetX,
+            (y + 1) * GRID_HEIGHT + this.offsetY - 3
+        );
+        ctx.lineTo(
+            x * GRID_WIDTH + this.offsetX + 3,
+            (y + 1) * GRID_HEIGHT + this.offsetY - 3
+        );
+        ctx.lineTo(
+            x * GRID_WIDTH + this.offsetX + 3,
+            (y + 0.65) * GRID_HEIGHT + this.offsetY - 3
+        );
+
+        ctx.moveTo(
+            x * GRID_WIDTH + this.offsetX + 3,
+            (y + 0.35) * GRID_HEIGHT + this.offsetY
+        );
+        ctx.lineTo(
+            x * GRID_WIDTH + this.offsetX + 3,
+            y * GRID_HEIGHT + this.offsetY + 3
+        );
+
+        ctx.closePath();
+        ctx.stroke();
+    }
 }

@@ -2,7 +2,7 @@ import vec2 from 'gl-matrix/src/gl-matrix/vec2';
 import { toRadians } from './../../utils/utils';
 
 export default class Bullet {
-    constructor({ctx, x, y, directionVec}) {
+    constructor({ ctx, x, y, directionVec, damage }) {
         this.type = 'line';
         this.x = x;
         this.y = y;
@@ -27,8 +27,9 @@ export default class Bullet {
         // {vec2} this.end 表示终点位置的向量
         this.end = vec2.create();
         this.end = vec2.add(this.end, this.start, this.bulletVec);
-    }
 
+        this.damage = damage || 5;
+    }
 
     draw(ctx) {
         // bullet运动后的起点和终点位置

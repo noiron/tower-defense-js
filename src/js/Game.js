@@ -101,7 +101,7 @@ export default class Game {
 
         // 生成enemy
         // 总数小于50，且间隔 x ms以上
-        if (this.enemyCreatedCount < 1000 && new Date() - this.lastCreatedEnemyTime > 500) {
+        if (this.wave < 100 && new Date() - this.lastCreatedEnemyTime > 500) {
             const cfg = this.waves[this.wave].generateEnemy();
             var enemy = new Enemy({
                 id: globalId.genId(),
