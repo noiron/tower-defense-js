@@ -16,7 +16,7 @@ export default class Enemy {
         this.vx = 0;
         this.vy = 0;
 
-        this.speed = 2;
+        this.speed = opt.speed || 2;
 
         // 当前位置到目标点的距离
         this.dx = 0;
@@ -24,14 +24,17 @@ export default class Enemy {
         this.dist = 0;
 
         // 需要绘制的半径大小
-        this.radius = 10;
+        this.radius = opt.radius || 10;
 
         // 标记是否需要转弯
         this.angleFlag = 1;
 
-        this.color = 0;
-        this.maxHealth = 20;
+        this.color = opt.color || 0;
+        this.maxHealth = opt.health || 20;
         this.health = this.maxHealth;
+
+        this.value = opt.value || 50;
+        this.damage = opt.damage || 5;
     }
 
     step({ path }) {
@@ -58,6 +61,7 @@ export default class Enemy {
                 // 到达终点
                 console.log('reach destination');
                 this.dead = true;
+                this.reachDest = true;
             } else {
                 this.wp++;
                 this.angleFlag = 1;
@@ -81,7 +85,12 @@ export default class Enemy {
         const ctx = this.ctx;
         ctx.beginPath();
         ctx.moveTo(this.x - this.radius, this.y);
-        ctx.lineTo(this.x - this.radius + this.health, this.y);
+        ctx.lineTo(
+            this.x -
+                this.radius +
+                this.health / this.maxHealth * this.radius * 2,
+            this.y
+        );
         ctx.stroke();
     }
 }

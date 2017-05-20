@@ -4,6 +4,7 @@ import BaseTower from './Entity/tower/BaseTower.js';
 import BulletTower from './Entity/tower/BulletTower.js';
 import Enemy from './Entity/Enemy';
 import Map from './Entity/Map';
+import Wave from './Wave';
 import { calcuteDistance } from './utils/utils';
 import { gridWidth, gridHeight, gridNumX, gridNumY, towerCost } from './utils/constant';
 import globalId from './id';
@@ -60,6 +61,7 @@ export default class Game {
         this.mode = '';
         this.addTowerType = 'BASE';
         this.score = 0;
+        this.life = 100;
 
         // 当前是否选中塔
         this.towerSelect = false;
@@ -67,6 +69,9 @@ export default class Game {
         this.towerSelectId = -1;
 
         this.status = 'running';
+
+        this.wave = -1;  // 当前第几波
+        this.waves = [];
 
         this.draw();
         this.bindEvent();
@@ -89,14 +94,24 @@ export default class Game {
             towerSelectIndex: this.towerSelectIndex
         });
 
+        if (this.waves.length === 0 || this.waves[this.wave].waveFinish()) {
+            this.generateWave();
+            // this.waves[0].waveFinish();
+        }
+
         // 生成enemy
         // 总数小于50，且间隔 x ms以上
-        if (this.enemyCreatedCount < 50 && new Date() - this.lastCreatedEnemyTime > 500) {
+        if (this.enemyCreatedCount < 1000 && new Date() - this.lastCreatedEnemyTime > 500) {
+            const cfg = this.waves[this.wave].generateEnemy();
             var enemy = new Enemy({
                 id: globalId.genId(),
+                ctx: ctx,
                 x: gridWidth / 2 + (Math.random() - 0.5) * 10,
                 y: gridHeight / 2 + (Math.random() - 0.5) * 10,
-                ctx: ctx
+                color: cfg.color,
+                radius: cfg.radius,
+                speed: cfg.speed,
+                health: cfg.health * (1 + this.wave / 10)
             });
 
             this.enemies.push(enemy);
@@ -110,6 +125,9 @@ export default class Game {
             enemy.draw();
 
             if (enemy.dead) {
+                if (enemy.reachDest) {
+                    this.life -= enemy.damage;
+                }
                 this.enemies.remove(index);
             }
         });
@@ -226,6 +244,7 @@ export default class Game {
                     impact = true;
                     this.enemies[j].health -= this.bullets[i].damage;
                     if (this.enemies[j].health <= 0) {
+                        this.money += this.enemies[j].value;
                         this.enemies.remove(j); j--;
                         this.score += 100;
                     }
@@ -312,5 +331,10 @@ export default class Game {
     bindEvent() {
         const element = this.element;
         // console.log(element);
+    }
+
+    generateWave() {
+        this.waves.push(new Wave());
+        this.wave++;
     }
 }

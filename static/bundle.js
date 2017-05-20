@@ -57,7 +57,7 @@
 
 	var _Game2 = _interopRequireDefault(_Game);
 
-	var _GameControl = __webpack_require__(16);
+	var _GameControl = __webpack_require__(17);
 
 	var _GameControl2 = _interopRequireDefault(_GameControl);
 
@@ -181,6 +181,10 @@
 
 	var _Map2 = _interopRequireDefault(_Map);
 
+	var _Wave = __webpack_require__(16);
+
+	var _Wave2 = _interopRequireDefault(_Wave);
+
 	var _utils = __webpack_require__(8);
 
 	var _constant = __webpack_require__(10);
@@ -245,6 +249,7 @@
 	        this.mode = '';
 	        this.addTowerType = 'BASE';
 	        this.score = 0;
+	        this.life = 100;
 
 	        // 当前是否选中塔
 	        this.towerSelect = false;
@@ -252,6 +257,9 @@
 	        this.towerSelectId = -1;
 
 	        this.status = 'running';
+
+	        this.wave = -1; // 当前第几波
+	        this.waves = [];
 
 	        this.draw();
 	        this.bindEvent();
@@ -266,7 +274,7 @@
 	            var _this = this;
 
 	            if (this.status === 'gameOver') {
-	                gameOverEle.style.display = 'block';
+	                // gameOverEle.style.display = 'block';
 	                return;
 	            }
 
@@ -280,14 +288,24 @@
 	                towerSelectIndex: this.towerSelectIndex
 	            });
 
+	            if (this.waves.length === 0 || this.waves[this.wave].waveFinish()) {
+	                this.generateWave();
+	                // this.waves[0].waveFinish();
+	            }
+
 	            // 生成enemy
 	            // 总数小于50，且间隔 x ms以上
-	            if (this.enemyCreatedCount < 50 && new Date() - this.lastCreatedEnemyTime > 500) {
+	            if (this.enemyCreatedCount < 1000 && new Date() - this.lastCreatedEnemyTime > 500) {
+	                var cfg = this.waves[this.wave].generateEnemy();
 	                var enemy = new _Enemy2.default({
 	                    id: _id2.default.genId(),
+	                    ctx: ctx,
 	                    x: _constant.gridWidth / 2 + (Math.random() - 0.5) * 10,
 	                    y: _constant.gridHeight / 2 + (Math.random() - 0.5) * 10,
-	                    ctx: ctx
+	                    color: cfg.color,
+	                    radius: cfg.radius,
+	                    speed: cfg.speed,
+	                    health: cfg.health * (1 + this.wave / 10)
 	                });
 
 	                this.enemies.push(enemy);
@@ -301,6 +319,9 @@
 	                enemy.draw();
 
 	                if (enemy.dead) {
+	                    if (enemy.reachDest) {
+	                        _this.life -= enemy.damage;
+	                    }
 	                    _this.enemies.remove(index);
 	                }
 	            });
@@ -408,6 +429,7 @@
 	                        impact = true;
 	                        this.enemies[j].health -= this.bullets[i].damage;
 	                        if (this.enemies[j].health <= 0) {
+	                            this.money += this.enemies[j].value;
 	                            this.enemies.remove(j);j--;
 	                            this.score += 100;
 	                        }
@@ -504,6 +526,12 @@
 	        value: function bindEvent() {
 	            var element = this.element;
 	            // console.log(element);
+	        }
+	    }, {
+	        key: 'generateWave',
+	        value: function generateWave() {
+	            this.waves.push(new _Wave2.default());
+	            this.wave++;
 	        }
 	    }]);
 
@@ -1452,7 +1480,7 @@
 	                    this.directionVec = _vec2.default.fromValues(target.x - this.x, target.y - this.y);
 	                    this.direction = Math.atan2(target.y - this.y, target.x - this.x) * (180 / Math.PI);
 
-	                    target.color = 'red';
+	                    // target.color = 'red';
 	                }
 	                return target;
 	            }
@@ -1965,7 +1993,7 @@
 	        this.vx = 0;
 	        this.vy = 0;
 
-	        this.speed = 2;
+	        this.speed = opt.speed || 2;
 
 	        // 当前位置到目标点的距离
 	        this.dx = 0;
@@ -1973,13 +2001,17 @@
 	        this.dist = 0;
 
 	        // 需要绘制的半径大小
-	        this.radius = 10;
+	        this.radius = opt.radius || 10;
 
 	        // 标记是否需要转弯
 	        this.angleFlag = 1;
 
-	        this.color = 0;
-	        this.health = 20;
+	        this.color = opt.color || 0;
+	        this.maxHealth = opt.health || 20;
+	        this.health = this.maxHealth;
+
+	        this.value = opt.value || 50;
+	        this.damage = opt.damage || 5;
 	    }
 
 	    _createClass(Enemy, [{
@@ -2010,6 +2042,7 @@
 	                    // 到达终点
 	                    console.log('reach destination');
 	                    this.dead = true;
+	                    this.reachDest = true;
 	                } else {
 	                    this.wp++;
 	                    this.angleFlag = 1;
@@ -2025,6 +2058,17 @@
 	            ctx.beginPath();
 	            ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
 	            ctx.closePath();
+	            ctx.stroke();
+
+	            this.drawHealth();
+	        }
+	    }, {
+	        key: 'drawHealth',
+	        value: function drawHealth() {
+	            var ctx = this.ctx;
+	            ctx.beginPath();
+	            ctx.moveTo(this.x - this.radius, this.y);
+	            ctx.lineTo(this.x - this.radius + this.health / this.maxHealth * this.radius * 2, this.y);
 	            ctx.stroke();
 	        }
 	    }]);
@@ -2151,6 +2195,99 @@
 
 /***/ },
 /* 16 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var Wave = function () {
+	    function Wave() {
+	        var _this = this;
+
+	        var opt = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+	        _classCallCheck(this, Wave);
+
+	        //
+	        this.enemyInitCnt = opt.enemyInitCnt || {
+	            a: 10,
+	            b: 5,
+	            c: 10
+	        };
+
+	        this.enemyCnt = {};
+	        Object.keys(this.enemyInitCnt).forEach(function (key) {
+	            _this.enemyCnt[key] = _this.enemyInitCnt[key];
+	        });
+
+	        this.enemyCfg = {
+	            a: {
+	                radius: 10,
+	                speed: 2,
+	                color: 'red',
+	                health: 20
+	            },
+	            b: {
+	                radius: 8,
+	                speed: 3,
+	                color: 'green',
+	                health: 16
+	            },
+	            c: {
+	                radius: 6,
+	                speed: 4,
+	                color: 'orange',
+	                health: 12
+	            }
+	        };
+	    }
+
+	    _createClass(Wave, [{
+	        key: 'waveFinish',
+	        value: function waveFinish() {
+	            var result = true;
+	            var keys = Object.keys(this.enemyCnt);
+
+	            for (var i = 0; i < keys.length; i++) {
+	                var key = keys[i];
+	                if (this.enemyCnt[key] > 0) {
+	                    return false;
+	                }
+	            }
+	            return result;
+	        }
+	    }, {
+	        key: 'generateEnemy',
+	        value: function generateEnemy() {
+	            if (this.waveFinish()) {
+	                return -1;
+	            } else {
+	                var keys = Object.keys(this.enemyCnt);
+	                for (var i = 0; i < keys.length; i++) {
+	                    var key = keys[i];
+	                    if (this.enemyCnt[key] > 0) {
+	                        this.enemyCnt[key]--;
+	                        return this.enemyCfg[key];
+	                    }
+	                }
+	            }
+	        }
+	    }]);
+
+	    return Wave;
+	}();
+
+	exports.default = Wave;
+
+/***/ },
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2177,7 +2314,7 @@
 	var GRID_HEIGHT = 60;
 	var GRID_NUM_X = 3;
 	var GRID_NUM_Y = 2;
-	var WIDTH = 250;
+	var WIDTH = 230;
 	var HEIGHT = 640;
 
 	var GameControl = function () {
@@ -2208,7 +2345,7 @@
 
 	        this.pauseBtn = {
 	            x: this.offsetX,
-	            y: 350,
+	            y: 400,
 	            width: 100,
 	            height: 40,
 	            text: 'Pause',
@@ -2217,7 +2354,7 @@
 
 	        this.sellBtn = {
 	            x: this.offsetX,
-	            y: 420,
+	            y: 470,
 	            width: 100,
 	            height: 40,
 	            text: 'Sell',
@@ -2300,14 +2437,15 @@
 	            var game = this.game;
 	            ctx.fillStyle = '#000';
 	            ctx.font = '20px Arial';
-	            ctx.fillText('Score:' + game.score, this.offsetX, 250);
-	            ctx.fillText('Money:' + game.money, this.offsetX, 300);
+	            ctx.fillText('\u7B2C' + (game.wave + 1) + '\u6CE2', this.offsetX, 200);
+	            ctx.fillText('Life:' + game.life, this.offsetX, 250);
+	            ctx.fillText('Score:' + game.score, this.offsetX, 300);
+	            ctx.fillText('Money:' + game.money, this.offsetX, 350);
 	        }
 	    }, {
 	        key: 'drawButton',
 	        value: function drawButton() {
 	            var ctx = this.ctx;
-	            // console.log(this.sellBtn);
 
 	            [this.pauseBtn, this.sellBtn].forEach(function (btn) {
 	                if (btn.status === 'hover') {
@@ -2323,6 +2461,7 @@
 	        }
 
 	        // 在游戏的控制区域绑定事件
+	        // TODO: 简化判断事件对应元素的逻辑
 
 	    }, {
 	        key: 'bindEvent',

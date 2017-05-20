@@ -5,7 +5,7 @@ const GRID_WIDTH = 60;
 const GRID_HEIGHT = 60;
 const GRID_NUM_X = 3;
 const GRID_NUM_Y = 2;
-const WIDTH = 250;
+const WIDTH = 230;
 const HEIGHT = 640;
 
 class GameControl {
@@ -37,7 +37,7 @@ class GameControl {
 
         this.pauseBtn = {
             x: this.offsetX,
-            y: 350,
+            y: 400,
             width: 100,
             height: 40,
             text: 'Pause',
@@ -46,7 +46,7 @@ class GameControl {
 
         this.sellBtn = {
             x: this.offsetX,
-            y: 420,
+            y: 470,
             width: 100,
             height: 40,
             text: 'Sell',
@@ -127,13 +127,14 @@ class GameControl {
         const game = this.game;
         ctx.fillStyle = '#000';
         ctx.font = '20px Arial';
-        ctx.fillText('Score:' + game.score, this.offsetX, 250);
-        ctx.fillText('Money:' + game.money, this.offsetX, 300);
+        ctx.fillText(`第${game.wave + 1}波`, this.offsetX, 200);
+        ctx.fillText(`Life:${game.life}`, this.offsetX, 250);
+        ctx.fillText('Score:' + game.score, this.offsetX, 300);
+        ctx.fillText('Money:' + game.money, this.offsetX, 350);
     }
 
     drawButton() {
         const ctx = this.ctx;
-        // console.log(this.sellBtn);
 
         [this.pauseBtn, this.sellBtn].forEach(btn => {
             if (btn.status === 'hover') {
@@ -153,6 +154,7 @@ class GameControl {
     }
 
     // 在游戏的控制区域绑定事件
+    // TODO: 简化判断事件对应元素的逻辑
     bindEvent() {
         const $element = $(this.option.element);
         const game = this.game;
