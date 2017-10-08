@@ -1,6 +1,6 @@
 import BaseTower from './BaseTower';
 import Bullet from './../bullet/Bullet';
-import vec2 from 'gl-matrix/src/gl-matrix/vec2';
+import { vec2 } from 'gl-matrix';
 import { toRadians, calcuteDistance } from './../../utils/utils';
 import { config } from './../../utils/config';
 import { towerCost, gridWidth, gridHeight } from './../../utils/constant';

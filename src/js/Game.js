@@ -1,4 +1,4 @@
-import vec2 from 'gl-matrix/src/gl-matrix/vec2';
+import { vec2 } from 'gl-matrix';
 import Path from './Entity/Path.js';
 import BaseTower from './Entity/tower/BaseTower.js';
 import BulletTower from './Entity/tower/BulletTower.js';

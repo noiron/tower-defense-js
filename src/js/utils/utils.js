@@ -1,4 +1,4 @@
-import vec2 from 'gl-matrix/src/gl-matrix/vec2';
+import { vec2 } from 'gl-matrix';
 
 export function toRadians(angle) {
     return angle * (Math.PI / 180);
