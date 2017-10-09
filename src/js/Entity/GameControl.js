@@ -1,5 +1,6 @@
 import BaseTower from './tower/BaseTower';
 import BulletTower from './tower/BulletTower';
+import LaserTower from './tower/LaserTower';
 import { isInside } from './../utils/utils';
 
 const GRID_WIDTH = 60;
@@ -115,11 +116,7 @@ class GameControl {
                 ctx.fillStyle = '#000';
             }
             ctx.strokeRect(btn.x, btn.y, btn.width, btn.height);
-            ctx.fillText(
-                btn.text,
-                btn.x + btn.width / 5,
-                btn.y + btn.height / 1.6
-            );
+            ctx.fillText(btn.text, btn.x + btn.width / 5, btn.y + btn.height / 1.6);
         });
     }
 
@@ -160,16 +157,23 @@ class GameControl {
                     }
                 } else if (xIdx === 1 && yIdx === 0) {
                     // 点击了 BulletTower
-                    if (
-                        game.mode === 'ADD_TOWER' &&
-                        game.addTowerType === 'BULLET'
-                    ) {
+                    if (game.mode === 'ADD_TOWER' && game.addTowerType === 'BULLET') {
                         game.mode = '';
                         game.addTowerType = '';
                     } else {
                         game.mode = 'ADD_TOWER';
                         game.addTowerType = 'BULLET';
                         this.towerArea.selected = [1, 0];
+                    }
+                } else if (xIdx === 2 && yIdx === 0) {
+                    // 点击了 LaserTower
+                    if (game.mode === 'ADD_TOWER' && game.addTowerType === 'LASER') {
+                        game.mode = '';
+                        game.addTowerType = '';
+                    } else {
+                        game.mode = 'ADD_TOWER';
+                        game.addTowerType = 'LASER';
+                        this.towerArea.selected = [2, 0];
                     }
                 } else {
                     this.towerArea.selected = -1;
@@ -245,6 +249,14 @@ class TowerArea {
             direction: 180,
             radius: 12
         });
+
+        this.laserTower = new LaserTower({
+            x: this.offsetX + GRID_WIDTH * 2.5 + 10,
+            y: this.offsetY + GRID_HEIGHT / 2,
+            ctx: this.ctx,
+            direction: 90,
+            radius: 8
+        });
     }
 
     draw() {
@@ -255,10 +267,7 @@ class TowerArea {
         ctx.beginPath();
         for (let i = 0; i < GRID_NUM_Y + 1; i++) {
             ctx.moveTo(this.offsetX, i * GRID_WIDTH + this.offsetY);
-            ctx.lineTo(
-                this.offsetX + GRID_NUM_X * GRID_WIDTH,
-                i * GRID_WIDTH + this.offsetY
-            );
+            ctx.lineTo(this.offsetX + GRID_NUM_X * GRID_WIDTH, i * GRID_WIDTH + this.offsetY);
         }
         ctx.stroke();
 
@@ -266,17 +275,14 @@ class TowerArea {
         ctx.beginPath();
         for (let i = 0; i < GRID_NUM_X + 1; i++) {
             ctx.moveTo(i * GRID_WIDTH + this.offsetX, this.offsetY);
-            ctx.lineTo(
-                i * GRID_WIDTH + this.offsetX,
-                this.offsetY + GRID_NUM_Y * GRID_HEIGHT
-            );
+            ctx.lineTo(i * GRID_WIDTH + this.offsetX, this.offsetY + GRID_NUM_Y * GRID_HEIGHT);
         }
         ctx.stroke();
 
-        if (this.selected !== -1)
-            this.highlightTower(this.selected[0], this.selected[1]);
+        if (this.selected !== -1) this.highlightTower(this.selected[0], this.selected[1]);
         this.baseTower.draw(ctx);
         this.bulletTower.draw(ctx);
+        this.laserTower.draw(ctx);
     }
 
     // 选中的tower突出显示
@@ -285,23 +291,11 @@ class TowerArea {
         ctx.strokeStyle = 'pink';
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.moveTo(
-            x * GRID_WIDTH + this.offsetX + 3,
-            y * GRID_HEIGHT + this.offsetY + 3
-        );
-        ctx.lineTo(
-            (x + 0.35) * GRID_WIDTH + this.offsetX + 3,
-            y * GRID_HEIGHT + this.offsetY + 3
-        );
+        ctx.moveTo(x * GRID_WIDTH + this.offsetX + 3, y * GRID_HEIGHT + this.offsetY + 3);
+        ctx.lineTo((x + 0.35) * GRID_WIDTH + this.offsetX + 3, y * GRID_HEIGHT + this.offsetY + 3);
 
-        ctx.moveTo(
-            (x + 0.65) * GRID_WIDTH + this.offsetX,
-            y * GRID_HEIGHT + this.offsetY + 3
-        );
-        ctx.lineTo(
-            (x + 1) * GRID_WIDTH + this.offsetX - 3,
-            y * GRID_HEIGHT + this.offsetY + 3
-        );
+        ctx.moveTo((x + 0.65) * GRID_WIDTH + this.offsetX, y * GRID_HEIGHT + this.offsetY + 3);
+        ctx.lineTo((x + 1) * GRID_WIDTH + this.offsetX - 3, y * GRID_HEIGHT + this.offsetY + 3);
         ctx.lineTo(
             (x + 1) * GRID_WIDTH + this.offsetX - 3,
             (y + 0.35) * GRID_HEIGHT + this.offsetY
@@ -309,7 +303,7 @@ class TowerArea {
 
         ctx.moveTo(
             (x + 1) * GRID_WIDTH + this.offsetX - 3,
-            (y + 0.65) * GRID_HEIGHT + this.offsetY -3
+            (y + 0.65) * GRID_HEIGHT + this.offsetY - 3
         );
         ctx.lineTo(
             (x + 1) * GRID_WIDTH + this.offsetX - 3,
@@ -324,23 +318,11 @@ class TowerArea {
             (x + 0.35) * GRID_WIDTH + this.offsetX,
             (y + 1) * GRID_HEIGHT + this.offsetY - 3
         );
-        ctx.lineTo(
-            x * GRID_WIDTH + this.offsetX + 3,
-            (y + 1) * GRID_HEIGHT + this.offsetY - 3
-        );
-        ctx.lineTo(
-            x * GRID_WIDTH + this.offsetX + 3,
-            (y + 0.65) * GRID_HEIGHT + this.offsetY - 3
-        );
+        ctx.lineTo(x * GRID_WIDTH + this.offsetX + 3, (y + 1) * GRID_HEIGHT + this.offsetY - 3);
+        ctx.lineTo(x * GRID_WIDTH + this.offsetX + 3, (y + 0.65) * GRID_HEIGHT + this.offsetY - 3);
 
-        ctx.moveTo(
-            x * GRID_WIDTH + this.offsetX + 3,
-            (y + 0.35) * GRID_HEIGHT + this.offsetY
-        );
-        ctx.lineTo(
-            x * GRID_WIDTH + this.offsetX + 3,
-            y * GRID_HEIGHT + this.offsetY + 3
-        );
+        ctx.moveTo(x * GRID_WIDTH + this.offsetX + 3, (y + 0.35) * GRID_HEIGHT + this.offsetY);
+        ctx.lineTo(x * GRID_WIDTH + this.offsetX + 3, y * GRID_HEIGHT + this.offsetY + 3);
 
         ctx.closePath();
         ctx.stroke();

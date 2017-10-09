@@ -2,6 +2,7 @@ import { vec2 } from 'gl-matrix';
 import Path from './Entity/Path.js';
 import BaseTower from './Entity/tower/BaseTower.js';
 import BulletTower from './Entity/tower/BulletTower.js';
+import LaserTower from './Entity/tower/LaserTower.js';
 import Enemy from './Entity/Enemy';
 import Map from './Entity/Map';
 import Wave from './Wave';
@@ -288,6 +289,9 @@ export default class Game {
             case 'BULLET':
                 tower = new BulletTower({ ctx, x, y, bullets: this.bullets });
                 break;
+            case 'LASER':
+                tower = new LaserTower({ ctx, x, y, bullets: this.bullets });
+                break;
             default:
                 tower = new BulletTower({ ctx, x, y, bullets: this.bullets });
         }
@@ -312,10 +316,19 @@ export default class Game {
     // 准备放置塔时，在鼠标所在位置画一个虚拟的塔
     drawGhostTower(ctx, x, y, towerType) {
         let tower = null;
-        if (towerType === 'BASE') {
-            tower = new BaseTower({ ctx, x, y, bullets: this.bullets, selected: true });
-        } else if (towerType === 'BULLET') {
-            tower = new BulletTower({ ctx, x, y, bullets: this.bullets, selected: true });
+        switch(towerType) {
+            case 'BASE':
+                tower = new BaseTower({ ctx, x, y, bullets: this.bullets, selected: true });
+                break;
+            case 'BULLET':
+                tower = new BulletTower({ ctx, x, y, bullets: this.bullets, selected: true });
+                break;
+            case 'LASER':
+                tower = new LaserTower({ ctx, x, y, bullets: this.bullets, selected: true });
+                break;
+
+            default:
+                tower = null;
         }
         tower.draw(ctx);
     }
