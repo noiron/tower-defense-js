@@ -64,7 +64,7 @@ export default class BaseTower {
         // 在选中的情况下，画出其射程范围
         if (this.selected) {
             ctx.beginPath();
-            ctx.fillStyle = "rgba(200, 200, 200, 0.3)";
+            ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
             ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
             ctx.fill();
         }
@@ -129,7 +129,9 @@ export default class BaseTower {
                 continue;
             } else {
                 if (calcuteDistance(enemy.x, enemy.y, this.x, this.y) < this.range) {
-                    if (this.target) this.target.color = 0;
+                    if (this.target) { 
+                        this.target.color = 0; 
+                    }
                     this.targetIndex = i;
                     this.target = enemies[i];
                     this.targetId = enemies[i].id;
