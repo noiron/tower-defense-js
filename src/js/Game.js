@@ -12,8 +12,8 @@ import globalId from './id';
 
 const WIDTH = 800;
 const HEIGHT = 640;
-const canvas = document.getElementById("drawing");
-const ctx = canvas.getContext("2d");
+const canvas = document.getElementById('drawing');
+const ctx = canvas.getContext('2d');
 
 const gameOverEle = document.getElementById('game-over');
 
@@ -48,7 +48,7 @@ export default class Game {
             HEIGHT,
             newTowerCoord,
             pathCoord: this.pathCoord,
-        })
+        });
 
         // 放置一个初始状态下的塔
         const tower = new BaseTower({
@@ -141,7 +141,7 @@ export default class Game {
             } else {
                 tower.selected = false;
             }
-            tower.draw(ctx)
+            tower.draw(ctx);
         });
 
         // 如何确定游戏结束?
@@ -238,7 +238,7 @@ export default class Game {
                     distance = calcuteDistance(normal[0], normal[1],
                         this.enemies[j].x, this.enemies[j].y);
                 } else {
-                    distance = calcuteDistance(this.bullets[i].x, this.bullets[i].y, this.enemies[j].x, this.enemies[j].y)
+                    distance = calcuteDistance(this.bullets[i].x, this.bullets[i].y, this.enemies[j].x, this.enemies[j].y);
                 }
 
                 if (distance <= this.enemies[j].radius + 2) {
