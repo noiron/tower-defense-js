@@ -6,9 +6,10 @@ export default class Map {
         this.ctx = opt.ctx;
         this.newTowerCoord = opt.newTowerCoord || null;
         this.pathCoord = opt.pathCoord;
-        this.WIDTH = opt.WIDTH,
-            this.HEIGHT = opt.HEIGHT,
-            this.coord = [];
+        this.WIDTH = opt.WIDTH;
+        this.HEIGHT = opt.HEIGHT;
+        
+        this.coord = [];
 
         for (let i = 0; i < gridNumX; i++) {
             this.coord[i] = [];
@@ -68,12 +69,12 @@ export default class Map {
         if (towerSelect) {
             const coordX = towers[towerSelectIndex].coordX;
             const coordY = towers[towerSelectIndex].coordY;
-            fillGrid(coordX, coordY, 'pink')
+            fillGrid(coordX, coordY, 'pink');
         }
 
         // 给一个格子上色
         function fillGrid(x, y, color) {
-            ctx.fillStyle = color || "#666";
+            ctx.fillStyle = color || '#666';
             ctx.fillRect(x * gridWidth + 1, y * gridHeight + 1, gridWidth - 2, gridHeight - 2);
         }
 

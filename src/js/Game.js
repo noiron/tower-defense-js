@@ -61,6 +61,7 @@ export default class Game {
 
         this.mode = '';
         this.addTowerType = 'BASE';
+        this.status = 'running';
         this.score = 0;
         this.life = 100;
 
@@ -68,8 +69,6 @@ export default class Game {
         this.towerSelect = false;
         this.towerSelectIndex = -1;
         this.towerSelectId = -1;
-
-        this.status = 'running';
 
         this.wave = -1;  // 当前第几波
         this.waves = [];
@@ -95,16 +94,16 @@ export default class Game {
             towerSelectIndex: this.towerSelectIndex
         });
 
-        if (this.waves.length === 0 || this.waves[this.wave].waveFinish()) {
+        if (this.shouldGenerateWave()) {
             this.generateWave();
             // this.waves[0].waveFinish();
         }
 
         // 生成enemy
         // 总数小于50，且间隔 x ms以上
-        if (this.wave < 100 && new Date() - this.lastCreatedEnemyTime > 500) {
+        if (shouldGenerateEnemy()) {
             const cfg = this.waves[this.wave].generateEnemy();
-            var enemy = new Enemy({
+            const enemy = new Enemy({
                 id: globalId.genId(),
                 ctx: ctx,
                 x: gridWidth / 2 + (Math.random() - 0.5) * 10,
@@ -151,7 +150,7 @@ export default class Game {
             }, 1000);
         }
 
-        // 确定 bullet tower 的目标
+        // 确定 tower 的目标
         for (let i = 0, len = this.towers.length; i < len; i++) {
             const tower = this.towers[i];
             tower.findTarget(this.enemies);
@@ -175,21 +174,40 @@ export default class Game {
         // 移除出界的bullet，画出剩下的bullet
         for (let i = 0; i < this.bullets.length; i++) {
             const bullet = this.bullets[i];
-            if (bullet.type === 'line') {  // 直线子弹
-                if (bullet.start[0] < 0 || bullet.start[1] < 0 ||
-                    bullet.start[0] > WIDTH || bullet.start[1] > HEIGHT) {
-                    this.bullets.remove(i);
-                    i--;
-                } else {
-                    bullet.draw(ctx, this.enemies);
+            
+            switch (bullet.type) {
+                case 'line': {
+                    // 直线子弹
+                    if (bullet.start[0] < 0 || bullet.start[1] < 0 ||
+                        bullet.start[0] > WIDTH || bullet.start[1] > HEIGHT) {
+                        this.bullets.remove(i);
+                        i--;
+                    } else {
+                        bullet.draw(ctx, this.enemies);
+                    }
+                    break;
                 }
-            } else if (bullet.type === 'circle') {
-                if (bullet.x < 0 || bullet.y < 0 ||
-                    bullet.x > WIDTH || bullet.y > HEIGHT) {
-                    this.bullets.remove(i);
-                    i--;
-                } else {
-                    bullet.draw(ctx, this.enemies);
+                case 'circle': {
+                    if (bullet.x < 0 || bullet.y < 0 ||
+                        bullet.x > WIDTH || bullet.y > HEIGHT) {
+                        this.bullets.remove(i);
+                        i--;
+                    } else {
+                        bullet.draw(ctx, this.enemies);
+                    }
+                    break;
+                }
+                case 'laser': {
+                    // TODO: 何时结束
+                    console.log(bullet.parent.target, i);
+                    if (bullet.parent.targetIndex !== i) {
+                        this.bullets.remove(i);
+                        bullet.parent.shooting = false;
+                        i--;
+                    } else {
+                        bullet.draw(ctx, this.enemies);
+                    }
+                    break;
                 }
             }
         }
@@ -252,6 +270,9 @@ export default class Game {
                     break;
                 }
             }
+            if (this.bullets[i].type === 'laser') {
+                impact === false;
+            }
             if (impact) {
                 this.bullets.remove(i); i--;
             }
@@ -281,19 +302,21 @@ export default class Game {
         const x = coordX * gridWidth + gridWidth / 2;
         const y = coordY * gridWidth + gridWidth / 2;
 
+        const config = { ctx, x, y, bullets: this.bullets };
+
         let tower = null;
         switch (towerType) {
             case 'BASE':
-                tower = new BaseTower({ ctx, x, y, bullets: this.bullets });
+                tower = new BaseTower(config);
                 break;
             case 'BULLET':
-                tower = new BulletTower({ ctx, x, y, bullets: this.bullets });
+                tower = new BulletTower(config);
                 break;
             case 'LASER':
-                tower = new LaserTower({ ctx, x, y, bullets: this.bullets });
+                tower = new LaserTower(config);
                 break;
             default:
-                tower = new BulletTower({ ctx, x, y, bullets: this.bullets });
+                tower = new BulletTower(config);
         }
 
         this.map.coord[coordX][coordY] = 'T';
@@ -316,15 +339,17 @@ export default class Game {
     // 准备放置塔时，在鼠标所在位置画一个虚拟的塔
     drawGhostTower(ctx, x, y, towerType) {
         let tower = null;
+        const config = { ctx, x, y, bullets: this.bullets, selected: true };
+
         switch(towerType) {
             case 'BASE':
-                tower = new BaseTower({ ctx, x, y, bullets: this.bullets, selected: true });
+                tower = new BaseTower(config);
                 break;
             case 'BULLET':
-                tower = new BulletTower({ ctx, x, y, bullets: this.bullets, selected: true });
+                tower = new BulletTower(config);
                 break;
             case 'LASER':
-                tower = new LaserTower({ ctx, x, y, bullets: this.bullets, selected: true });
+                tower = new LaserTower(config);
                 break;
 
             default:
@@ -337,13 +362,22 @@ export default class Game {
     displayInfo() {
         // 画面信息的显示
         if (document.getElementById('enemyCount')) {
-            document.getElementById('enemyCount').innerHTML = `Enemy Count: ${this.enemies.length}, Bullets: ${this.bullets.length}`;
+            document.getElementById('enemyCount').innerHTML = 
+                `Enemy Count: ${this.enemies.length}, Bullets: ${this.bullets.length}`;
         }
     }
 
     bindEvent() {
         const element = this.element;
         // console.log(element);
+    }
+
+    shouldGenerateEnemy() {
+        return this.wave < 100 && new Date() - this.lastCreatedEnemyTime > 500;
+    }
+
+    shouldGenerateWave() {
+        return this.waves.length === 0 || this.waves[this.wave].waveFinish();
     }
 
     generateWave() {
