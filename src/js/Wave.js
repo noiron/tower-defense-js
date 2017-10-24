@@ -35,16 +35,10 @@ export default class Wave {
     }
 
     waveFinish() {
-        const result = true;
         const keys = Object.keys(this.enemyCnt);
-
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (this.enemyCnt[key] > 0) {
-                return false;
-            }
-        }
-        return result;
+        return keys.every(key => {
+            return this.enemyCnt[key] <= 0;
+        });
     }
 
     generateEnemy() {

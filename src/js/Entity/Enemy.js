@@ -85,12 +85,7 @@ export default class Enemy {
         const ctx = this.ctx;
         ctx.beginPath();
         ctx.moveTo(this.x - this.radius, this.y);
-        ctx.lineTo(
-            this.x -
-                this.radius +
-                this.health / this.maxHealth * this.radius * 2,
-            this.y
-        );
+        ctx.lineTo(this.x - this.radius + this.health / this.maxHealth * this.radius * 2, this.y);
         ctx.stroke();
     }
 }
