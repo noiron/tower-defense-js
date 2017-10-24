@@ -56,7 +56,7 @@ document.onclick = function(e) {
             // 点击的格子内为塔
             game.towers.map((tower, index) => {
                 if (tower.coordX === coordX && tower.coordY === coordY) {
-                    console.log(`You select ${index}th tower`);
+                    console.log(`You select ${index}th tower, its id is ${tower.id}`);
 
                     // 已经选中的塔再次点击则取消
                     if (game.towerSelectIndex === index) {

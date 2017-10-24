@@ -52,6 +52,7 @@ export default class Game {
 
         // 放置一个初始状态下的塔
         const tower = new BaseTower({
+            id: globalId.genId(),
             ctx,
             x: gridWidth / 2 + newTowerCoord[0] * gridWidth,
             y: gridHeight / 2 + newTowerCoord[1] * gridHeight,
@@ -101,7 +102,7 @@ export default class Game {
 
         // 生成enemy
         // 总数小于50，且间隔 x ms以上
-        if (shouldGenerateEnemy()) {
+        if (this.shouldGenerateEnemy()) {
             const cfg = this.waves[this.wave].generateEnemy();
             const enemy = new Enemy({
                 id: globalId.genId(),
@@ -198,9 +199,8 @@ export default class Game {
                     break;
                 }
                 case 'laser': {
-                    // TODO: 何时结束
-                    console.log(bullet.parent.target, i);
-                    if (bullet.parent.targetIndex !== i) {
+                    // 如果 bullet 的目标和其 parent 的目标不一致时，则删除这个 bullet
+                    if (!bullet.parent.target || bullet.parent.target.id !== bullet.target.id) {
                         this.bullets.remove(i);
                         bullet.parent.shooting = false;
                         i--;
@@ -236,42 +236,49 @@ export default class Game {
         for (var i = 0; i < this.bullets.length; i++) {
             let impact = false;
             let distance = 0;
+            const bullet = this.bullets[i];
 
             for (var j = 0; j < this.enemies.length; j++) {
+                const enemy = this.enemies[j];
 
-                if (this.bullets[i].type === 'line') {
+                if (bullet.type === 'line') {
                     // 求圆心至bullet的垂足
                     let normal = vec2.create();
-                    let bVec = this.bullets[i].directionVec;
+                    let bVec = bullet.directionVec;
                     let aDotB = 1;
 
                     let aVec = vec2.fromValues(
-                        this.enemies[j].x - this.bullets[i].start[0],
-                        this.enemies[j].y - this.bullets[i].start[1]
+                        enemy.x - bullet.start[0],
+                        enemy.y - bullet.start[1]
                     );
                     vec2.multiply(aDotB, aVec, bVec);
                     vec2.scale(bVec, bVec, aDotB);
-                    vec2.add(normal, this.bullets[i].start, bVec);
+                    vec2.add(normal, bullet.start, bVec);
 
-                    distance = calcuteDistance(normal[0], normal[1],
-                        this.enemies[j].x, this.enemies[j].y);
-                } else {
-                    distance = calcuteDistance(this.bullets[i].x, this.bullets[i].y, this.enemies[j].x, this.enemies[j].y);
+                    distance = calcuteDistance(normal[0], normal[1], enemy.x, enemy.y);
+                } else if (bullet.type === 'circle') {
+                    distance = calcuteDistance(bullet.x, bullet.y, enemy.x, enemy.y);
+                } 
+                
+                if (bullet.type === 'laser') {
+                    if (bullet.target.id === enemy.id) {
+                        distance = 0;
+                    }
                 }
 
-                if (distance <= this.enemies[j].radius + 2) {
+                if (distance <= enemy.radius + 2) {
                     impact = true;
-                    this.enemies[j].health -= this.bullets[i].damage;
-                    if (this.enemies[j].health <= 0) {
-                        this.money += this.enemies[j].value;
+                    enemy.health -= bullet.damage;
+                    if (enemy.health <= 0) {
+                        this.money += enemy.value;
                         this.enemies.remove(j); j--;
                         this.score += 100;
                     }
                     break;
                 }
             }
-            if (this.bullets[i].type === 'laser') {
-                impact === false;
+            if (bullet.type === 'laser') {
+                impact = false;
             }
             if (impact) {
                 this.bullets.remove(i); i--;
@@ -301,8 +308,9 @@ export default class Game {
 
         const x = coordX * gridWidth + gridWidth / 2;
         const y = coordY * gridWidth + gridWidth / 2;
+        const id = globalId.genId();
 
-        const config = { ctx, x, y, bullets: this.bullets };
+        const config = { id, ctx, x, y, bullets: this.bullets };
 
         let tower = null;
         switch (towerType) {
@@ -361,15 +369,15 @@ export default class Game {
 
     displayInfo() {
         // 画面信息的显示
-        if (document.getElementById('enemyCount')) {
-            document.getElementById('enemyCount').innerHTML = 
+        const enemyCountElement = document.getElementById('enemyCount');
+        if (enemyCountElement) {
+            enemyCountElement.innerHTML = 
                 `Enemy Count: ${this.enemies.length}, Bullets: ${this.bullets.length}`;
         }
     }
 
     bindEvent() {
         const element = this.element;
-        // console.log(element);
     }
 
     shouldGenerateEnemy() {

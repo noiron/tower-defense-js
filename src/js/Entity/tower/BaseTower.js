@@ -11,7 +11,8 @@ import globalId from './../../id';
 
 
 export default class BaseTower {
-    constructor({ ctx, x, y, bullets, selected, damage, radius }) {
+    constructor({ id, ctx, x, y, bullets, selected, damage, radius }) {
+        this.id = id;
         this.x = x;
         this.y = y;
         this.ctx = ctx;
