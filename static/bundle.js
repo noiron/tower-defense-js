@@ -57,7 +57,7 @@
 
 	var _Game2 = _interopRequireDefault(_Game);
 
-	var _GameControl = __webpack_require__(16);
+	var _GameControl = __webpack_require__(17);
 
 	var _GameControl2 = _interopRequireDefault(_GameControl);
 
@@ -171,15 +171,19 @@
 
 	var _BulletTower2 = _interopRequireDefault(_BulletTower);
 
-	var _Enemy = __webpack_require__(13);
+	var _LaserTower = __webpack_require__(13);
+
+	var _LaserTower2 = _interopRequireDefault(_LaserTower);
+
+	var _Enemy = __webpack_require__(14);
 
 	var _Enemy2 = _interopRequireDefault(_Enemy);
 
-	var _Map = __webpack_require__(14);
+	var _Map = __webpack_require__(15);
 
 	var _Map2 = _interopRequireDefault(_Map);
 
-	var _Wave = __webpack_require__(15);
+	var _Wave = __webpack_require__(16);
 
 	var _Wave2 = _interopRequireDefault(_Wave);
 
@@ -197,8 +201,8 @@
 
 	var WIDTH = 800;
 	var HEIGHT = 640;
-	var canvas = document.getElementById("drawing");
-	var ctx = canvas.getContext("2d");
+	var canvas = document.getElementById('drawing');
+	var ctx = canvas.getContext('2d');
 
 	var gameOverEle = document.getElementById('game-over');
 
@@ -246,6 +250,7 @@
 
 	        this.mode = '';
 	        this.addTowerType = 'BASE';
+	        this.status = 'running';
 	        this.score = 0;
 	        this.life = 100;
 
@@ -253,8 +258,6 @@
 	        this.towerSelect = false;
 	        this.towerSelectIndex = -1;
 	        this.towerSelectId = -1;
-
-	        this.status = 'running';
 
 	        this.wave = -1; // 当前第几波
 	        this.waves = [];
@@ -286,14 +289,14 @@
 	                towerSelectIndex: this.towerSelectIndex
 	            });
 
-	            if (this.waves.length === 0 || this.waves[this.wave].waveFinish()) {
+	            if (this.shouldGenerateWave()) {
 	                this.generateWave();
 	                // this.waves[0].waveFinish();
 	            }
 
 	            // 生成enemy
 	            // 总数小于50，且间隔 x ms以上
-	            if (this.wave < 100 && new Date() - this.lastCreatedEnemyTime > 500) {
+	            if (shouldGenerateEnemy()) {
 	                var cfg = this.waves[this.wave].generateEnemy();
 	                var enemy = new _Enemy2.default({
 	                    id: _id2.default.genId(),
@@ -342,7 +345,7 @@
 	                }, 1000);
 	            }
 
-	            // 确定 bullet tower 的目标
+	            // 确定 tower 的目标
 	            for (var i = 0, len = this.towers.length; i < len; i++) {
 	                var tower = this.towers[i];
 	                tower.findTarget(this.enemies);
@@ -361,21 +364,42 @@
 	            // 移除出界的bullet，画出剩下的bullet
 	            for (var _i = 0; _i < this.bullets.length; _i++) {
 	                var bullet = this.bullets[_i];
-	                if (bullet.type === 'line') {
-	                    // 直线子弹
-	                    if (bullet.start[0] < 0 || bullet.start[1] < 0 || bullet.start[0] > WIDTH || bullet.start[1] > HEIGHT) {
-	                        this.bullets.remove(_i);
-	                        _i--;
-	                    } else {
-	                        bullet.draw(ctx, this.enemies);
-	                    }
-	                } else if (bullet.type === 'circle') {
-	                    if (bullet.x < 0 || bullet.y < 0 || bullet.x > WIDTH || bullet.y > HEIGHT) {
-	                        this.bullets.remove(_i);
-	                        _i--;
-	                    } else {
-	                        bullet.draw(ctx, this.enemies);
-	                    }
+
+	                switch (bullet.type) {
+	                    case 'line':
+	                        {
+	                            // 直线子弹
+	                            if (bullet.start[0] < 0 || bullet.start[1] < 0 || bullet.start[0] > WIDTH || bullet.start[1] > HEIGHT) {
+	                                this.bullets.remove(_i);
+	                                _i--;
+	                            } else {
+	                                bullet.draw(ctx, this.enemies);
+	                            }
+	                            break;
+	                        }
+	                    case 'circle':
+	                        {
+	                            if (bullet.x < 0 || bullet.y < 0 || bullet.x > WIDTH || bullet.y > HEIGHT) {
+	                                this.bullets.remove(_i);
+	                                _i--;
+	                            } else {
+	                                bullet.draw(ctx, this.enemies);
+	                            }
+	                            break;
+	                        }
+	                    case 'laser':
+	                        {
+	                            // TODO: 何时结束
+	                            console.log(bullet.parent.target, _i);
+	                            if (bullet.parent.targetIndex !== _i) {
+	                                this.bullets.remove(_i);
+	                                bullet.parent.shooting = false;
+	                                _i--;
+	                            } else {
+	                                bullet.draw(ctx, this.enemies);
+	                            }
+	                            break;
+	                        }
 	                }
 	            }
 
@@ -434,6 +458,9 @@
 	                        break;
 	                    }
 	                }
+	                if (this.bullets[i].type === 'laser') {
+	                    impact === false;
+	                }
 	                if (impact) {
 	                    this.bullets.remove(i);i--;
 	                }
@@ -466,16 +493,21 @@
 	            var x = coordX * _constant.gridWidth + _constant.gridWidth / 2;
 	            var y = coordY * _constant.gridWidth + _constant.gridWidth / 2;
 
+	            var config = { ctx: ctx, x: x, y: y, bullets: this.bullets };
+
 	            var tower = null;
 	            switch (towerType) {
 	                case 'BASE':
-	                    tower = new _BaseTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets });
+	                    tower = new _BaseTower2.default(config);
 	                    break;
 	                case 'BULLET':
-	                    tower = new _BulletTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets });
+	                    tower = new _BulletTower2.default(config);
+	                    break;
+	                case 'LASER':
+	                    tower = new _LaserTower2.default(config);
 	                    break;
 	                default:
-	                    tower = new _BulletTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets });
+	                    tower = new _BulletTower2.default(config);
 	            }
 
 	            this.map.coord[coordX][coordY] = 'T';
@@ -504,10 +536,21 @@
 	        key: 'drawGhostTower',
 	        value: function drawGhostTower(ctx, x, y, towerType) {
 	            var tower = null;
-	            if (towerType === 'BASE') {
-	                tower = new _BaseTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets, selected: true });
-	            } else if (towerType === 'BULLET') {
-	                tower = new _BulletTower2.default({ ctx: ctx, x: x, y: y, bullets: this.bullets, selected: true });
+	            var config = { ctx: ctx, x: x, y: y, bullets: this.bullets, selected: true };
+
+	            switch (towerType) {
+	                case 'BASE':
+	                    tower = new _BaseTower2.default(config);
+	                    break;
+	                case 'BULLET':
+	                    tower = new _BulletTower2.default(config);
+	                    break;
+	                case 'LASER':
+	                    tower = new _LaserTower2.default(config);
+	                    break;
+
+	                default:
+	                    tower = null;
 	            }
 	            tower.draw(ctx);
 	        }
@@ -524,6 +567,16 @@
 	        value: function bindEvent() {
 	            var element = this.element;
 	            // console.log(element);
+	        }
+	    }, {
+	        key: 'shouldGenerateEnemy',
+	        value: function shouldGenerateEnemy() {
+	            return this.wave < 100 && new Date() - this.lastCreatedEnemyTime > 500;
+	        }
+	    }, {
+	        key: 'shouldGenerateWave',
+	        value: function shouldGenerateWave() {
+	            return this.waves.length === 0 || this.waves[this.wave].waveFinish();
 	        }
 	    }, {
 	        key: 'generateWave',
@@ -7617,7 +7670,7 @@
 	            // 在选中的情况下，画出其射程范围
 	            if (this.selected) {
 	                ctx.beginPath();
-	                ctx.fillStyle = "rgba(200, 200, 200, 0.3)";
+	                ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
 	                ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
 	                ctx.fill();
 	            }
@@ -7685,7 +7738,9 @@
 	                    continue;
 	                } else {
 	                    if ((0, _utils.calcuteDistance)(enemy.x, enemy.y, this.x, this.y) < this.range) {
-	                        if (this.target) this.target.color = 0;
+	                        if (this.target) {
+	                            this.target.color = 0;
+	                        }
 	                        this.targetIndex = i;
 	                        this.target = enemies[i];
 	                        this.targetId = enemies[i].id;
@@ -7730,8 +7785,8 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var Bullet1 = function () {
-	    function Bullet1(_ref) {
+	var CircleBullet = function () {
+	    function CircleBullet(_ref) {
 	        var ctx = _ref.ctx,
 	            x = _ref.x,
 	            y = _ref.y,
@@ -7739,7 +7794,7 @@
 	            range = _ref.range,
 	            damage = _ref.damage;
 
-	        _classCallCheck(this, Bullet1);
+	        _classCallCheck(this, CircleBullet);
 
 	        this.type = 'circle';
 	        this.x = x;
@@ -7756,7 +7811,7 @@
 	        this.damage = damage || 5;
 	    }
 
-	    _createClass(Bullet1, [{
+	    _createClass(CircleBullet, [{
 	        key: 'step',
 	        value: function step(enemies) {
 	            // 计算新位置
@@ -7793,10 +7848,10 @@
 	        }
 	    }]);
 
-	    return Bullet1;
+	    return CircleBullet;
 	}();
 
-	exports.default = Bullet1;
+	exports.default = CircleBullet;
 
 /***/ }),
 /* 7 */
@@ -7903,7 +7958,8 @@
 
 	var towerCost = exports.towerCost = {
 	    'baseTower': 200,
-	    'bulletTower': 200
+	    'bulletTower': 200,
+	    'laserTower': 200
 	};
 
 	var towerDataURL = exports.towerDataURL = {
@@ -8101,7 +8157,7 @@
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-	        value: true
+	    value: true
 	});
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -8113,68 +8169,175 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var Bullet = function () {
-	        function Bullet(_ref) {
-	                var ctx = _ref.ctx,
-	                    x = _ref.x,
-	                    y = _ref.y,
-	                    directionVec = _ref.directionVec,
-	                    damage = _ref.damage;
+	    function Bullet(_ref) {
+	        var ctx = _ref.ctx,
+	            x = _ref.x,
+	            y = _ref.y,
+	            directionVec = _ref.directionVec,
+	            damage = _ref.damage;
 
-	                _classCallCheck(this, Bullet);
+	        _classCallCheck(this, Bullet);
 
-	                this.type = 'line';
-	                this.x = x;
-	                this.y = y;
-	                this.directionVec = directionVec;
+	        this.type = 'line';
+	        this.x = x;
+	        this.y = y;
+	        this.directionVec = directionVec;
 
-	                // {vec2} this.start 表示起点位置的向量
-	                this.start = _glMatrix.vec2.fromValues(x, y);
+	        // {vec2} this.start 表示起点位置的向量
+	        this.start = _glMatrix.vec2.fromValues(x, y);
 
-	                this.hue = 200;
+	        this.hue = 200;
 
-	                // {vec2} this.velocity 表示bullet速度的向量
-	                // 将表示方向的单位向量乘以速率，得到速度向量
-	                this.velocity = _glMatrix.vec2.create();
-	                _glMatrix.vec2.scale(this.velocity, directionVec, 2);
+	        // {vec2} this.velocity 表示bullet速度的向量
+	        // 将表示方向的单位向量乘以速率，得到速度向量
+	        this.velocity = _glMatrix.vec2.create();
+	        _glMatrix.vec2.scale(this.velocity, directionVec, 2);
 
-	                // bullet的长度
-	                this.length = 10;
-	                // 从bullet的起点指向终点的向量
-	                this.bulletVec = _glMatrix.vec2.create();
-	                _glMatrix.vec2.scale(this.bulletVec, directionVec, this.length);
+	        // bullet的长度
+	        this.length = 10;
+	        // 从bullet的起点指向终点的向量
+	        this.bulletVec = _glMatrix.vec2.create();
+	        _glMatrix.vec2.scale(this.bulletVec, directionVec, this.length);
 
-	                // {vec2} this.end 表示终点位置的向量
-	                this.end = _glMatrix.vec2.create();
-	                this.end = _glMatrix.vec2.add(this.end, this.start, this.bulletVec);
+	        // {vec2} this.end 表示终点位置的向量
+	        this.end = _glMatrix.vec2.create();
+	        this.end = _glMatrix.vec2.add(this.end, this.start, this.bulletVec);
 
-	                this.damage = damage || 5;
+	        this.damage = damage || 5;
+	    }
+
+	    _createClass(Bullet, [{
+	        key: 'draw',
+	        value: function draw(ctx) {
+	            // bullet运动后的起点和终点位置
+	            _glMatrix.vec2.add(this.start, this.start, this.velocity);
+	            _glMatrix.vec2.add(this.end, this.end, this.velocity);
+
+	            // 绘图开始
+	            ctx.save();
+	            ctx.strokeStyle = 'hsl(' + this.hue + ', 100%, 80%)';
+	            ctx.beginPath();
+	            ctx.moveTo(this.start[0], this.start[1]);
+	            ctx.lineTo(this.end[0], this.end[1]);
+	            ctx.stroke();
+	            ctx.restore();
 	        }
+	    }]);
 
-	        _createClass(Bullet, [{
-	                key: 'draw',
-	                value: function draw(ctx) {
-	                        // bullet运动后的起点和终点位置
-	                        _glMatrix.vec2.add(this.start, this.start, this.velocity);
-	                        _glMatrix.vec2.add(this.end, this.end, this.velocity);
-
-	                        // 绘图开始
-	                        ctx.save();
-	                        ctx.strokeStyle = 'hsl(' + this.hue + ', 100%, 80%)';
-	                        ctx.beginPath();
-	                        ctx.moveTo(this.start[0], this.start[1]);
-	                        ctx.lineTo(this.end[0], this.end[1]);
-	                        ctx.stroke();
-	                        ctx.restore();
-	                }
-	        }]);
-
-	        return Bullet;
+	    return Bullet;
 	}();
 
 	exports.default = Bullet;
 
 /***/ }),
 /* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _BaseTower2 = __webpack_require__(5);
+
+	var _BaseTower3 = _interopRequireDefault(_BaseTower2);
+
+	var _Bullet = __webpack_require__(12);
+
+	var _Bullet2 = _interopRequireDefault(_Bullet);
+
+	var _glMatrix = __webpack_require__(3);
+
+	var _utils = __webpack_require__(7);
+
+	var _config = __webpack_require__(8);
+
+	var _constant = __webpack_require__(9);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var LaserTower = function (_BaseTower) {
+	    _inherits(LaserTower, _BaseTower);
+
+	    function LaserTower(opt) {
+	        _classCallCheck(this, LaserTower);
+
+	        var ctx = opt.ctx,
+	            x = opt.x,
+	            y = opt.y,
+	            bullets = opt.bullets,
+	            selected = opt.selected,
+	            damage = opt.damage;
+
+	        var _this = _possibleConstructorReturn(this, (LaserTower.__proto__ || Object.getPrototypeOf(LaserTower)).call(this, opt));
+
+	        _this.hue = 250;
+	        _this.cost = _constant.towerCost.laserTower;
+	        _this.range = 4 * _constant.gridWidth;
+
+	        _this.direction = opt.direction || 0; // 用度数表示的tower指向
+	        _this.bulletStartPosVec = _glMatrix.vec2.fromValues(0, 0);
+	        _this.directionVec = _glMatrix.vec2.create();
+	        return _this;
+	    }
+
+	    _createClass(LaserTower, [{
+	        key: 'draw',
+	        value: function draw() {
+	            this.step();
+	            var ctx = this.ctx;
+
+	            ctx.save();
+
+	            if (_config.config.renderShadow) {
+	                ctx.shadowBlur = this.radius;
+	                ctx.shadowColor = 'hsl(' + this.hue + ',100%,60%)';
+	            }
+
+	            // 在选中的情况下，画出其射程范围
+	            if (this.selected) {
+	                ctx.beginPath();
+	                ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+	                ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
+	                ctx.fill();
+	            }
+
+	            ctx.strokeStyle = 'hsl(' + this.hue + ',100%, 80%';
+	            ctx.fillStyle = 'hsl(' + this.hue + ',100%, 80%';
+	            ctx.lineWidth = Math.max(3, this.radius / 8);
+
+	            ctx.beginPath();
+	            ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+	            ctx.closePath();
+	            ctx.stroke();
+	            ctx.fill();
+
+	            ctx.beginPath();
+	            ctx.moveTo(this.x, this.y);
+	            ctx.lineTo(this.x + this.bulletStartPosVec[0], this.y + this.bulletStartPosVec[1]);
+	            ctx.stroke();
+	            ctx.closePath();
+
+	            ctx.restore();
+	        }
+	    }]);
+
+	    return LaserTower;
+	}(_BaseTower3.default);
+
+	exports.default = LaserTower;
+
+/***/ }),
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -8293,13 +8456,13 @@
 	exports.default = Enemy;
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-	        value: true
+	    value: true
 	});
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -8315,100 +8478,103 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var Map = function () {
-	        function Map(opt) {
-	                _classCallCheck(this, Map);
+	    function Map(opt) {
+	        _classCallCheck(this, Map);
 
-	                this.ctx = opt.ctx;
-	                this.newTowerCoord = opt.newTowerCoord || null;
-	                this.pathCoord = opt.pathCoord;
-	                this.WIDTH = opt.WIDTH, this.HEIGHT = opt.HEIGHT, this.coord = [];
+	        this.ctx = opt.ctx;
+	        this.newTowerCoord = opt.newTowerCoord || null;
+	        this.pathCoord = opt.pathCoord;
+	        this.WIDTH = opt.WIDTH;
+	        this.HEIGHT = opt.HEIGHT;
 
-	                for (var i = 0; i < _constant.gridNumX; i++) {
-	                        this.coord[i] = [];
-	                }
+	        this.coord = [];
 
-	                // 初始状态下的塔
-	                if (this.newTowerCoord) {
-	                        this.coord[this.newTowerCoord[0]][this.newTowerCoord[1]] = 'T';
-	                }
-
-	                // Create an instance of Path object
-	                this.path = new _Path2.default({
-	                        ctx: this.ctx,
-	                        radius: _constant.gridWidth / 2,
-	                        pathCoord: this.pathCoord
-	                });
-
-	                // Add points to the path
-	                this.path.setPoints();
+	        for (var i = 0; i < _constant.gridNumX; i++) {
+	            this.coord[i] = [];
 	        }
 
-	        _createClass(Map, [{
-	                key: 'draw',
-	                value: function draw(_ref) {
-	                        var towers = _ref.towers,
-	                            towerSelect = _ref.towerSelect,
-	                            towerSelectIndex = _ref.towerSelectIndex;
+	        // 初始状态下的塔
+	        if (this.newTowerCoord) {
+	            this.coord[this.newTowerCoord[0]][this.newTowerCoord[1]] = 'T';
+	        }
 
-	                        var ctx = this.ctx;
-	                        var WIDTH = this.WIDTH;
-	                        var HEIGHT = this.HEIGHT;
+	        // Create an instance of Path object
+	        this.path = new _Path2.default({
+	            ctx: this.ctx,
+	            radius: _constant.gridWidth / 2,
+	            pathCoord: this.pathCoord
+	        });
 
-	                        ctx.save();
+	        // Add points to the path
+	        this.path.setPoints();
+	    }
 
-	                        // Clear canvas
-	                        ctx.fillStyle = '#fff';
-	                        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+	    _createClass(Map, [{
+	        key: 'draw',
+	        value: function draw(_ref) {
+	            var towers = _ref.towers,
+	                towerSelect = _ref.towerSelect,
+	                towerSelectIndex = _ref.towerSelectIndex;
 
-	                        ctx.strokeStyle = '#eee';
-	                        ctx.fillStyle = '#fff';
-	                        ctx.lineWidth = 1;
-	                        ctx.fillRect(0, 0, WIDTH, HEIGHT);
-	                        // 横纵数目相等
-	                        var size = 20;
+	            var ctx = this.ctx;
+	            var WIDTH = this.WIDTH;
+	            var HEIGHT = this.HEIGHT;
 
-	                        ctx.beginPath();
-	                        // Draw vertical lines
-	                        for (var i = 0; i < size + 1; i++) {
-	                                ctx.moveTo(i * _constant.gridWidth, 0);
-	                                ctx.lineTo(i * _constant.gridWidth, size * _constant.gridHeight);
-	                        }
-	                        ctx.stroke();
+	            ctx.save();
 
-	                        // Draw horizontal lines
-	                        for (i = 0; i < size + 1; i++) {
-	                                ctx.moveTo(0, i * _constant.gridWidth);
-	                                ctx.lineTo(size * _constant.gridWidth, i * _constant.gridWidth);
-	                        }
-	                        ctx.stroke();
+	            // Clear canvas
+	            ctx.fillStyle = '#fff';
+	            ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-	                        // 当前选中的格子突出显示
-	                        // TODO: 这一部分移入game.js中
-	                        if (towerSelect) {
-	                                var coordX = towers[towerSelectIndex].coordX;
-	                                var coordY = towers[towerSelectIndex].coordY;
-	                                fillGrid(coordX, coordY, 'pink');
-	                        }
+	            ctx.strokeStyle = '#eee';
+	            ctx.fillStyle = '#fff';
+	            ctx.lineWidth = 1;
+	            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+	            // 横纵数目相等
+	            var size = 20;
 
-	                        // 给一个格子上色
-	                        function fillGrid(x, y, color) {
-	                                ctx.fillStyle = color || "#666";
-	                                ctx.fillRect(x * _constant.gridWidth + 1, y * _constant.gridHeight + 1, _constant.gridWidth - 2, _constant.gridHeight - 2);
-	                        }
+	            ctx.beginPath();
+	            // Draw vertical lines
+	            for (var i = 0; i < size + 1; i++) {
+	                ctx.moveTo(i * _constant.gridWidth, 0);
+	                ctx.lineTo(i * _constant.gridWidth, size * _constant.gridHeight);
+	            }
+	            ctx.stroke();
 
-	                        ctx.restore();
+	            // Draw horizontal lines
+	            for (i = 0; i < size + 1; i++) {
+	                ctx.moveTo(0, i * _constant.gridWidth);
+	                ctx.lineTo(size * _constant.gridWidth, i * _constant.gridWidth);
+	            }
+	            ctx.stroke();
 
-	                        this.path.draw();
-	                }
-	        }]);
+	            // 当前选中的格子突出显示
+	            // TODO: 这一部分移入game.js中
+	            if (towerSelect) {
+	                var coordX = towers[towerSelectIndex].coordX;
+	                var coordY = towers[towerSelectIndex].coordY;
+	                fillGrid(coordX, coordY, 'pink');
+	            }
 
-	        return Map;
+	            // 给一个格子上色
+	            function fillGrid(x, y, color) {
+	                ctx.fillStyle = color || '#666';
+	                ctx.fillRect(x * _constant.gridWidth + 1, y * _constant.gridHeight + 1, _constant.gridWidth - 2, _constant.gridHeight - 2);
+	            }
+
+	            ctx.restore();
+
+	            this.path.draw();
+	        }
+	    }]);
+
+	    return Map;
 	}();
 
 	exports.default = Map;
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -8466,16 +8632,12 @@
 	    _createClass(Wave, [{
 	        key: 'waveFinish',
 	        value: function waveFinish() {
-	            var result = true;
-	            var keys = Object.keys(this.enemyCnt);
+	            var _this2 = this;
 
-	            for (var i = 0; i < keys.length; i++) {
-	                var key = keys[i];
-	                if (this.enemyCnt[key] > 0) {
-	                    return false;
-	                }
-	            }
-	            return result;
+	            var keys = Object.keys(this.enemyCnt);
+	            return keys.every(function (key) {
+	                return _this2.enemyCnt[key] <= 0;
+	            });
 	        }
 	    }, {
 	        key: 'generateEnemy',
@@ -8501,7 +8663,7 @@
 	exports.default = Wave;
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -8519,6 +8681,10 @@
 	var _BulletTower = __webpack_require__(11);
 
 	var _BulletTower2 = _interopRequireDefault(_BulletTower);
+
+	var _LaserTower = __webpack_require__(13);
+
+	var _LaserTower2 = _interopRequireDefault(_LaserTower);
 
 	var _utils = __webpack_require__(7);
 
@@ -8701,6 +8867,16 @@
 	                            game.addTowerType = 'BULLET';
 	                            _this2.towerArea.selected = [1, 0];
 	                        }
+	                    } else if (xIdx === 2 && yIdx === 0) {
+	                        // 点击了 LaserTower
+	                        if (game.mode === 'ADD_TOWER' && game.addTowerType === 'LASER') {
+	                            game.mode = '';
+	                            game.addTowerType = '';
+	                        } else {
+	                            game.mode = 'ADD_TOWER';
+	                            game.addTowerType = 'LASER';
+	                            _this2.towerArea.selected = [2, 0];
+	                        }
 	                    } else {
 	                        _this2.towerArea.selected = -1;
 	                    }
@@ -8780,6 +8956,14 @@
 	            direction: 180,
 	            radius: 12
 	        });
+
+	        this.laserTower = new _LaserTower2.default({
+	            x: this.offsetX + GRID_WIDTH * 2.5 + 10,
+	            y: this.offsetY + GRID_HEIGHT / 2,
+	            ctx: this.ctx,
+	            direction: 90,
+	            radius: 8
+	        });
 	    }
 
 	    _createClass(TowerArea, [{
@@ -8804,9 +8988,12 @@
 	            }
 	            ctx.stroke();
 
-	            if (this.selected !== -1) this.highlightTower(this.selected[0], this.selected[1]);
+	            if (this.selected !== -1) {
+	                this.highlightTower(this.selected[0], this.selected[1]);
+	            }
 	            this.baseTower.draw(ctx);
 	            this.bulletTower.draw(ctx);
+	            this.laserTower.draw(ctx);
 	        }
 
 	        // 选中的tower突出显示
