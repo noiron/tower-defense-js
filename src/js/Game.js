@@ -81,7 +81,7 @@ export default class Game {
     // Specify what to draw
     draw() {
         if (this.status === 'gameOver') {
-            // gameOverEle.style.display = 'block';
+            gameOverEle.style.display = 'block';
             return;
         }
 
@@ -97,7 +97,6 @@ export default class Game {
 
         if (this.shouldGenerateWave()) {
             this.generateWave();
-            // this.waves[0].waveFinish();
         }
 
         // 生成enemy
@@ -129,6 +128,7 @@ export default class Game {
                 if (enemy.reachDest) {
                     this.life -= enemy.damage;
                 }
+                // TODO: 此处利用 id 进行删除
                 this.enemies.remove(index);
             }
         });
@@ -144,7 +144,7 @@ export default class Game {
             tower.draw(ctx);
         });
 
-        // 如何确定游戏结束?
+        // 确定游戏是否结束
         if (this.enemyCreatedCount > 0  && this.enemies.length === 0) {
             setTimeout(() => {
                 this.status = 'gameOver';
@@ -152,8 +152,7 @@ export default class Game {
         }
 
         // 确定 tower 的目标
-        for (let i = 0, len = this.towers.length; i < len; i++) {
-            const tower = this.towers[i];
+        this.towers.forEach(tower => {
             tower.findTarget(this.enemies);
             if (tower.target !== null) {
                 const target = tower.target;
@@ -166,7 +165,7 @@ export default class Game {
                 tower.direction = Math.atan2(target.y - tower.y,
                     target.x - tower.x) * (180 / Math.PI);
             }
-        }
+        });
 
 
         // 检查bullet是否与enemy相撞
@@ -177,22 +176,10 @@ export default class Game {
             const bullet = this.bullets[i];
             
             switch (bullet.type) {
-                case 'line': {
-                    // 直线子弹
-                    if (bullet.start[0] < 0 || bullet.start[1] < 0 ||
-                        bullet.start[0] > WIDTH || bullet.start[1] > HEIGHT) {
-                        this.bullets.remove(i);
-                        i--;
-                    } else {
-                        bullet.draw(ctx, this.enemies);
-                    }
-                    break;
-                }
+                case 'line':
                 case 'circle': {
-                    if (bullet.x < 0 || bullet.y < 0 ||
-                        bullet.x > WIDTH || bullet.y > HEIGHT) {
-                        this.bullets.remove(i);
-                        i--;
+                    if (bulletOutOfBound(bullet)) {
+                        this.bullets.remove(i--);
                     } else {
                         bullet.draw(ctx, this.enemies);
                     }
@@ -201,9 +188,8 @@ export default class Game {
                 case 'laser': {
                     // 如果 bullet 的目标和其 parent 的目标不一致时，则删除这个 bullet
                     if (!bullet.parent.target || bullet.parent.target.id !== bullet.target.id) {
-                        this.bullets.remove(i);
+                        this.bullets.remove(i--);
                         bullet.parent.shooting = false;
-                        i--;
                     } else {
                         bullet.draw(ctx, this.enemies);
                     }
@@ -271,7 +257,7 @@ export default class Game {
                     enemy.health -= bullet.damage;
                     if (enemy.health <= 0) {
                         this.money += enemy.value;
-                        this.enemies.remove(j); j--;
+                        this.enemies.remove(j--);
                         this.score += 100;
                     }
                     break;
@@ -281,7 +267,7 @@ export default class Game {
                 impact = false;
             }
             if (impact) {
-                this.bullets.remove(i); i--;
+                this.bullets.remove(i--);
             }
         }
     }
@@ -391,5 +377,20 @@ export default class Game {
     generateWave() {
         this.waves.push(new Wave());
         this.wave++;
+    }
+}
+
+function bulletOutOfBound(bullet) {
+    switch (bullet.type) {
+        case 'circle':
+            return (bullet.x < 0 || bullet.y < 0 ||
+                bullet.x > WIDTH || bullet.y > HEIGHT);
+
+        case 'line':
+            return (bullet.start[0] < 0 || bullet.start[1] < 0 ||
+            bullet.start[0] > WIDTH || bullet.start[1] > HEIGHT);
+
+        default:
+            return false;
     }
 }

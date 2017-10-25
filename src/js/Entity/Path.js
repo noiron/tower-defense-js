@@ -18,7 +18,7 @@ class Path {
                 const coord = this.pathCoord[i];
                 this.addPoint(40 * coord[0] + 20, 40 * coord[1] + 20);
             }
-        }
+        };
     }
 
     /**

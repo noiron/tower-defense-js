@@ -14,7 +14,7 @@ Array.prototype.remove = function (from, to) {
 // 根据id删除元素
 Array.prototype.removeById = function(id) {
     
-}
+};
 
 Array.prototype.getEleById = function (id) {
     let result = null;
@@ -33,7 +33,7 @@ Array.prototype.getEle = function (ele) {
         }
     }
     return null;
-}
+};
 
 export function calcuteDistance(x1, y1, x2, y2) {
     const result = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));

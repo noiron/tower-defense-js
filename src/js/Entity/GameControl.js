@@ -280,7 +280,7 @@ class TowerArea {
         ctx.stroke();
 
         if (this.selected !== -1) {
-            this.highlightTower(this.selected[0], this.selected[1]); 
+            this.highlightTower(this.selected[0], this.selected[1]);
         }
         this.baseTower.draw(ctx);
         this.bulletTower.draw(ctx);

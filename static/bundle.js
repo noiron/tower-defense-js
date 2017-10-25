@@ -57,7 +57,7 @@
 
 	var _Game2 = _interopRequireDefault(_Game);
 
-	var _GameControl = __webpack_require__(17);
+	var _GameControl = __webpack_require__(18);
 
 	var _GameControl2 = _interopRequireDefault(_GameControl);
 
@@ -119,7 +119,7 @@
 	            // 点击的格子内为塔
 	            game.towers.map(function (tower, index) {
 	                if (tower.coordX === coordX && tower.coordY === coordY) {
-	                    console.log('You select ' + index + 'th tower');
+	                    console.log('You select ' + index + 'th tower, its id is ' + tower.id);
 
 	                    // 已经选中的塔再次点击则取消
 	                    if (game.towerSelectIndex === index) {
@@ -175,15 +175,15 @@
 
 	var _LaserTower2 = _interopRequireDefault(_LaserTower);
 
-	var _Enemy = __webpack_require__(14);
+	var _Enemy = __webpack_require__(15);
 
 	var _Enemy2 = _interopRequireDefault(_Enemy);
 
-	var _Map = __webpack_require__(15);
+	var _Map = __webpack_require__(16);
 
 	var _Map2 = _interopRequireDefault(_Map);
 
-	var _Wave = __webpack_require__(16);
+	var _Wave = __webpack_require__(17);
 
 	var _Wave2 = _interopRequireDefault(_Wave);
 
@@ -241,6 +241,7 @@
 
 	        // 放置一个初始状态下的塔
 	        var tower = new _BaseTower2.default({
+	            id: _id2.default.genId(),
 	            ctx: ctx,
 	            x: _constant.gridWidth / 2 + newTowerCoord[0] * _constant.gridWidth,
 	            y: _constant.gridHeight / 2 + newTowerCoord[1] * _constant.gridHeight,
@@ -275,7 +276,7 @@
 	            var _this = this;
 
 	            if (this.status === 'gameOver') {
-	                // gameOverEle.style.display = 'block';
+	                gameOverEle.style.display = 'block';
 	                return;
 	            }
 
@@ -291,12 +292,11 @@
 
 	            if (this.shouldGenerateWave()) {
 	                this.generateWave();
-	                // this.waves[0].waveFinish();
 	            }
 
 	            // 生成enemy
 	            // 总数小于50，且间隔 x ms以上
-	            if (shouldGenerateEnemy()) {
+	            if (this.shouldGenerateEnemy()) {
 	                var cfg = this.waves[this.wave].generateEnemy();
 	                var enemy = new _Enemy2.default({
 	                    id: _id2.default.genId(),
@@ -323,6 +323,7 @@
 	                    if (enemy.reachDest) {
 	                        _this.life -= enemy.damage;
 	                    }
+	                    // TODO: 此处利用 id 进行删除
 	                    _this.enemies.remove(index);
 	                }
 	            });
@@ -338,7 +339,7 @@
 	                tower.draw(ctx);
 	            });
 
-	            // 如何确定游戏结束?
+	            // 确定游戏是否结束
 	            if (this.enemyCreatedCount > 0 && this.enemies.length === 0) {
 	                setTimeout(function () {
 	                    _this.status = 'gameOver';
@@ -346,9 +347,8 @@
 	            }
 
 	            // 确定 tower 的目标
-	            for (var i = 0, len = this.towers.length; i < len; i++) {
-	                var tower = this.towers[i];
-	                tower.findTarget(this.enemies);
+	            this.towers.forEach(function (tower) {
+	                tower.findTarget(_this.enemies);
 	                if (tower.target !== null) {
 	                    var target = tower.target;
 	                    // 调整其朝向
@@ -356,32 +356,21 @@
 
 	                    tower.direction = Math.atan2(target.y - tower.y, target.x - tower.x) * (180 / Math.PI);
 	                }
-	            }
+	            });
 
 	            // 检查bullet是否与enemy相撞
 	            this.detectImpact();
 
 	            // 移除出界的bullet，画出剩下的bullet
-	            for (var _i = 0; _i < this.bullets.length; _i++) {
-	                var bullet = this.bullets[_i];
+	            for (var i = 0; i < this.bullets.length; i++) {
+	                var bullet = this.bullets[i];
 
 	                switch (bullet.type) {
 	                    case 'line':
-	                        {
-	                            // 直线子弹
-	                            if (bullet.start[0] < 0 || bullet.start[1] < 0 || bullet.start[0] > WIDTH || bullet.start[1] > HEIGHT) {
-	                                this.bullets.remove(_i);
-	                                _i--;
-	                            } else {
-	                                bullet.draw(ctx, this.enemies);
-	                            }
-	                            break;
-	                        }
 	                    case 'circle':
 	                        {
-	                            if (bullet.x < 0 || bullet.y < 0 || bullet.x > WIDTH || bullet.y > HEIGHT) {
-	                                this.bullets.remove(_i);
-	                                _i--;
+	                            if (bulletOutOfBound(bullet)) {
+	                                this.bullets.remove(i--);
 	                            } else {
 	                                bullet.draw(ctx, this.enemies);
 	                            }
@@ -389,12 +378,10 @@
 	                        }
 	                    case 'laser':
 	                        {
-	                            // TODO: 何时结束
-	                            console.log(bullet.parent.target, _i);
-	                            if (bullet.parent.targetIndex !== _i) {
-	                                this.bullets.remove(_i);
+	                            // 如果 bullet 的目标和其 parent 的目标不一致时，则删除这个 bullet
+	                            if (!bullet.parent.target || bullet.parent.target.id !== bullet.target.id) {
+	                                this.bullets.remove(i--);
 	                                bullet.parent.shooting = false;
-	                                _i--;
 	                            } else {
 	                                bullet.draw(ctx, this.enemies);
 	                            }
@@ -428,41 +415,49 @@
 	            for (var i = 0; i < this.bullets.length; i++) {
 	                var impact = false;
 	                var distance = 0;
+	                var bullet = this.bullets[i];
 
 	                for (var j = 0; j < this.enemies.length; j++) {
+	                    var enemy = this.enemies[j];
 
-	                    if (this.bullets[i].type === 'line') {
+	                    if (bullet.type === 'line') {
 	                        // 求圆心至bullet的垂足
 	                        var normal = _glMatrix.vec2.create();
-	                        var bVec = this.bullets[i].directionVec;
+	                        var bVec = bullet.directionVec;
 	                        var aDotB = 1;
 
-	                        var aVec = _glMatrix.vec2.fromValues(this.enemies[j].x - this.bullets[i].start[0], this.enemies[j].y - this.bullets[i].start[1]);
+	                        var aVec = _glMatrix.vec2.fromValues(enemy.x - bullet.start[0], enemy.y - bullet.start[1]);
 	                        _glMatrix.vec2.multiply(aDotB, aVec, bVec);
 	                        _glMatrix.vec2.scale(bVec, bVec, aDotB);
-	                        _glMatrix.vec2.add(normal, this.bullets[i].start, bVec);
+	                        _glMatrix.vec2.add(normal, bullet.start, bVec);
 
-	                        distance = (0, _utils.calcuteDistance)(normal[0], normal[1], this.enemies[j].x, this.enemies[j].y);
-	                    } else {
-	                        distance = (0, _utils.calcuteDistance)(this.bullets[i].x, this.bullets[i].y, this.enemies[j].x, this.enemies[j].y);
+	                        distance = (0, _utils.calcuteDistance)(normal[0], normal[1], enemy.x, enemy.y);
+	                    } else if (bullet.type === 'circle') {
+	                        distance = (0, _utils.calcuteDistance)(bullet.x, bullet.y, enemy.x, enemy.y);
 	                    }
 
-	                    if (distance <= this.enemies[j].radius + 2) {
+	                    if (bullet.type === 'laser') {
+	                        if (bullet.target.id === enemy.id) {
+	                            distance = 0;
+	                        }
+	                    }
+
+	                    if (distance <= enemy.radius + 2) {
 	                        impact = true;
-	                        this.enemies[j].health -= this.bullets[i].damage;
-	                        if (this.enemies[j].health <= 0) {
-	                            this.money += this.enemies[j].value;
-	                            this.enemies.remove(j);j--;
+	                        enemy.health -= bullet.damage;
+	                        if (enemy.health <= 0) {
+	                            this.money += enemy.value;
+	                            this.enemies.remove(j--);
 	                            this.score += 100;
 	                        }
 	                        break;
 	                    }
 	                }
-	                if (this.bullets[i].type === 'laser') {
-	                    impact === false;
+	                if (bullet.type === 'laser') {
+	                    impact = false;
 	                }
 	                if (impact) {
-	                    this.bullets.remove(i);i--;
+	                    this.bullets.remove(i--);
 	                }
 	            }
 	        }
@@ -492,8 +487,9 @@
 
 	            var x = coordX * _constant.gridWidth + _constant.gridWidth / 2;
 	            var y = coordY * _constant.gridWidth + _constant.gridWidth / 2;
+	            var id = _id2.default.genId();
 
-	            var config = { ctx: ctx, x: x, y: y, bullets: this.bullets };
+	            var config = { id: id, ctx: ctx, x: x, y: y, bullets: this.bullets };
 
 	            var tower = null;
 	            switch (towerType) {
@@ -558,15 +554,15 @@
 	        key: 'displayInfo',
 	        value: function displayInfo() {
 	            // 画面信息的显示
-	            if (document.getElementById('enemyCount')) {
-	                document.getElementById('enemyCount').innerHTML = 'Enemy Count: ' + this.enemies.length + ', Bullets: ' + this.bullets.length;
+	            var enemyCountElement = document.getElementById('enemyCount');
+	            if (enemyCountElement) {
+	                enemyCountElement.innerHTML = 'Enemy Count: ' + this.enemies.length + ', Bullets: ' + this.bullets.length;
 	            }
 	        }
 	    }, {
 	        key: 'bindEvent',
 	        value: function bindEvent() {
 	            var element = this.element;
-	            // console.log(element);
 	        }
 	    }, {
 	        key: 'shouldGenerateEnemy',
@@ -590,6 +586,20 @@
 	}();
 
 	exports.default = Game;
+
+
+	function bulletOutOfBound(bullet) {
+	    switch (bullet.type) {
+	        case 'circle':
+	            return bullet.x < 0 || bullet.y < 0 || bullet.x > WIDTH || bullet.y > HEIGHT;
+
+	        case 'line':
+	            return bullet.start[0] < 0 || bullet.start[1] < 0 || bullet.start[0] > WIDTH || bullet.start[1] > HEIGHT;
+
+	        default:
+	            return false;
+	    }
+	}
 
 /***/ }),
 /* 3 */
@@ -7608,7 +7618,8 @@
 
 	var BaseTower = function () {
 	    function BaseTower(_ref) {
-	        var ctx = _ref.ctx,
+	        var id = _ref.id,
+	            ctx = _ref.ctx,
 	            x = _ref.x,
 	            y = _ref.y,
 	            bullets = _ref.bullets,
@@ -7618,6 +7629,7 @@
 
 	        _classCallCheck(this, BaseTower);
 
+	        this.id = id;
 	        this.x = x;
 	        this.y = y;
 	        this.ctx = ctx;
@@ -7962,11 +7974,6 @@
 	    'laserTower': 200
 	};
 
-	var towerDataURL = exports.towerDataURL = {
-	    'base': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAACmUlEQVRoQ+2XP2gTcRTHPy+pfwd1K9gugmAmJfWyuLhpB6GCCMVB1Em3Ts0FpdUhTSKCoy4KHXRRwU7azVHJRRQHKS4KUl11UIN4T661GqFJ7/dyp6XcTYG87/e97/d79/sjbJBHNogOMiHrLckskSyRlBzIXq2UjDXTZomYrUsJmCWSkrFm2uQTaTT3oTKKcgS0gMjgr+k+oiygzDOQf8Rk8Y156lWAyQlpvBwm/F4BPYfI1p5Dqn5DuIVsrlM+8D4JQckImWkdQ8I7iOxwGkr1M8Jp/NKcEy7xRFSFejCNyBSYT9IKTFE+WEUk+m16+kuk1jyByH1T506QEgLjVLx7Vi67kGprP/nwKcg2a/O/cfqV3MAhJosvLHx2IfXgITBmadoDM4fvHbdw2oRUXw2Sb3/o47voNqvygyEuehG302MTUgvOI9xw6hS3WLlAxbsZt3ylziik+QSRw67NYtbP43ujMWt/lwm15mVXECI+sMUZFw/wCd/bFa/0T1W0D5jXbtdmMevb+F7vk8EqROtRiDERy6sFE4jsjOmwY5ku4JcKjiDjsSKdPWRldtNeYlu1Gq0JVK+7uhar/p8uvzNBgRyvYw3mWqT5PVSKb11htkSiLvXgMXDUteEa9abXKuK0C1lOJTrgJbWftJFNe60XLbuQyIZG6yyqtxNJRThD2Zu1cvUnJOoaLd8i09YBlnCqV6iU3E8YHU37F7L0vTTHULmLsN1JkPIF0VP//6rbOXXj+W7C8BrC+JrfXnQjFJ1F8pcojyw6ie9SnEwineRXgxFCToKWgGFUhpb/1kVE3gHPyOUfWG+C3UQnLyQJew0cmRCDaalCskRStddAniViMC1VSJZIqvYayLNEDKalCskSSdVeA/lPe7ybM8uL3icAAAAASUVORK5CYII=',
-	    'bullet': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAACdElEQVRoQ+2YUU7jMBCG/8kJepPlBlskklfYEwAvm3KKLacofaLcILy2D7Q34CbLM6DMynFM02ylxGMPQsh+aSN5nPnmn7HHIXyTQd+EAwnkqymZFEmKKEUgpZZSYMXLJkXEoVMyVFHkie8nb3j7QagnAJ1Y3/mZkb0U9HunwRIVZM2LK0J2DuBiwNmKgOqMyodYUFFANryYAvQHoCnA4NY7szi3XZD9b57o4xfgLcC3Od1sQ4GCQVoV7tv0AUa2bwbWvZxRXxd0swqBCQJZ83JFwGVTAW20fZyxNmY0Kq0Kml372HfnikEOlZC+3tlZfUKUEYHYmsieQt3f23f1rE8lNSMCWfNyS8BPk1Bja2IY+mMr2OY0Ox2efzjDG2SfUjEhwlPMG2TDdxVA5qxQGW21POY0GzqLDt7vBWJO7He8/o2bUv14WJScSi/fvCa7ItdIqv/l9St62vByPj5H+EQzrXrnwq8zKquxvhkQ11GMtVGd19mIb3MqRwf5y4F0ouQNMpoa+IzUshVIgF9q+eTJ/kTXLHe3tmex+4CYufo19QnbrwW5qxh07rVve0Wr2Xt0D0Tzhrhd7/HDUNIFiwJrmka0TWNTlhHG/vaIXUHl1HdJkRfx2/iu235F7ixFIFopJkmpYBAL4666Iduxux3ioaDyyjelooD0lRl/bz8ED1EiGojdkhdTRja3t0Y3+i2c/SBkhv0o1DztCPVccrXtKyeukWMpYLdmuhjukPmRwVXoJ6CuD1FBugsblQjZhIHmkykBz4z6JUb0jwVRDURatFK7BCKNnJZdUkQrstJ1kyLSyGnZJUW0IitdNykijZyW3T96vecztfd3vwAAAABJRU5ErkJggg=='
-	};
-
 /***/ }),
 /* 10 */
 /***/ (function(module, exports) {
@@ -8097,7 +8104,7 @@
 	            // 在选中的情况下，画出其射程范围
 	            if (this.selected) {
 	                ctx.beginPath();
-	                ctx.fillStyle = "rgba(200, 200, 200, 0.3)";
+	                ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
 	                ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
 	                ctx.fill();
 	            }
@@ -8245,9 +8252,9 @@
 
 	var _BaseTower3 = _interopRequireDefault(_BaseTower2);
 
-	var _Bullet = __webpack_require__(12);
+	var _Laser = __webpack_require__(14);
 
-	var _Bullet2 = _interopRequireDefault(_Bullet);
+	var _Laser2 = _interopRequireDefault(_Laser);
 
 	var _glMatrix = __webpack_require__(3);
 
@@ -8256,6 +8263,10 @@
 	var _config = __webpack_require__(8);
 
 	var _constant = __webpack_require__(9);
+
+	var _id = __webpack_require__(10);
+
+	var _id2 = _interopRequireDefault(_id);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -8287,10 +8298,29 @@
 	        _this.direction = opt.direction || 0; // 用度数表示的tower指向
 	        _this.bulletStartPosVec = _glMatrix.vec2.fromValues(0, 0);
 	        _this.directionVec = _glMatrix.vec2.create();
+
+	        _this.shooting = false;
+	        _this.damage = 0.5;
 	        return _this;
 	    }
 
 	    _createClass(LaserTower, [{
+	        key: 'shoot',
+	        value: function shoot() {
+	            if (this.target) {
+	                this.bullets.push(new _Laser2.default({
+	                    id: _id2.default.genId(),
+	                    target: this.target,
+	                    ctx: this.ctx,
+	                    x: this.x + this.bulletStartPosVec[0],
+	                    y: this.y + this.bulletStartPosVec[1],
+	                    range: this.range, // 宽度？
+	                    damage: this.damage,
+	                    parent: this
+	                }));
+	            }
+	        }
+	    }, {
 	        key: 'draw',
 	        value: function draw() {
 	            this.step();
@@ -8327,6 +8357,11 @@
 	            ctx.stroke();
 	            ctx.closePath();
 
+	            if (this.targetIndex !== -1 && this.shooting === false) {
+	                this.shoot(ctx);
+	                this.shooting = true;
+	            }
+
 	            ctx.restore();
 	        }
 	    }]);
@@ -8338,6 +8373,81 @@
 
 /***/ }),
 /* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _glMatrix = __webpack_require__(3);
+
+	var _utils = __webpack_require__(7);
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var CircleBullet = function () {
+	    function CircleBullet(_ref) {
+	        var ctx = _ref.ctx,
+	            x = _ref.x,
+	            y = _ref.y,
+	            parent = _ref.parent,
+	            target = _ref.target,
+	            range = _ref.range,
+	            damage = _ref.damage;
+
+	        _classCallCheck(this, CircleBullet);
+
+	        this.type = 'laser';
+	        this.x = x;
+	        this.y = y;
+	        this.ctx = ctx;
+	        this.target = target;
+	        this.width = 5;
+	        // this.speed = 8;
+	        this.vx = 0;
+	        this.vy = 0;
+	        this.angle = 0;
+	        this.hue = 100;
+	        this.range = range;
+	        this.damage = damage || 5;
+	        this.parent = parent;
+	    }
+
+	    _createClass(CircleBullet, [{
+	        key: 'step',
+	        value: function step() {
+	            var parent = this.parent;
+	            this.x = parent.x + parent.bulletStartPosVec[0];
+	            this.y = parent.y + parent.bulletStartPosVec[1];
+	        }
+	    }, {
+	        key: 'draw',
+	        value: function draw(ctx, enemies) {
+	            this.step();
+
+	            // 绘图开始
+	            ctx.save();
+	            ctx.strokeStyle = 'hsl(' + this.hue + ', 100%, 40%)';
+	            ctx.beginPath();
+	            ctx.moveTo(this.x, this.y);
+	            ctx.lineTo(this.target.x, this.target.y);
+	            ctx.stroke();
+	            ctx.closePath();
+	            ctx.restore();
+	        }
+	    }]);
+
+	    return CircleBullet;
+	}();
+
+	exports.default = CircleBullet;
+
+/***/ }),
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -8456,7 +8566,7 @@
 	exports.default = Enemy;
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -8574,7 +8684,7 @@
 	exports.default = Map;
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -8663,7 +8773,7 @@
 	exports.default = Wave;
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
