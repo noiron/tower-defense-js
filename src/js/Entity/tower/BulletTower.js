@@ -43,7 +43,7 @@ export default class BulletTower extends BaseTower {
         // 在选中的情况下，画出其射程范围
         if (this.selected) {
             ctx.beginPath();
-            ctx.fillStyle = "rgba(200, 200, 200, 0.3)";
+            ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
             ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
             ctx.fill();
         }

@@ -1,9 +1,10 @@
 import BaseTower from './BaseTower';
-import Bullet from '../bullet/Bullet';
+import Laser from '../bullet/Laser';
 import { vec2 } from 'gl-matrix';
 import { toRadians, calcuteDistance } from '../../utils/utils';
 import { config } from './../../utils/config';
 import { towerCost, gridWidth, gridHeight } from './../../utils/constant';
+import globalId from './../../id';
 
 export default class LaserTower extends BaseTower {
     constructor(opt) {
@@ -17,6 +18,26 @@ export default class LaserTower extends BaseTower {
         this.direction = opt.direction || 0; // 用度数表示的tower指向
         this.bulletStartPosVec = vec2.fromValues(0, 0);
         this.directionVec = vec2.create();
+
+        this.shooting = false;
+        this.damage = 0.5;
+    }
+
+    shoot() {
+        if (this.target) {
+            this.bullets.push(
+                new Laser({
+                    id: globalId.genId(),
+                    target: this.target,
+                    ctx: this.ctx,
+                    x: this.x + this.bulletStartPosVec[0],
+                    y: this.y + this.bulletStartPosVec[1],
+                    range: this.range, // 宽度？
+                    damage: this.damage,
+                    parent: this
+                })
+            );
+        }
     }
 
     draw() {
@@ -53,6 +74,11 @@ export default class LaserTower extends BaseTower {
         ctx.lineTo(this.x + this.bulletStartPosVec[0], this.y + this.bulletStartPosVec[1]);
         ctx.stroke();
         ctx.closePath();
+
+        if (this.targetIndex !== -1 && this.shooting === false) {
+            this.shoot(ctx);
+            this.shooting = true;
+        }
 
         ctx.restore();
     }
