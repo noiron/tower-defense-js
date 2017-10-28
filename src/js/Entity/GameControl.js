@@ -68,6 +68,10 @@ class GameControl {
     }
 
     draw() {
+        // 游戏未开始时，不画出该组件
+        if (this.game.status === '') { 
+            return; 
+        }
         const ctx = this.ctx;
         // ctx.fillStyle = '#eee';
         ctx.fillStyle = '#010c12';

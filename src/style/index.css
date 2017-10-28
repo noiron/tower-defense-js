@@ -20,7 +20,7 @@ canvas#drawing {
 }
 
 canvas#game-control {
-    border: 5px #333 solid; 
+    border: 6px #333 solid; 
     border-left: none;
     position: absolute;
 }
@@ -58,4 +58,55 @@ button {
     width: 80px;
     height: 40px;
     margin: 10px;
+}
+
+.ui {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    color: #999;
+    text-align: left;
+    padding: 8px;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+#panels {
+    width: 100%;
+    position: absolute;
+    z-index: 3;
+}
+
+#message {
+    padding: 16px;
+    margin-top: 10px;
+    width: 300px;
+}
+
+.ui h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #eee;
+}
+
+.ui ul {
+    margin: 10px 0;
+}
+
+.ui ul li {
+    margin: 0 0 2px 0;
+}
+
+.ui a {
+    outline: none;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 38px;
+    text-decoration: none;
+    color: #bbb;
+    display: block;
+    transition: all .18s linear;
+}
+
+.ui a:hover {
+    color: #fff;
+    background-color: #000;
+    transition: all .18s linear;
 }

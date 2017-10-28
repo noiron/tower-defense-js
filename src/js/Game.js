@@ -1,5 +1,6 @@
 import { vec2 } from 'gl-matrix';
 import Path from './Entity/Path.js';
+import { gameControl } from './../index';
 import BaseTower from './Entity/tower/BaseTower.js';
 import BulletTower from './Entity/tower/BulletTower.js';
 import LaserTower from './Entity/tower/LaserTower.js';
@@ -21,10 +22,12 @@ const gameOverEle = document.getElementById('game-over');
 
 const backgroundCanvas = document.getElementById('background');
 const bgCtx = backgroundCanvas.getContext('2d');
-backgroundCanvas.width = WIDTH;
+backgroundCanvas.width = WIDTH + GAME_CONTROL_WIDTH;
 backgroundCanvas.height = HEIGHT;
 
 const gameControlCanvas = document.getElementById('game-control');
+const panels = document.getElementById('panels');
+const startButton = document.getElementById('start-button');
 
 export default class Game {
     constructor(opt) {
@@ -71,7 +74,7 @@ export default class Game {
 
         this.mode = '';
         this.addTowerType = 'BASE';
-        this.status = 'running';
+        this.status = '';
         this.score = 0;
         this.life = 100;
 
@@ -89,6 +92,9 @@ export default class Game {
     }
 
     init() {
+        window.addEventListener('resize', this.windowResizeHandler, false);
+        startButton.addEventListener('click', this.startButtonClickHandler.bind(this), false);
+
         this.windowResizeHandler();
         this.renderBackground();
     }
@@ -101,6 +107,7 @@ export default class Game {
         canvas.style.position = 'absolute';
         canvas.style.left = cvx + 'px';
         canvas.style.top = cvy + 'px';
+
         backgroundCanvas.style.position = 'absolute';
         backgroundCanvas.style.left = cvx + BORDER_WIDTH + 'px';
         backgroundCanvas.style.top = cvy + BORDER_WIDTH + 'px';
@@ -108,15 +115,18 @@ export default class Game {
         gameControlCanvas.style.position = 'absolute';
         gameControlCanvas.style.left = cvx + WIDTH + BORDER_WIDTH + 'px';
         gameControlCanvas.style.top = cvy + 'px';
-        // this.renderBackground();
+
+        panels.style.position = 'absolute';
+        panels.style.left = cvx + BORDER_WIDTH + 'px';
+        panels.style.top = cvy + 200 + 'px';
     }
 
     renderBackground() {
         const gradient = bgCtx.createRadialGradient(
-            WIDTH * 0.5,
+            (WIDTH + GAME_CONTROL_WIDTH) * 0.5,
             HEIGHT * 0.5,
             0,
-            WIDTH * 0.5,
+            (WIDTH + GAME_CONTROL_WIDTH) * 0.5,
             HEIGHT * 0.5,
             500
         );
@@ -127,17 +137,35 @@ export default class Game {
         bgCtx.fillStyle = gradient;
         ctx.fillStyle = gradient;
 
-        bgCtx.fillRect(0, 0, WIDTH, HEIGHT);
+        bgCtx.fillRect(0, 0, WIDTH + GAME_CONTROL_WIDTH, HEIGHT);
+    }
+
+    startButtonClickHandler(e) {
+        e.stopPropagation();
+        
+        if (this.status === '') {
+            this.status = 'running';
+
+            panels.style.display = 'none';
+            this.draw();
+            gameControl.draw();
+        }
     }
     
 
-    // Specify what to draw
     draw() {
+        // 游戏尚未开始的状态
+        if (this.status === '') {
+            return;
+        }
+
+        // 游戏结束
         if (this.status === 'gameOver') {
             gameOverEle.style.display = 'block';
             return;
         }
 
+        // 游戏暂停状态
         if (this.status === 'pause') {
             return;
         }

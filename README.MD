@@ -5,3 +5,12 @@
 A tower defense game using javascript in development.
 
 [Online Demo](http://www.wukai.me/tower-defense-js/)
+
+## How to use
+
+    git clone https://github.com/noiron/tower-defense-js.git
+    cd tower-defense-js
+    npm i
+    npm start
+
+Open localhost:3000 in your browser.

@@ -15,7 +15,7 @@ const game = new Game({
 });
 
 const gameControlEle = document.getElementById('game-control');
-const gameControl = new GameControl({
+export const gameControl = new GameControl({
     element: gameControlEle,
     game
 });
