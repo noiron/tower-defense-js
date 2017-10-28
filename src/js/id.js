@@ -17,6 +17,10 @@ class globalId {
     getLength() {
         return this.value.length;
     }
+
+    clear() {
+        this.value = [];
+    }
 }
 
 export default new globalId();

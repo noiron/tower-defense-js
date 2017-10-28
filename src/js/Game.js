@@ -35,15 +35,32 @@ export default class Game {
         canvas.width = WIDTH;
         canvas.height = HEIGHT;
         this.element = opt.element;
+        this.ctx = ctx;
 
+        this.init();
+        this.draw();
+        this.bindEvent();
+    }
+
+    init() {
+        this.initData();
+
+        window.addEventListener('resize', this.windowResizeHandler, false);
+        startButton.addEventListener('click', this.startButtonClickHandler.bind(this), false);
+
+        this.windowResizeHandler();
+        this.renderBackground();
+    }
+
+    initData() {
         this.genId = 0;
-
+        globalId.clear();
+   
         this.bullets = [];
         this.towers = [];
         this.enemies = [];
 
-        this.ctx = ctx;
-        this.money = 5000;
+        this.money = 1000;
         this.coordX = 0;
         this.coordY = 0;
         this.enemyCreatedCount = 0;    // 目前已经创建的enemy的总数
@@ -54,13 +71,7 @@ export default class Game {
         ];
 
         const newTowerCoord = [8, 3];
-        this.map = new Map({
-            ctx,
-            WIDTH,
-            HEIGHT,
-            newTowerCoord,
-            pathCoord: this.pathCoord,
-        });
+        this.map = new Map({ ctx, WIDTH, HEIGHT, newTowerCoord, pathCoord: this.pathCoord });
 
         // 放置一个初始状态下的塔
         const tower = new BaseTower({
@@ -71,32 +82,20 @@ export default class Game {
             bullets: this.bullets,
         });
         this.towers.push(tower);
-
+        
         this.mode = '';
         this.addTowerType = 'BASE';
         this.status = '';
         this.score = 0;
         this.life = 100;
-
+        
         // 当前是否选中塔
         this.towerSelect = false;
         this.towerSelectIndex = -1;
         this.towerSelectId = -1;
-
+        
         this.wave = -1;  // 当前第几波
         this.waves = [];
-
-        this.init();
-        this.draw();
-        this.bindEvent();
-    }
-
-    init() {
-        window.addEventListener('resize', this.windowResizeHandler, false);
-        startButton.addEventListener('click', this.startButtonClickHandler.bind(this), false);
-
-        this.windowResizeHandler();
-        this.renderBackground();
     }
 
     windowResizeHandler() {
@@ -143,10 +142,10 @@ export default class Game {
     startButtonClickHandler(e) {
         e.stopPropagation();
         
-        if (this.status === '') {
-            this.status = 'running';
-
+        if (this.status === '' || this.status === 'gameOver') {
             panels.style.display = 'none';
+            this.initData();
+            this.status = 'running';
             this.draw();
             gameControl.draw();
         }
@@ -175,6 +174,10 @@ export default class Game {
             towerSelect: this.towerSelect,
             towerSelectIndex: this.towerSelectIndex
         });
+
+        if (this.life <= 0) {
+            this.gameOver();
+        }
 
         if (this.shouldGenerateWave()) {
             this.generateWave();
@@ -458,6 +461,13 @@ export default class Game {
     generateWave() {
         this.waves.push(new Wave());
         this.wave++;
+    }
+
+    gameOver() {
+        const title = document.getElementById('title');
+        title.innerHTML = `得分：${this.score}`;
+        panels.style.display = 'block';
+        this.status = 'gameOver';
     }
 }
 
