@@ -39,13 +39,13 @@ export default class Map {
         ctx.save();
 
         // Clear canvas
-        ctx.fillStyle = '#fff';
+        // ctx.fillStyle = '#fff';
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
         ctx.strokeStyle = '#eee';
         ctx.fillStyle = '#fff';
         ctx.lineWidth = 1;
-        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        // ctx.fillRect(0, 0, WIDTH, HEIGHT);
         // 横纵数目相等
         var size = 20;
 

@@ -1,10 +1,28 @@
 body {
     background: #eee;
+    background: #010c12;
 }
 
 main {
     display: flex;
     /*border: 1px solid;*/
+}
+
+canvas#background {
+    position: absolute;
+    z-index: 0;
+}
+
+canvas#drawing {
+    border: 6px #333 solid; 
+    border-right: none;
+    z-index: 1;
+}
+
+canvas#game-control {
+    border: 5px #333 solid; 
+    border-left: none;
+    position: absolute;
 }
 
 #game-over {

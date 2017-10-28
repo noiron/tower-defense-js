@@ -1,5 +1,6 @@
 var path = require('path');
 var webpack = require('webpack');
+var PorgressBarPlugin = require('progress-bar-webpack-plugin');
 
 module.exports = {
     entry: ['./src/index'],
@@ -20,5 +21,8 @@ module.exports = {
     },
     devServer: {
         stats: 'errors-only'
-    }
+    },
+    plugins: [
+        new PorgressBarPlugin()
+    ]
 };

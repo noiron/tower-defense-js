@@ -7,15 +7,24 @@ import Enemy from './Entity/Enemy';
 import Map from './Entity/Map';
 import Wave from './Wave';
 import { calcuteDistance } from './utils/utils';
-import { gridWidth, gridHeight, gridNumX, gridNumY, towerCost } from './utils/constant';
+import { gridWidth, gridHeight, gridNumX, gridNumY, towerCost, GAME_CONTROL_WIDTH } from './utils/constant';
 import globalId from './id';
 
 const WIDTH = 800;
 const HEIGHT = 640;
+const BORDER_WIDTH = 6;
+
 const canvas = document.getElementById('drawing');
 const ctx = canvas.getContext('2d');
 
 const gameOverEle = document.getElementById('game-over');
+
+const backgroundCanvas = document.getElementById('background');
+const bgCtx = backgroundCanvas.getContext('2d');
+backgroundCanvas.width = WIDTH;
+backgroundCanvas.height = HEIGHT;
+
+const gameControlCanvas = document.getElementById('game-control');
 
 export default class Game {
     constructor(opt) {
@@ -74,9 +83,53 @@ export default class Game {
         this.wave = -1;  // 当前第几波
         this.waves = [];
 
+        this.init();
         this.draw();
         this.bindEvent();
     }
+
+    init() {
+        this.windowResizeHandler();
+        this.renderBackground();
+    }
+
+    windowResizeHandler() {
+        // 确定canvas的位置
+        const cvx = (window.innerWidth - WIDTH - GAME_CONTROL_WIDTH) * 0.5;
+        const cvy = (window.innerHeight - HEIGHT) * 0.5;
+
+        canvas.style.position = 'absolute';
+        canvas.style.left = cvx + 'px';
+        canvas.style.top = cvy + 'px';
+        backgroundCanvas.style.position = 'absolute';
+        backgroundCanvas.style.left = cvx + BORDER_WIDTH + 'px';
+        backgroundCanvas.style.top = cvy + BORDER_WIDTH + 'px';
+
+        gameControlCanvas.style.position = 'absolute';
+        gameControlCanvas.style.left = cvx + WIDTH + BORDER_WIDTH + 'px';
+        gameControlCanvas.style.top = cvy + 'px';
+        // this.renderBackground();
+    }
+
+    renderBackground() {
+        const gradient = bgCtx.createRadialGradient(
+            WIDTH * 0.5,
+            HEIGHT * 0.5,
+            0,
+            WIDTH * 0.5,
+            HEIGHT * 0.5,
+            500
+        );
+
+        gradient.addColorStop(0, 'rgba(0, 70, 70, 1)');
+        gradient.addColorStop(1, 'rgba(0, 8, 14, 1');
+
+        bgCtx.fillStyle = gradient;
+        ctx.fillStyle = gradient;
+
+        bgCtx.fillRect(0, 0, WIDTH, HEIGHT);
+    }
+    
 
     // Specify what to draw
     draw() {

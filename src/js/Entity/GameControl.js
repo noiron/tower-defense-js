@@ -2,13 +2,16 @@ import BaseTower from './tower/BaseTower';
 import BulletTower from './tower/BulletTower';
 import LaserTower from './tower/LaserTower';
 import { isInside } from './../utils/utils';
+import { GAME_CONTROL_WIDTH, GAME_CONTROL_HEIGHT } from '../utils/constant';
 
 const GRID_WIDTH = 60;
 const GRID_HEIGHT = 60;
 const GRID_NUM_X = 3;
 const GRID_NUM_Y = 2;
-const WIDTH = 230;
-const HEIGHT = 640;
+const WIDTH = GAME_CONTROL_WIDTH;   // 230
+const HEIGHT = GAME_CONTROL_HEIGHT; // 640
+
+const FILL_COLOR = '#fafafa';
 
 class GameControl {
     constructor(opt) {
@@ -42,7 +45,7 @@ class GameControl {
             y: 400,
             width: 100,
             height: 40,
-            text: 'Pause',
+            text: '暂停',
             status: ''
         };
 
@@ -51,7 +54,7 @@ class GameControl {
             y: 470,
             width: 100,
             height: 40,
-            text: 'Sell',
+            text: '出售',
             status: ''
         };
 
@@ -66,7 +69,8 @@ class GameControl {
 
     draw() {
         const ctx = this.ctx;
-        ctx.fillStyle = '#eee';
+        // ctx.fillStyle = '#eee';
+        ctx.fillStyle = '#010c12';
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
         this.drawGrid();
 
@@ -96,12 +100,12 @@ class GameControl {
     drawText() {
         const ctx = this.ctx;
         const game = this.game;
-        ctx.fillStyle = '#000';
+        ctx.fillStyle = FILL_COLOR;
         ctx.font = '20px Arial';
-        ctx.fillText(`第${game.wave + 1}波`, this.offsetX, 200);
-        ctx.fillText(`Life:${game.life}`, this.offsetX, 250);
-        ctx.fillText('Score:' + game.score, this.offsetX, 300);
-        ctx.fillText('Money:' + game.money, this.offsetX, 350);
+        ctx.fillText(`第 ${game.wave + 1} 波`, this.offsetX, 200);
+        ctx.fillText(`生命: ${game.life}`, this.offsetX, 250);
+        ctx.fillText('得分: ' + game.score, this.offsetX, 300);
+        ctx.fillText('金钱: ' + game.money, this.offsetX, 350);
     }
 
     drawButton() {
@@ -112,11 +116,11 @@ class GameControl {
                 ctx.strokeStyle = 'red';
                 ctx.fillStyle = 'red';
             } else {
-                ctx.strokeStyle = '#000';
-                ctx.fillStyle = '#000';
+                ctx.strokeStyle = FILL_COLOR;
+                ctx.fillStyle = FILL_COLOR;
             }
             ctx.strokeRect(btn.x, btn.y, btn.width, btn.height);
-            ctx.fillText(btn.text, btn.x + btn.width / 5, btn.y + btn.height / 1.6);
+            ctx.fillText(btn.text, btn.x + btn.width / 3.5, btn.y + btn.height / 1.6);
         });
     }
 
@@ -183,6 +187,7 @@ class GameControl {
             }
 
             if (isInside({ x, y }, this.pauseBtn)) {
+                this.pauseBtn.text = game.status === 'running' ? '继续' : '暂停';
                 game.status = game.status === 'running' ? 'pause' : 'running';
                 if (game.status === 'running') {
                     game.draw();
@@ -261,7 +266,7 @@ class TowerArea {
 
     draw() {
         const ctx = this.ctx;
-        ctx.strokeStyle = '#000';
+        ctx.strokeStyle = FILL_COLOR;
         ctx.lineWidth = 1;
         // 横线
         ctx.beginPath();

@@ -14,7 +14,7 @@ const game = new Game({
     element: document.getElementById('drawing')
 });
 
-const gameControlEle = document.getElementById('game-control-canvas');
+const gameControlEle = document.getElementById('game-control');
 const gameControl = new GameControl({
     element: gameControlEle,
     game

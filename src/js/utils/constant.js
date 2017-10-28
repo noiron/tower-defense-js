@@ -1,3 +1,6 @@
+export const GAME_CONTROL_WIDTH = 230;
+export const GAME_CONTROL_HEIGHT = 640;
+
 export const gridWidth = 40;
 export const gridHeight = gridWidth;
 export const gridSize = 40;
