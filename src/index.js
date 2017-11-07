@@ -1,5 +1,6 @@
 import Game from './js/Game';
 import GameControl from './js/Entity/GameControl';
+import GameInfo from './js/Entity/GameInfo';
 import {
     gridWidth,
     gridHeight,
@@ -20,6 +21,13 @@ export const gameControl = new GameControl({
     game
 });
 gameControl.draw();
+
+const $gameInfo = document.getElementById('game-info');
+export const gameInfo = new GameInfo({
+    element: $gameInfo,
+    game
+});
+gameInfo.draw();
 
 const canvas = document.getElementById('drawing');
 

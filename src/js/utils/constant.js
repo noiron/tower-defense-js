@@ -1,3 +1,6 @@
+export const WIDTH = 800;
+export const HEIGHT = 640;
+
 export const GAME_CONTROL_WIDTH = 230;
 export const GAME_CONTROL_HEIGHT = 640;
 

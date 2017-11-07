@@ -20,7 +20,7 @@ export default class LaserTower extends BaseTower {
         this.directionVec = vec2.create();
 
         this.shooting = false;
-        this.damage = 0.5;
+        this.damage = 0.1;
     }
 
     shoot() {

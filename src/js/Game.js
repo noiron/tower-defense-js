@@ -1,18 +1,15 @@
 import { vec2 } from 'gl-matrix';
 import Path from './Entity/Path.js';
 import { gameControl } from './../index';
-import BaseTower from './Entity/tower/BaseTower.js';
-import BulletTower from './Entity/tower/BulletTower.js';
-import LaserTower from './Entity/tower/LaserTower.js';
+import TowerFactory from './Entity/tower';
 import Enemy from './Entity/Enemy';
 import Map from './Entity/Map';
 import Wave from './Wave';
 import { calcuteDistance } from './utils/utils';
-import { gridWidth, gridHeight, gridNumX, gridNumY, towerCost, GAME_CONTROL_WIDTH } from './utils/constant';
+import { gridWidth, gridHeight, gridNumX, gridNumY, towerCost, WIDTH, HEIGHT, 
+    GAME_CONTROL_WIDTH } from './utils/constant';
 import globalId from './id';
 
-const WIDTH = 800;
-const HEIGHT = 640;
 const BORDER_WIDTH = 6;
 
 const canvas = document.getElementById('drawing');
@@ -28,6 +25,8 @@ backgroundCanvas.height = HEIGHT;
 const gameControlCanvas = document.getElementById('game-control');
 const panels = document.getElementById('panels');
 const startButton = document.getElementById('start-button');
+
+const gameInfoCanvas = document.getElementById('game-info');
 
 export default class Game {
     constructor(opt) {
@@ -74,7 +73,7 @@ export default class Game {
         this.map = new Map({ ctx, WIDTH, HEIGHT, newTowerCoord, pathCoord: this.pathCoord });
 
         // 放置一个初始状态下的塔
-        const tower = new BaseTower({
+        const tower = new TowerFactory['BASE']({
             id: globalId.genId(),
             ctx,
             x: gridWidth / 2 + newTowerCoord[0] * gridWidth,
@@ -118,6 +117,10 @@ export default class Game {
         panels.style.position = 'absolute';
         panels.style.left = cvx + BORDER_WIDTH + 'px';
         panels.style.top = cvy + 200 + 'px';
+
+        gameInfoCanvas.style.position = 'absolute';
+        gameInfoCanvas.style.left = cvx + BORDER_WIDTH + 'px';
+        gameInfoCanvas.style.top = cvy + BORDER_WIDTH + 'px';
     }
 
     renderBackground() {
@@ -382,20 +385,7 @@ export default class Game {
 
         const config = { id, ctx, x, y, bullets: this.bullets };
 
-        let tower = null;
-        switch (towerType) {
-            case 'BASE':
-                tower = new BaseTower(config);
-                break;
-            case 'BULLET':
-                tower = new BulletTower(config);
-                break;
-            case 'LASER':
-                tower = new LaserTower(config);
-                break;
-            default:
-                tower = new BulletTower(config);
-        }
+        let tower = new TowerFactory[towerType](config);
 
         this.map.coord[coordX][coordY] = 'T';
         this.money -= cost;
@@ -416,23 +406,8 @@ export default class Game {
 
     // 准备放置塔时，在鼠标所在位置画一个虚拟的塔
     drawGhostTower(ctx, x, y, towerType) {
-        let tower = null;
         const config = { ctx, x, y, bullets: this.bullets, selected: true };
-
-        switch(towerType) {
-            case 'BASE':
-                tower = new BaseTower(config);
-                break;
-            case 'BULLET':
-                tower = new BulletTower(config);
-                break;
-            case 'LASER':
-                tower = new LaserTower(config);
-                break;
-
-            default:
-                tower = null;
-        }
+        const tower = new (TowerFactory[towerType])(config);
         tower.draw(ctx);
     }
 

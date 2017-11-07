@@ -25,6 +25,11 @@ canvas#game-control {
     position: absolute;
 }
 
+canvas#game-info {
+    z-index: 3;
+    pointer-events: none;
+}
+
 #game-over {
     border: 2px solid #000;
     border-radius: 20px;
