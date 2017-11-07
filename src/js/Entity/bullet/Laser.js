@@ -1,7 +1,7 @@
 import { vec2 } from 'gl-matrix';
 import { toRadians, calcuteDistance } from './../../utils/utils';
 
-export default class CircleBullet {
+export default class Laser {
     constructor({ ctx, x, y, parent, target, range, damage }) {
         this.type = 'laser';
         this.x = x;

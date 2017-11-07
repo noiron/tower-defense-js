@@ -14,4 +14,5 @@ export const towerCost = {
     'baseTower': 200,
     'bulletTower': 200,
     'laserTower': 200,
+    'slowTower': 200,
 };

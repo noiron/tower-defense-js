@@ -59,7 +59,7 @@ export default class Game {
         this.towers = [];
         this.enemies = [];
 
-        this.money = 1000;
+        this.money = 5000;
         this.coordX = 0;
         this.coordY = 0;
         this.enemyCreatedCount = 0;    // 目前已经创建的enemy的总数
@@ -86,7 +86,7 @@ export default class Game {
         this.addTowerType = 'BASE';
         this.status = '';
         this.score = 0;
-        this.life = 100;
+        this.life = 1000000;
         
         // 当前是否选中塔
         this.towerSelect = false;
@@ -282,6 +282,17 @@ export default class Game {
                     }
                     break;
                 }
+                case 'slow': {
+                    if (bullet.life <= 0) {
+                        this.bullets.remove(i--);
+                        bullet.parent.shooting = false;
+                    } else {
+                        bullet.parent.shooting = true;
+                        bullet.draw(ctx);
+                    }
+                }
+                default:
+                    bullet.draw(ctx);
             }
         }
 
@@ -350,7 +361,7 @@ export default class Game {
                     break;
                 }
             }
-            if (bullet.type === 'laser') {
+            if (bullet.type === 'laser' || bullet.type === 'slow') {
                 impact = false;
             }
             if (impact) {
@@ -426,7 +437,7 @@ export default class Game {
     }
 
     shouldGenerateEnemy() {
-        return this.wave < 100 && new Date() - this.lastCreatedEnemyTime > 500;
+        return this.wave < 999 && new Date() - this.lastCreatedEnemyTime > 500;
     }
 
     shouldGenerateWave() {

@@ -1,4 +1,4 @@
-import { BaseTower, LaserTower } from './tower';
+import { BaseTower, LaserTower, SlowTower } from './tower';
 import { isInside } from './../utils/utils';
 import { GAME_CONTROL_WIDTH, GAME_CONTROL_HEIGHT } from '../utils/constant';
 import { gameInfo } from './../../index';
@@ -175,7 +175,17 @@ class GameControl {
                         game.addTowerType = 'LASER';
                         this.towerArea.selected = [1, 0];
                     }
-                } else {
+                } else if (xIdx === 2 && yIdx === 0) {
+                    // 点击了 SlowTower
+                    if (game.mode === 'ADD_TOWER' && game.addTowerType === 'SLOW') {
+                        game.mode = '';
+                        game.addTowerType = '';
+                    } else {
+                        game.mode = 'ADD_TOWER';
+                        game.addTowerType = 'SLOW';
+                        this.towerArea.selected = [2, 0];
+                    }
+                }else {
                     this.towerArea.selected = -1;
                 }
             } else {
@@ -232,14 +242,18 @@ class GameControl {
                 const yIdx = Math.floor((y - this.offsetY) / GRID_HEIGHT);
 
                 let text = '';
+                let infoX = this.offsetX + xIdx * GRID_WIDTH - 100;
                 if (yIdx === 0 && xIdx === 0) {
                     text = '子弹塔：沙包大的子弹见过没有？';
-                } else  if (yIdx === 0 && xIdx === 1) {
+                } else if (yIdx === 0 && xIdx === 1) {
                     text = '激光塔：哎哟，不错！';
+                } else if (yIdx === 0 && xIdx === 2) {
+                    text = '减速塔：走过，路过，不要错过！';
+                    infoX -= 120;
                 }
 
                 gameInfo.infos = [{
-                    x: this.offsetX + xIdx * GRID_WIDTH - 100,
+                    x: infoX,
                     y: this.offsetY,
                     width: 200,
                     height: 50,
@@ -271,11 +285,18 @@ class TowerArea {
         });
 
         this.laserTower = new LaserTower({
-            x: this.offsetX + GRID_WIDTH * 1.5 + 10,
+            x: this.offsetX + GRID_WIDTH * 1.5 + 5,
             y: this.offsetY + GRID_HEIGHT / 2,
             ctx: this.ctx,
             direction: 90,
-            radius: 8
+            radius: 12
+        });
+
+        this.slowTower = new SlowTower({
+            x: this.offsetX + GRID_WIDTH * 2.5 + 5,
+            y: this.offsetY + GRID_HEIGHT / 2,
+            ctx: this.ctx,
+            radius: 12
         });
     }
 
@@ -304,6 +325,7 @@ class TowerArea {
         }
         this.baseTower.draw(ctx);
         this.laserTower.draw(ctx);
+        this.slowTower.draw(ctx);
     }
 
     // 选中的tower突出显示
