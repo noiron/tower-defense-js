@@ -4,9 +4,10 @@
 
 export default class SlowField {
     constructor(opt) {
-        const { ctx, parent, range, ratio } = opt;
+        const { ctx, parent, range, ratio, id } = opt;
         this.type = 'slow';
         this.ctx = ctx;
+        this.id = id;
 
         // range 将随时间逐渐加大
         this.minRange = 20;

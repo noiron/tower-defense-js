@@ -15,7 +15,7 @@ export default class SlowTower extends BaseTower {
         this.hue = 120;
         this.cost = towerCost.slowTower;
 
-        this.range = 2 * gridWidth;
+        this.range = 2.5 * gridWidth;
 
         this.shooting = false;
         this.ratio = 0.3;
@@ -24,9 +24,6 @@ export default class SlowTower extends BaseTower {
     }
 
     shoot() {
-        // console.log(this.target, this.shooting);
-        // if (this.target) {
-        console.log(this.counter++);
         const slowField = new SlowField({
             id: globalId.genId(),
             ctx: this.ctx,
@@ -34,10 +31,7 @@ export default class SlowTower extends BaseTower {
             ratio: this.ratio,
             parent: this
         });
-            // console.log(slowField);
-            // this.field = [slowField];
         this.bullets.push(slowField);
-        // }
     }
 
     draw() {
