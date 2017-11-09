@@ -13,7 +13,7 @@ export default class Laser {
         this.vx = 0;
         this.vy = 0;
         this.angle = 0;
-        this.hue = 100;
+        this.hue = parent.hue;
         this.range = range;
         this.damage = damage || 5;
         this.parent = parent;
@@ -30,7 +30,7 @@ export default class Laser {
 
         // 绘图开始
         ctx.save();
-        ctx.strokeStyle = 'hsl(' + this.hue + ', 100%, 40%)';
+        ctx.strokeStyle = 'hsl(' + this.hue + ', 100%, 80%)';
         ctx.beginPath();
         ctx.moveTo(this.x, this.y);
         ctx.lineTo(this.target.x, this.target.y);

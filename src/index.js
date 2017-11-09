@@ -14,6 +14,7 @@ import BulletTower from './js/Entity/tower/BulletTower';
 const game = new Game({
     element: document.getElementById('drawing')
 });
+// window.game = game;
 
 const gameControlEle = document.getElementById('game-control');
 export const gameControl = new GameControl({

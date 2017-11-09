@@ -77,8 +77,8 @@ export default class Game {
             [0, 0],
             [18, 0],
             [18, 4],
-            [10, 4],
-            [10, 10],
+            [8, 4],
+            [8, 10],
             [16, 10],
             [16, 14],
             [-1, 14]
@@ -212,7 +212,7 @@ export default class Game {
                 color: cfg.color,
                 radius: cfg.radius,
                 speed: cfg.speed,
-                health: cfg.health * (1 + this.wave / 10)
+                health: cfg.health * (1 + this.wave / 40)
             });
 
             this.enemies.push(enemy);

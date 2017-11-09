@@ -46,7 +46,8 @@ export default class SlowTower extends BaseTower {
         }
 
         ctx.strokeStyle = 'hsl(' + this.hue + ',100%, 80%';
-        ctx.fillStyle = 'hsl(' + this.hue + ',100%, 80%';
+        // ctx.fillStyle = 'hsl(' + this.hue + ',100%, 80%';
+        ctx.fillStyle = 'rgba(1, 158, 213, 0.15)';
         ctx.lineWidth = Math.max(3, this.radius / 8);
 
         ctx.beginPath();

@@ -15,19 +15,19 @@ export default class Wave {
         this.enemyCfg = {
             a: {
                 radius: 10,
-                speed: 2,
+                speed: 1,
                 color: '#FFDDA0',
                 health: 20,
             },
             b: {
                 radius: 8,
-                speed: 3,
+                speed: 1.5,
                 color: '#0280B2',
                 health: 16,
             },
             c: {
                 radius: 6,
-                speed: 4,
+                speed: 2,
                 color: '#FFD387',
                 health: 12
             }
