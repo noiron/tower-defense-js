@@ -45,8 +45,8 @@ document.onmousemove = function(e) {
         var rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-        game.coordX = Math.floor(x / gridWidth);
-        game.coordY = Math.floor(y / gridHeight);
+        game.col = Math.floor(x / gridWidth);
+        game.row = Math.floor(y / gridHeight);
     }
 };
 
@@ -56,15 +56,15 @@ document.onclick = function(e) {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    const coordX = Math.floor(x / gridWidth);
-    const coordY = Math.floor(y / gridHeight);
+    const col = Math.floor(x / gridWidth);
+    const row = Math.floor(y / gridHeight);
 
     /* 只在地图范围内进行操作 */
-    if (0 <= coordX && coordX < gridNumX && 0 <= coordY && coordY < gridNumY) {
-        if (game.map.coord[coordX][coordY] === 'T') {
+    if (0 <= col && col < gridNumX && 0 <= row && row < gridNumY) {
+        if (game.map.coord[col][row] === 'T') {
             // 点击的格子内为塔
             game.towers.map((tower, index) => {
-                if (tower.coordX === coordX && tower.coordY === coordY) {
+                if (tower.col === col && tower.row === row) {
                     console.log(`You select ${index}th tower, its id is ${tower.id}`);
 
                     // 已经选中的塔再次点击则取消
@@ -86,7 +86,7 @@ document.onclick = function(e) {
         }
 
         if (game.mode === 'ADD_TOWER') {
-            game.createNewTower(coordX, coordY, game.addTowerType);
+            game.createNewTower(col, row, game.addTowerType);
         }
     }
 };

@@ -16,12 +16,13 @@ export default class BaseTower {
         this.x = x;
         this.y = y;
         this.ctx = ctx;
-        this.coordX = Math.floor((x - gridWidth / 2) / gridWidth);
-        this.coordY = Math.floor((y - gridHeight / 2) / gridHeight);
+        this.type = 'BASE';
+        this.col = Math.floor((x - gridWidth / 2) / gridWidth);
+        this.row = Math.floor((y - gridHeight / 2) / gridHeight);
         this.radius = radius || 12;
         this.hue = 200;
         this.bullets = bullets;
-        this.cost = towerCost.baseTower;
+        this.cost = towerCost.base;
         this.lastShootTime = new Date();
         this.shootInterval = 500;   // 发射间隔，单位ms
         this.direction = 180;     // 用度数表示的tower指向

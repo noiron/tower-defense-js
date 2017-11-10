@@ -1,4 +1,4 @@
-import { BaseTower, LaserTower, SlowTower } from './tower';
+import { BaseTower, LaserTower, SlowTower, FireTower } from './tower';
 import { isInside } from './../utils/utils';
 import { GAME_CONTROL_WIDTH, GAME_CONTROL_HEIGHT } from '../utils/constant';
 import { gameInfo } from './../../index';
@@ -185,12 +185,23 @@ class GameControl {
                         game.addTowerType = 'SLOW';
                         this.towerArea.selected = [2, 0];
                     }
-                }else {
+                } else if (xIdx === 0 && yIdx === 1) {
+                    // 点击了火焰塔
+                    if (game.mode === 'ADD_TOWER' && game.addTowerType === 'FIRE') {
+                        game.mode = '';
+                        game.addTowerType = '';
+                    } else {
+                        game.mode = 'ADD_TOWER';
+                        game.addTowerType = 'FIRE';
+                        this.towerArea.selected = [0, 1];
+                    }
+                } else {
                     this.towerArea.selected = -1;
                 }
-            } else {
-                console.log('out');
-            }
+            } 
+            // else {
+            //     console.log('out');
+            // }
 
             if (isInside({ x, y }, this.pauseBtn)) {
                 this.pauseBtn.text = game.status === 'running' ? '继续' : '暂停';
@@ -238,23 +249,26 @@ class GameControl {
             // TODO: 显示造价和伤害信息
             if (isInside({ x, y }, this.towerAreaRect)) {
                 // 计算当前是在哪个格子中
-                const xIdx = Math.floor((x - this.offsetX) / GRID_WIDTH);
-                const yIdx = Math.floor((y - this.offsetY) / GRID_HEIGHT);
+                const col = Math.floor((x - this.offsetX) / GRID_WIDTH);
+                const row = Math.floor((y - this.offsetY) / GRID_HEIGHT);
 
                 let text = '';
-                let infoX = this.offsetX + xIdx * GRID_WIDTH - 100;
-                if (yIdx === 0 && xIdx === 0) {
+                let infoX = this.offsetX + col * GRID_WIDTH - 100;
+                if (row === 0 && col === 0) {
                     text = '子弹塔：沙包大的子弹见过没有？';
-                } else if (yIdx === 0 && xIdx === 1) {
+                } else if (row === 0 && col === 1) {
                     text = '激光塔：哎哟，不错！';
-                } else if (yIdx === 0 && xIdx === 2) {
-                    text = '减速塔：走过，路过，不要错过！';
+                } else if (row === 0 && col === 2) {
+                    text = '减速塔：Yo, Yo, Yo, 留下来！';
                     infoX -= 120;
+                } else if (row === 1 && col === 0) {
+                    text = '火焰塔：啊哈，你想被烤成几分熟？';
+                    infoX -= 50;
                 }
 
                 gameInfo.infos = [{
                     x: infoX,
-                    y: this.offsetY,
+                    y: this.offsetY + row * GRID_HEIGHT,
                     width: 200,
                     height: 50,
                     text
@@ -298,6 +312,15 @@ class TowerArea {
             ctx: this.ctx,
             radius: 12
         });
+
+        this.fireTower = new FireTower({
+            x: this.offsetX + GRID_WIDTH / 2 + 5,
+            y: this.offsetY + GRID_HEIGHT * 1.5,
+            ctx: this.ctx,
+            radius: 10
+        });
+
+        this.towers = [this.baseTower, this.laserTower, this.slowTower, this.fireTower];
     }
 
     draw() {
@@ -323,9 +346,8 @@ class TowerArea {
         if (this.selected !== -1) {
             this.highlightTower(this.selected[0], this.selected[1]);
         }
-        this.baseTower.draw(ctx);
-        this.laserTower.draw(ctx);
-        this.slowTower.draw(ctx);
+        
+        this.towers.forEach(t => t.draw(ctx));
     }
 
     // 选中的tower突出显示

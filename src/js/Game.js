@@ -68,8 +68,8 @@ export default class Game {
         this.enemies = [];
 
         this.money = 5000;
-        this.coordX = 0;
-        this.coordY = 0;
+        this.col = 0;
+        this.row = 0;
         this.enemyCreatedCount = 0; // 目前已经创建的enemy的总数
         this.lastCreatedEnemyTime = new Date();
 
@@ -292,7 +292,8 @@ export default class Game {
                     }
                     break;
                 }
-                case 'slow': {
+                case 'slow': 
+                case 'fire': {
                     if (bullet.life <= 0) {
                         this.bullets.remove(i--);
                         bullet.parent.shooting = false;
@@ -300,6 +301,7 @@ export default class Game {
                         bullet.parent.shooting = true;
                         bullet.draw(ctx);
                     }
+                    break;
                 }
                 default:
                     bullet.draw(ctx);
@@ -309,17 +311,17 @@ export default class Game {
         if (this.mode === 'ADD_TOWER') {
             // 添加塔模式
             if (
-                0 <= this.coordX &&
-                this.coordX < gridNumX &&
-                0 <= this.coordY &&
-                this.coordY < gridNumY
+                0 <= this.col &&
+                this.col < gridNumX &&
+                0 <= this.row &&
+                this.row < gridNumY
             ) {
-                if (this.map.coord[this.coordX][this.coordY] !== 'T') {
+                if (this.map.coord[this.col][this.row] !== 'T') {
                     // 该位置没有塔
                     this.drawGhostTower(
                         ctx,
-                        this.coordX * gridWidth + gridWidth / 2,
-                        this.coordY * gridHeight + gridHeight / 2,
+                        this.col * gridWidth + gridWidth / 2,
+                        this.row * gridHeight + gridHeight / 2,
                         this.addTowerType
                     );
                 }
@@ -357,7 +359,7 @@ export default class Game {
                     vec2.add(normal, bullet.start, bVec);
 
                     distance = calcuteDistance(normal[0], normal[1], enemy.x, enemy.y);
-                } else if (bullet.type === 'circle' || bullet.type === 'slow') {
+                } else if (bullet.type === 'circle' || bullet.type === 'slow' || bullet.type === 'fire') {
                     distance = calcuteDistance(bullet.x, bullet.y, enemy.x, enemy.y);
                 }
                 if (bullet.type === 'laser') {
@@ -367,7 +369,7 @@ export default class Game {
                 }
 
                 // enemy进入bullet的作用范围后，依据其种类产生效果
-                if (bullet.type !== 'slow') {
+                if (bullet.type === 'circle' || bullet.type === 'laser') {
                     if (distance <= enemy.radius + 2) {
                         impact = true;
                         enemy.health -= bullet.damage;
@@ -378,7 +380,7 @@ export default class Game {
                         }
                         break;
                     }
-                } else {
+                } else if (bullet.type === 'slow') {
                     if (distance <= bullet.range) {
                         if (enemy.buff.every(b => b.source !== bullet.id)) {
                             enemy.buff.push({
@@ -389,9 +391,18 @@ export default class Game {
                             });
                         }
                     }
+                } else if (bullet.type === 'fire') {
+                    if (distance <= bullet.range) {
+                        enemy.health -= bullet.damage;
+                        if (enemy.health <= 0) {
+                            this.money += enemy.value;
+                            this.enemies.remove(j--);
+                            this.score += 100;
+                        }
+                    }
                 }
             }
-            if (bullet.type === 'laser' || bullet.type === 'slow') {
+            if (bullet.type === 'laser' || bullet.type === 'slow' || bullet.type === 'fire') {
                 impact = false;
             }
             if (impact) {
@@ -402,44 +413,45 @@ export default class Game {
 
     /**
      * 创建一个新的tower
-     * @param {Number} coordX x轴的坐标  
-     * @param {Number} coordY y轴的坐标
+     * @param {Number} col x轴的坐标  
+     * @param {Number} row y轴的坐标
      */
-    createNewTower(coordX, coordY, towerType) {
+    createNewTower(col, row, towerType) {
         // 检查当前位置是否已有物体
-        if (this.map.coord[coordX][coordY] === 'T') {
+        if (this.map.coord[col][row] === 'T') {
             console.log('You can not place tower here!');
             return -1;
         }
-
-        const cost = towerCost.baseTower;
+        const cost = towerCost[towerType];
         // 检查是否有足够金钱
         if (this.money - cost < 0) {
+            // TODO: 将提示信息显示在画面中
             console.log('You do not have enough money.');
             return -1;
         }
 
-        const x = coordX * gridWidth + gridWidth / 2;
-        const y = coordY * gridWidth + gridWidth / 2;
+        const x = col * gridWidth + gridWidth / 2;
+        const y = row * gridWidth + gridWidth / 2;
         const id = globalId.genId();
 
         const config = { id, ctx, x, y, bullets: this.bullets };
 
         let tower = new TowerFactory[towerType](config);
 
-        this.map.coord[coordX][coordY] = 'T';
+        this.map.coord[col][row] = 'T';
         this.money -= cost;
         this.towers.push(tower);
     }
 
     sellTower(index = this.towerSelectIndex) {
-        const coordX = this.towers[index].coordX;
-        const coordY = this.towers[index].coordY;
+        const tower = this.towers[index];
+        const { col, row, type: towerType = 'BASE' } = tower;
         this.towers.remove(index);
         console.log(index);
-        this.map.coord[coordX][coordY] = '';
+        this.map.coord[col][row] = '';
 
-        this.money += 400;
+        // 出售价格改为购买价格的 50%
+        this.money += (towerCost[towerType] * 0.5);
         this.towerSelect = false;
         this.towerSelectIndex = -1;
     }

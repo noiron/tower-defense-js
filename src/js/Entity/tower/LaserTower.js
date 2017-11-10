@@ -11,7 +11,8 @@ export default class LaserTower extends BaseTower {
         const { ctx, x, y, bullets, selected, damage } = opt;
         super(opt);
 
-        this.hue = 20;
+        this.type = 'LASER';
+        this.hue = 60;
         this.cost = towerCost.laserTower;
         this.range = 4 * gridWidth;
 

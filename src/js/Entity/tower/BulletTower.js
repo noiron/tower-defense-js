@@ -11,6 +11,7 @@ export default class BulletTower extends BaseTower {
         const { ctx, x, y, bullets, selected, damage } = opt;
         super(opt);
 
+        this.type = 'BULLET';
         this.hue = 100;
         this.cost = towerCost.bulletTower;
         this.range = 3 * gridWidth;
