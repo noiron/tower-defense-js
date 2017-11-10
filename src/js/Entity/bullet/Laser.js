@@ -1,7 +1,7 @@
 import { vec2 } from 'gl-matrix';
 import { toRadians, calcuteDistance } from './../../utils/utils';
 
-export default class CircleBullet {
+export default class Laser {
     constructor({ ctx, x, y, parent, target, range, damage }) {
         this.type = 'laser';
         this.x = x;
@@ -13,7 +13,7 @@ export default class CircleBullet {
         this.vx = 0;
         this.vy = 0;
         this.angle = 0;
-        this.hue = 100;
+        this.hue = parent.hue;
         this.range = range;
         this.damage = damage || 5;
         this.parent = parent;
@@ -30,7 +30,7 @@ export default class CircleBullet {
 
         // 绘图开始
         ctx.save();
-        ctx.strokeStyle = 'hsl(' + this.hue + ', 100%, 40%)';
+        ctx.strokeStyle = 'hsl(' + this.hue + ', 100%, 80%)';
         ctx.beginPath();
         ctx.moveTo(this.x, this.y);
         ctx.lineTo(this.target.x, this.target.y);

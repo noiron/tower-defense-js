@@ -35,10 +35,36 @@ export default class Enemy {
 
         this.value = opt.value || 50;
         this.damage = opt.damage || 5;
+
+        /**
+         * {
+         *   type: 'deceleration',
+         *   value: 0.1,
+         *   source: someId,
+         *   duration: 2000     // ms
+         * }
+         */
+        this.buff = [];
     }
 
     step({ path }) {
-        const speed = this.speed;
+        // 对 this.buff 中的数据进行依次处理
+        let speed = this.speed;
+        if (this.buff.length > 0) {
+            this.buff.forEach((b, idx) => {
+                if (b.type === 'deceleration') {
+                    // 减速效果
+                    if (b.duration-- > 0) {
+                        speed *= (1 - b.value); 
+                    }
+                }
+                if (b.duration <= 0) {
+                    this.buff.remove(idx);
+                }
+            });
+        }
+
+        // const speed = this.speed;
         const wp = path[this.wp];
         this.dx = wp[0] * gridSize + gridSize * 0.5 - this.x;
         this.dy = wp[1] * gridSize + gridSize * 0.5 - this.y;

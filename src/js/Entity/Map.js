@@ -67,9 +67,9 @@ export default class Map {
         // 当前选中的格子突出显示
         // TODO: 这一部分移入game.js中
         if (towerSelect) {
-            const coordX = towers[towerSelectIndex].coordX;
-            const coordY = towers[towerSelectIndex].coordY;
-            fillGrid(coordX, coordY, 'pink');
+            const col = towers[towerSelectIndex].col;
+            const row = towers[towerSelectIndex].row;
+            fillGrid(col, row, 'pink');
         }
 
         // 给一个格子上色

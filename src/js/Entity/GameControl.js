@@ -1,8 +1,7 @@
-import BaseTower from './tower/BaseTower';
-import BulletTower from './tower/BulletTower';
-import LaserTower from './tower/LaserTower';
+import { BaseTower, LaserTower, SlowTower, FireTower } from './tower';
 import { isInside } from './../utils/utils';
 import { GAME_CONTROL_WIDTH, GAME_CONTROL_HEIGHT } from '../utils/constant';
+import { gameInfo } from './../../index';
 
 const GRID_WIDTH = 60;
 const GRID_HEIGHT = 60;
@@ -12,6 +11,9 @@ const WIDTH = GAME_CONTROL_WIDTH;   // 230
 const HEIGHT = GAME_CONTROL_HEIGHT; // 640
 
 const FILL_COLOR = '#fafafa';
+
+const gameInfoCanvas = document.getElementById('game-info');
+const infoCtx = gameInfoCanvas.getContext('2d');
 
 class GameControl {
     constructor(opt) {
@@ -68,7 +70,7 @@ class GameControl {
     }
 
     draw() {
-        // 游戏未开始时，不画出该组件
+        // 游戏未开始时，不绘制该区域
         if (this.game.status === '') { 
             return; 
         }
@@ -85,7 +87,7 @@ class GameControl {
         this.drawText();
         this.drawButton();
 
-        requestAnimationFrame(() => this.draw(), 100);
+        requestAnimationFrame(() => this.draw(), 1000);
     }
 
     drawGrid() {
@@ -164,16 +166,6 @@ class GameControl {
                         this.towerArea.selected = [0, 0]; // 突出显示
                     }
                 } else if (xIdx === 1 && yIdx === 0) {
-                    // 点击了 BulletTower
-                    if (game.mode === 'ADD_TOWER' && game.addTowerType === 'BULLET') {
-                        game.mode = '';
-                        game.addTowerType = '';
-                    } else {
-                        game.mode = 'ADD_TOWER';
-                        game.addTowerType = 'BULLET';
-                        this.towerArea.selected = [1, 0];
-                    }
-                } else if (xIdx === 2 && yIdx === 0) {
                     // 点击了 LaserTower
                     if (game.mode === 'ADD_TOWER' && game.addTowerType === 'LASER') {
                         game.mode = '';
@@ -181,14 +173,35 @@ class GameControl {
                     } else {
                         game.mode = 'ADD_TOWER';
                         game.addTowerType = 'LASER';
+                        this.towerArea.selected = [1, 0];
+                    }
+                } else if (xIdx === 2 && yIdx === 0) {
+                    // 点击了 SlowTower
+                    if (game.mode === 'ADD_TOWER' && game.addTowerType === 'SLOW') {
+                        game.mode = '';
+                        game.addTowerType = '';
+                    } else {
+                        game.mode = 'ADD_TOWER';
+                        game.addTowerType = 'SLOW';
                         this.towerArea.selected = [2, 0];
+                    }
+                } else if (xIdx === 0 && yIdx === 1) {
+                    // 点击了火焰塔
+                    if (game.mode === 'ADD_TOWER' && game.addTowerType === 'FIRE') {
+                        game.mode = '';
+                        game.addTowerType = '';
+                    } else {
+                        game.mode = 'ADD_TOWER';
+                        game.addTowerType = 'FIRE';
+                        this.towerArea.selected = [0, 1];
                     }
                 } else {
                     this.towerArea.selected = -1;
                 }
-            } else {
-                console.log('out');
-            }
+            } 
+            // else {
+            //     console.log('out');
+            // }
 
             if (isInside({ x, y }, this.pauseBtn)) {
                 this.pauseBtn.text = game.status === 'running' ? '继续' : '暂停';
@@ -231,6 +244,40 @@ class GameControl {
             } else {
                 sellBtn.status = '';
             }
+
+            // 鼠标 hover 在 tower 上时，显示相应提示信息
+            // TODO: 显示造价和伤害信息
+            if (isInside({ x, y }, this.towerAreaRect)) {
+                // 计算当前是在哪个格子中
+                const col = Math.floor((x - this.offsetX) / GRID_WIDTH);
+                const row = Math.floor((y - this.offsetY) / GRID_HEIGHT);
+
+                let text = '';
+                let infoX = this.offsetX + col * GRID_WIDTH - 100;
+                if (row === 0 && col === 0) {
+                    text = '子弹塔：沙包大的子弹见过没有？';
+                } else if (row === 0 && col === 1) {
+                    text = '激光塔：哎哟，不错！';
+                } else if (row === 0 && col === 2) {
+                    text = '减速塔：Yo, Yo, Yo, 留下来！';
+                    infoX -= 120;
+                } else if (row === 1 && col === 0) {
+                    text = '火焰塔：啊哈，你想被烤成几分熟？';
+                    infoX -= 50;
+                }
+
+                gameInfo.infos = [{
+                    x: infoX,
+                    y: this.offsetY + row * GRID_HEIGHT,
+                    width: 200,
+                    height: 50,
+                    text
+                }];
+
+            } else {
+                // infoCtx.clearRect(0, 0, 150, 75);
+                gameInfo.infos = [];
+            }
         });
     }
 }
@@ -251,21 +298,29 @@ class TowerArea {
             radius: 12
         });
 
-        this.bulletTower = new BulletTower({
-            x: this.offsetX + GRID_WIDTH * 1.5 + 10,
-            y: this.offsetY + GRID_HEIGHT / 2,
-            ctx: this.ctx,
-            direction: 180,
-            radius: 12
-        });
-
         this.laserTower = new LaserTower({
-            x: this.offsetX + GRID_WIDTH * 2.5 + 10,
+            x: this.offsetX + GRID_WIDTH * 1.5 + 5,
             y: this.offsetY + GRID_HEIGHT / 2,
             ctx: this.ctx,
             direction: 90,
-            radius: 8
+            radius: 12
         });
+
+        this.slowTower = new SlowTower({
+            x: this.offsetX + GRID_WIDTH * 2.5 + 5,
+            y: this.offsetY + GRID_HEIGHT / 2,
+            ctx: this.ctx,
+            radius: 12
+        });
+
+        this.fireTower = new FireTower({
+            x: this.offsetX + GRID_WIDTH / 2 + 5,
+            y: this.offsetY + GRID_HEIGHT * 1.5,
+            ctx: this.ctx,
+            radius: 10
+        });
+
+        this.towers = [this.baseTower, this.laserTower, this.slowTower, this.fireTower];
     }
 
     draw() {
@@ -291,9 +346,8 @@ class TowerArea {
         if (this.selected !== -1) {
             this.highlightTower(this.selected[0], this.selected[1]);
         }
-        this.baseTower.draw(ctx);
-        this.bulletTower.draw(ctx);
-        this.laserTower.draw(ctx);
+        
+        this.towers.forEach(t => t.draw(ctx));
     }
 
     // 选中的tower突出显示

@@ -65,6 +65,37 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+var WIDTH = exports.WIDTH = 800;
+var HEIGHT = exports.HEIGHT = 640;
+
+var GAME_CONTROL_WIDTH = exports.GAME_CONTROL_WIDTH = 230;
+var GAME_CONTROL_HEIGHT = exports.GAME_CONTROL_HEIGHT = 640;
+
+var gridSize = exports.gridSize = 40;
+var gridWidth = exports.gridWidth = gridSize;
+var gridHeight = exports.gridHeight = gridSize;
+
+var gridNumX = exports.gridNumX = 20; // x轴方向上的格子数目
+var gridNumY = exports.gridNumY = 16; // y轴方向上的格子数目
+
+var towerCost = exports.towerCost = {
+    'BASE': 200,
+    // 'bullet': 200,
+    'LASER': 200,
+    'SLOW': 200,
+    'FIRE': 400
+};
+
+/***/ }),
+/* 1 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -142,20 +173,20 @@ function equals(a, b) {
 
 
 /***/ }),
-/* 1 */
+/* 2 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__gl_matrix_common__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__gl_matrix_common__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__gl_matrix_mat2__ = __webpack_require__(16);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__gl_matrix_mat2d__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__gl_matrix_mat3__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__gl_matrix_mat3__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__gl_matrix_mat4__ = __webpack_require__(18);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__gl_matrix_quat__ = __webpack_require__(19);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__gl_matrix_vec2__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__gl_matrix_vec3__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__gl_matrix_vec4__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__gl_matrix_vec3__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__gl_matrix_vec4__ = __webpack_require__(10);
 /* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "glMatrix", function() { return __WEBPACK_IMPORTED_MODULE_0__gl_matrix_common__; });
 /* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "mat2", function() { return __WEBPACK_IMPORTED_MODULE_1__gl_matrix_mat2__; });
 /* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "mat2d", function() { return __WEBPACK_IMPORTED_MODULE_2__gl_matrix_mat2d__; });
@@ -206,7 +237,7 @@ THE SOFTWARE. */
 
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -219,7 +250,7 @@ exports.toRadians = toRadians;
 exports.calcuteDistance = calcuteDistance;
 exports.isInside = isInside;
 
-var _glMatrix = __webpack_require__(1);
+var _glMatrix = __webpack_require__(2);
 
 function toRadians(angle) {
     return angle * (Math.PI / 180);
@@ -282,31 +313,6 @@ function isInside(pos, rect) {
 }
 
 /***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-var GAME_CONTROL_WIDTH = exports.GAME_CONTROL_WIDTH = 230;
-var GAME_CONTROL_HEIGHT = exports.GAME_CONTROL_HEIGHT = 640;
-
-var gridWidth = exports.gridWidth = 40;
-var gridHeight = exports.gridHeight = gridWidth;
-var gridSize = exports.gridSize = 40;
-var gridNumX = exports.gridNumX = 20; // x轴方向上的格子数目
-var gridNumY = exports.gridNumY = 16; // y轴方向上的格子数目
-
-var towerCost = exports.towerCost = {
-    'baseTower': 200,
-    'bulletTower': 200,
-    'laserTower': 200
-};
-
-/***/ }),
 /* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -325,15 +331,15 @@ var _CircleBullet = __webpack_require__(21);
 
 var _CircleBullet2 = _interopRequireDefault(_CircleBullet);
 
-var _glMatrix = __webpack_require__(1);
+var _glMatrix = __webpack_require__(2);
 
-var _utils = __webpack_require__(2);
+var _utils = __webpack_require__(3);
 
-var _config = __webpack_require__(5);
+var _config = __webpack_require__(7);
 
-var _constant = __webpack_require__(3);
+var _constant = __webpack_require__(0);
 
-var _id = __webpack_require__(6);
+var _id = __webpack_require__(5);
 
 var _id2 = _interopRequireDefault(_id);
 
@@ -358,12 +364,13 @@ var BaseTower = function () {
         this.x = x;
         this.y = y;
         this.ctx = ctx;
-        this.coordX = Math.floor((x - _constant.gridWidth / 2) / _constant.gridWidth);
-        this.coordY = Math.floor((y - _constant.gridHeight / 2) / _constant.gridHeight);
+        this.type = 'BASE';
+        this.col = Math.floor((x - _constant.gridWidth / 2) / _constant.gridWidth);
+        this.row = Math.floor((y - _constant.gridHeight / 2) / _constant.gridHeight);
         this.radius = radius || 12;
         this.hue = 200;
         this.bullets = bullets;
-        this.cost = _constant.towerCost.baseTower;
+        this.cost = _constant.towerCost.base;
         this.lastShootTime = new Date();
         this.shootInterval = 500; // 发射间隔，单位ms
         this.direction = 180; // 用度数表示的tower指向
@@ -514,20 +521,6 @@ exports.default = BaseTower;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-var config = exports.config = {
-    renderShadow: false
-};
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -570,7 +563,7 @@ var globalId = function () {
 exports.default = new globalId();
 
 /***/ }),
-/* 7 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -579,162 +572,27 @@ exports.default = new globalId();
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-var _BaseTower2 = __webpack_require__(4);
-
-var _BaseTower3 = _interopRequireDefault(_BaseTower2);
-
-var _Bullet = __webpack_require__(22);
-
-var _Bullet2 = _interopRequireDefault(_Bullet);
-
-var _glMatrix = __webpack_require__(1);
-
-var _utils = __webpack_require__(2);
-
-var _config = __webpack_require__(5);
-
-var _constant = __webpack_require__(3);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var BulletTower = function (_BaseTower) {
-    _inherits(BulletTower, _BaseTower);
-
-    function BulletTower(opt) {
-        _classCallCheck(this, BulletTower);
-
-        var ctx = opt.ctx,
-            x = opt.x,
-            y = opt.y,
-            bullets = opt.bullets,
-            selected = opt.selected,
-            damage = opt.damage;
-
-        var _this = _possibleConstructorReturn(this, (BulletTower.__proto__ || Object.getPrototypeOf(BulletTower)).call(this, opt));
-
-        _this.hue = 100;
-        _this.cost = _constant.towerCost.bulletTower;
-        _this.range = 3 * _constant.gridWidth;
-
-        _this.direction = opt.direction || 0; // 用度数表示的tower指向
-        _this.bulletStartPosVec = _glMatrix.vec2.fromValues(0, 0);
-        _this.directionVec = _glMatrix.vec2.create();
-        return _this;
-    }
-
-    _createClass(BulletTower, [{
-        key: 'draw',
-        value: function draw() {
-            var ctx = this.ctx;
-
-            // 将方向向量归一化
-            this.directionVec = _glMatrix.vec2.fromValues(Math.cos((0, _utils.toRadians)(this.direction)), Math.sin((0, _utils.toRadians)(this.direction)));
-            _glMatrix.vec2.normalize(this.directionVec, this.directionVec);
-
-            // bullet 出射位置
-
-            _glMatrix.vec2.scale(this.bulletStartPosVec, this.directionVec, 30);
-
-            ctx.save();
-            if (_config.config.renderShadow) {
-                ctx.shadowBlur = this.radius;
-                ctx.shadowColor = 'hsl(' + this.hue + ',100%,60%)';
-            }
-
-            // 在选中的情况下，画出其射程范围
-            if (this.selected) {
-                ctx.beginPath();
-                ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
-                ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
-                ctx.fill();
-            }
-
-            ctx.strokeStyle = 'hsl(' + this.hue + ',100%,80%';
-            ctx.fillStyle = 'hsl(' + this.hue + ',100%,80%';
-            ctx.lineWidth = Math.max(3, this.radius / 8);
-
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-            ctx.closePath();
-            ctx.stroke();
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.moveTo(this.x, this.y);
-            ctx.lineTo(this.x + this.bulletStartPosVec[0], this.y + this.bulletStartPosVec[1]);
-            ctx.stroke();
-            ctx.closePath();
-
-            if (this.targetIndex !== -1 && new Date() - this.lastShootTime >= 500) {
-                this.shoot(ctx);
-                this.lastShootTime = new Date();
-            }
-
-            ctx.restore();
-        }
-    }, {
-        key: 'shoot',
-
-
-        // 发射子弹
-        value: function shoot(ctx) {
-            this.bullets.push(new _Bullet2.default({
-                ctx: ctx,
-                x: this.x + this.bulletStartPosVec[0],
-                y: this.y + this.bulletStartPosVec[1],
-                directionVec: this.directionVec
-            }));
-        }
-    }, {
-        key: 'findTarget',
-        value: function findTarget(enemies) {
-            _get(BulletTower.prototype.__proto__ || Object.getPrototypeOf(BulletTower.prototype), 'findTarget', this).call(this, enemies);
-        }
-    }]);
-
-    return BulletTower;
-}(_BaseTower3.default);
-
-exports.default = BulletTower;
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.gameControl = undefined;
+exports.gameInfo = exports.gameControl = undefined;
 
 var _Game = __webpack_require__(15);
 
 var _Game2 = _interopRequireDefault(_Game);
 
-var _GameControl = __webpack_require__(27);
+var _GameControl = __webpack_require__(32);
 
 var _GameControl2 = _interopRequireDefault(_GameControl);
 
-var _constant = __webpack_require__(3);
+var _GameInfo = __webpack_require__(33);
+
+var _GameInfo2 = _interopRequireDefault(_GameInfo);
+
+var _constant = __webpack_require__(0);
 
 var _BaseTower = __webpack_require__(4);
 
 var _BaseTower2 = _interopRequireDefault(_BaseTower);
 
-var _BulletTower = __webpack_require__(7);
+var _BulletTower = __webpack_require__(13);
 
 var _BulletTower2 = _interopRequireDefault(_BulletTower);
 
@@ -743,6 +601,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var game = new _Game2.default({
     element: document.getElementById('drawing')
 });
+// window.game = game;
 
 var gameControlEle = document.getElementById('game-control');
 var gameControl = exports.gameControl = new _GameControl2.default({
@@ -750,6 +609,13 @@ var gameControl = exports.gameControl = new _GameControl2.default({
     game: game
 });
 gameControl.draw();
+
+var $gameInfo = document.getElementById('game-info');
+var gameInfo = exports.gameInfo = new _GameInfo2.default({
+    element: $gameInfo,
+    game: game
+});
+gameInfo.draw();
 
 var canvas = document.getElementById('drawing');
 
@@ -766,8 +632,8 @@ document.onmousemove = function (e) {
         var rect = canvas.getBoundingClientRect();
         var x = e.clientX - rect.left;
         var y = e.clientY - rect.top;
-        game.coordX = Math.floor(x / _constant.gridWidth);
-        game.coordY = Math.floor(y / _constant.gridHeight);
+        game.col = Math.floor(x / _constant.gridWidth);
+        game.row = Math.floor(y / _constant.gridHeight);
     }
 };
 
@@ -777,15 +643,15 @@ document.onclick = function (e) {
     var x = e.clientX - rect.left;
     var y = e.clientY - rect.top;
 
-    var coordX = Math.floor(x / _constant.gridWidth);
-    var coordY = Math.floor(y / _constant.gridHeight);
+    var col = Math.floor(x / _constant.gridWidth);
+    var row = Math.floor(y / _constant.gridHeight);
 
     /* 只在地图范围内进行操作 */
-    if (0 <= coordX && coordX < _constant.gridNumX && 0 <= coordY && coordY < _constant.gridNumY) {
-        if (game.map.coord[coordX][coordY] === 'T') {
+    if (0 <= col && col < _constant.gridNumX && 0 <= row && row < _constant.gridNumY) {
+        if (game.map.coord[col][row] === 'T') {
             // 点击的格子内为塔
             game.towers.map(function (tower, index) {
-                if (tower.coordX === coordX && tower.coordY === coordY) {
+                if (tower.col === col && tower.row === row) {
                     console.log('You select ' + index + 'th tower, its id is ' + tower.id);
 
                     // 已经选中的塔再次点击则取消
@@ -807,13 +673,27 @@ document.onclick = function (e) {
         }
 
         if (game.mode === 'ADD_TOWER') {
-            game.createNewTower(coordX, coordY, game.addTowerType);
+            game.createNewTower(col, row, game.addTowerType);
         }
     }
 };
 
 /***/ }),
-/* 9 */
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+var config = exports.config = {
+    renderShadow: false
+};
+
+/***/ }),
+/* 8 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -848,7 +728,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["multiplyScalarAndAdd"] = multiplyScalarAndAdd;
 /* harmony export (immutable) */ __webpack_exports__["exactEquals"] = exactEquals;
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -1621,7 +1501,7 @@ const sub = subtract;
 
 
 /***/ }),
-/* 10 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1665,7 +1545,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["str"] = str;
 /* harmony export (immutable) */ __webpack_exports__["exactEquals"] = exactEquals;
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -2461,7 +2341,7 @@ const forEach = (function() {
 
 
 /***/ }),
-/* 11 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2497,7 +2377,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["str"] = str;
 /* harmony export (immutable) */ __webpack_exports__["exactEquals"] = exactEquals;
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -3123,7 +3003,7 @@ const forEach = (function() {
 
 
 /***/ }),
-/* 12 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3212,6 +3092,55 @@ var Path = function () {
 exports.default = Path;
 
 /***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.FireTower = exports.SlowTower = exports.LaserTower = exports.BulletTower = exports.BaseTower = undefined;
+
+var _BaseTower = __webpack_require__(4);
+
+var _BaseTower2 = _interopRequireDefault(_BaseTower);
+
+var _BulletTower = __webpack_require__(13);
+
+var _BulletTower2 = _interopRequireDefault(_BulletTower);
+
+var _LaserTower = __webpack_require__(23);
+
+var _LaserTower2 = _interopRequireDefault(_LaserTower);
+
+var _SlowTower = __webpack_require__(25);
+
+var _SlowTower2 = _interopRequireDefault(_SlowTower);
+
+var _FireTower = __webpack_require__(27);
+
+var _FireTower2 = _interopRequireDefault(_FireTower);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var TowerFactory = {
+    BASE: _BaseTower2.default,
+    BULLET: _BulletTower2.default,
+    LASER: _LaserTower2.default,
+    SLOW: _SlowTower2.default,
+    FIRE: _FireTower2.default
+};
+
+exports.BaseTower = _BaseTower2.default;
+exports.BulletTower = _BulletTower2.default;
+exports.LaserTower = _LaserTower2.default;
+exports.SlowTower = _SlowTower2.default;
+exports.FireTower = _FireTower2.default;
+exports.default = TowerFactory;
+
+/***/ }),
 /* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -3224,25 +3153,23 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
 var _BaseTower2 = __webpack_require__(4);
 
 var _BaseTower3 = _interopRequireDefault(_BaseTower2);
 
-var _Laser = __webpack_require__(23);
+var _Bullet = __webpack_require__(22);
 
-var _Laser2 = _interopRequireDefault(_Laser);
+var _Bullet2 = _interopRequireDefault(_Bullet);
 
-var _glMatrix = __webpack_require__(1);
+var _glMatrix = __webpack_require__(2);
 
-var _utils = __webpack_require__(2);
+var _utils = __webpack_require__(3);
 
-var _config = __webpack_require__(5);
+var _config = __webpack_require__(7);
 
-var _constant = __webpack_require__(3);
-
-var _id = __webpack_require__(6);
-
-var _id2 = _interopRequireDefault(_id);
+var _constant = __webpack_require__(0);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3252,11 +3179,11 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var LaserTower = function (_BaseTower) {
-    _inherits(LaserTower, _BaseTower);
+var BulletTower = function (_BaseTower) {
+    _inherits(BulletTower, _BaseTower);
 
-    function LaserTower(opt) {
-        _classCallCheck(this, LaserTower);
+    function BulletTower(opt) {
+        _classCallCheck(this, BulletTower);
 
         var ctx = opt.ctx,
             x = opt.x,
@@ -3265,45 +3192,33 @@ var LaserTower = function (_BaseTower) {
             selected = opt.selected,
             damage = opt.damage;
 
-        var _this = _possibleConstructorReturn(this, (LaserTower.__proto__ || Object.getPrototypeOf(LaserTower)).call(this, opt));
+        var _this = _possibleConstructorReturn(this, (BulletTower.__proto__ || Object.getPrototypeOf(BulletTower)).call(this, opt));
 
-        _this.hue = 250;
-        _this.cost = _constant.towerCost.laserTower;
-        _this.range = 4 * _constant.gridWidth;
+        _this.type = 'BULLET';
+        _this.hue = 100;
+        _this.cost = _constant.towerCost.bulletTower;
+        _this.range = 3 * _constant.gridWidth;
 
         _this.direction = opt.direction || 0; // 用度数表示的tower指向
         _this.bulletStartPosVec = _glMatrix.vec2.fromValues(0, 0);
         _this.directionVec = _glMatrix.vec2.create();
-
-        _this.shooting = false;
-        _this.damage = 0.5;
         return _this;
     }
 
-    _createClass(LaserTower, [{
-        key: 'shoot',
-        value: function shoot() {
-            if (this.target) {
-                this.bullets.push(new _Laser2.default({
-                    id: _id2.default.genId(),
-                    target: this.target,
-                    ctx: this.ctx,
-                    x: this.x + this.bulletStartPosVec[0],
-                    y: this.y + this.bulletStartPosVec[1],
-                    range: this.range, // 宽度？
-                    damage: this.damage,
-                    parent: this
-                }));
-            }
-        }
-    }, {
+    _createClass(BulletTower, [{
         key: 'draw',
         value: function draw() {
-            this.step();
             var ctx = this.ctx;
 
-            ctx.save();
+            // 将方向向量归一化
+            this.directionVec = _glMatrix.vec2.fromValues(Math.cos((0, _utils.toRadians)(this.direction)), Math.sin((0, _utils.toRadians)(this.direction)));
+            _glMatrix.vec2.normalize(this.directionVec, this.directionVec);
 
+            // bullet 出射位置
+
+            _glMatrix.vec2.scale(this.bulletStartPosVec, this.directionVec, 30);
+
+            ctx.save();
             if (_config.config.renderShadow) {
                 ctx.shadowBlur = this.radius;
                 ctx.shadowColor = 'hsl(' + this.hue + ',100%,60%)';
@@ -3317,8 +3232,8 @@ var LaserTower = function (_BaseTower) {
                 ctx.fill();
             }
 
-            ctx.strokeStyle = 'hsl(' + this.hue + ',100%, 80%';
-            ctx.fillStyle = 'hsl(' + this.hue + ',100%, 80%';
+            ctx.strokeStyle = 'hsl(' + this.hue + ',100%,80%';
+            ctx.fillStyle = 'hsl(' + this.hue + ',100%,80%';
             ctx.lineWidth = Math.max(3, this.radius / 8);
 
             ctx.beginPath();
@@ -3333,25 +3248,43 @@ var LaserTower = function (_BaseTower) {
             ctx.stroke();
             ctx.closePath();
 
-            if (this.targetIndex !== -1 && this.shooting === false) {
+            if (this.targetIndex !== -1 && new Date() - this.lastShootTime >= 500) {
                 this.shoot(ctx);
-                this.shooting = true;
+                this.lastShootTime = new Date();
             }
 
             ctx.restore();
         }
+    }, {
+        key: 'shoot',
+
+
+        // 发射子弹
+        value: function shoot(ctx) {
+            this.bullets.push(new _Bullet2.default({
+                ctx: ctx,
+                x: this.x + this.bulletStartPosVec[0],
+                y: this.y + this.bulletStartPosVec[1],
+                directionVec: this.directionVec
+            }));
+        }
+    }, {
+        key: 'findTarget',
+        value: function findTarget(enemies) {
+            _get(BulletTower.prototype.__proto__ || Object.getPrototypeOf(BulletTower.prototype), 'findTarget', this).call(this, enemies);
+        }
     }]);
 
-    return LaserTower;
+    return BulletTower;
 }(_BaseTower3.default);
 
-exports.default = LaserTower;
+exports.default = BulletTower;
 
 /***/ }),
 /* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(8);
+module.exports = __webpack_require__(6);
 
 
 /***/ }),
@@ -3367,43 +3300,35 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _glMatrix = __webpack_require__(1);
+var _glMatrix = __webpack_require__(2);
 
-var _Path = __webpack_require__(12);
+var _Path = __webpack_require__(11);
 
 var _Path2 = _interopRequireDefault(_Path);
 
-var _index = __webpack_require__(8);
+var _index = __webpack_require__(6);
 
-var _BaseTower = __webpack_require__(4);
+var _tower = __webpack_require__(12);
 
-var _BaseTower2 = _interopRequireDefault(_BaseTower);
+var _tower2 = _interopRequireDefault(_tower);
 
-var _BulletTower = __webpack_require__(7);
-
-var _BulletTower2 = _interopRequireDefault(_BulletTower);
-
-var _LaserTower = __webpack_require__(13);
-
-var _LaserTower2 = _interopRequireDefault(_LaserTower);
-
-var _Enemy = __webpack_require__(24);
+var _Enemy = __webpack_require__(29);
 
 var _Enemy2 = _interopRequireDefault(_Enemy);
 
-var _Map = __webpack_require__(25);
+var _Map = __webpack_require__(30);
 
 var _Map2 = _interopRequireDefault(_Map);
 
-var _Wave = __webpack_require__(26);
+var _Wave = __webpack_require__(31);
 
 var _Wave2 = _interopRequireDefault(_Wave);
 
-var _utils = __webpack_require__(2);
+var _utils = __webpack_require__(3);
 
-var _constant = __webpack_require__(3);
+var _constant = __webpack_require__(0);
 
-var _id = __webpack_require__(6);
+var _id = __webpack_require__(5);
 
 var _id2 = _interopRequireDefault(_id);
 
@@ -3411,8 +3336,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var WIDTH = 800;
-var HEIGHT = 640;
 var BORDER_WIDTH = 6;
 
 var canvas = document.getElementById('drawing');
@@ -3422,20 +3345,22 @@ var gameOverEle = document.getElementById('game-over');
 
 var backgroundCanvas = document.getElementById('background');
 var bgCtx = backgroundCanvas.getContext('2d');
-backgroundCanvas.width = WIDTH + _constant.GAME_CONTROL_WIDTH;
-backgroundCanvas.height = HEIGHT;
+backgroundCanvas.width = _constant.WIDTH + _constant.GAME_CONTROL_WIDTH;
+backgroundCanvas.height = _constant.HEIGHT;
 
 var gameControlCanvas = document.getElementById('game-control');
 var panels = document.getElementById('panels');
 var startButton = document.getElementById('start-button');
+
+var gameInfoCanvas = document.getElementById('game-info');
 
 var Game = function () {
     function Game(opt) {
         _classCallCheck(this, Game);
 
         // Init
-        canvas.width = WIDTH;
-        canvas.height = HEIGHT;
+        canvas.width = _constant.WIDTH;
+        canvas.height = _constant.HEIGHT;
         this.element = opt.element;
         this.ctx = ctx;
 
@@ -3465,19 +3390,19 @@ var Game = function () {
             this.towers = [];
             this.enemies = [];
 
-            this.money = 1000;
-            this.coordX = 0;
-            this.coordY = 0;
+            this.money = 5000;
+            this.col = 0;
+            this.row = 0;
             this.enemyCreatedCount = 0; // 目前已经创建的enemy的总数
             this.lastCreatedEnemyTime = new Date();
 
-            this.pathCoord = [[0, 0], [18, 0], [18, 4], [10, 4], [10, 10], [16, 10], [16, 14], [-1, 14]];
+            this.pathCoord = [[0, 0], [18, 0], [18, 4], [8, 4], [8, 10], [16, 10], [16, 14], [-1, 14]];
 
             var newTowerCoord = [8, 3];
-            this.map = new _Map2.default({ ctx: ctx, WIDTH: WIDTH, HEIGHT: HEIGHT, newTowerCoord: newTowerCoord, pathCoord: this.pathCoord });
+            this.map = new _Map2.default({ ctx: ctx, WIDTH: _constant.WIDTH, HEIGHT: _constant.HEIGHT, newTowerCoord: newTowerCoord, pathCoord: this.pathCoord });
 
             // 放置一个初始状态下的塔
-            var tower = new _BaseTower2.default({
+            var tower = new _tower2.default['BASE']({
                 id: _id2.default.genId(),
                 ctx: ctx,
                 x: _constant.gridWidth / 2 + newTowerCoord[0] * _constant.gridWidth,
@@ -3490,7 +3415,7 @@ var Game = function () {
             this.addTowerType = 'BASE';
             this.status = '';
             this.score = 0;
-            this.life = 100;
+            this.life = 1000000;
 
             // 当前是否选中塔
             this.towerSelect = false;
@@ -3504,8 +3429,8 @@ var Game = function () {
         key: 'windowResizeHandler',
         value: function windowResizeHandler() {
             // 确定canvas的位置
-            var cvx = (window.innerWidth - WIDTH - _constant.GAME_CONTROL_WIDTH) * 0.5;
-            var cvy = (window.innerHeight - HEIGHT) * 0.5;
+            var cvx = (window.innerWidth - _constant.WIDTH - _constant.GAME_CONTROL_WIDTH) * 0.5;
+            var cvy = (window.innerHeight - _constant.HEIGHT) * 0.5;
 
             canvas.style.position = 'absolute';
             canvas.style.left = cvx + 'px';
@@ -3516,17 +3441,21 @@ var Game = function () {
             backgroundCanvas.style.top = cvy + BORDER_WIDTH + 'px';
 
             gameControlCanvas.style.position = 'absolute';
-            gameControlCanvas.style.left = cvx + WIDTH + BORDER_WIDTH + 'px';
+            gameControlCanvas.style.left = cvx + _constant.WIDTH + BORDER_WIDTH + 'px';
             gameControlCanvas.style.top = cvy + 'px';
 
             panels.style.position = 'absolute';
             panels.style.left = cvx + BORDER_WIDTH + 'px';
             panels.style.top = cvy + 200 + 'px';
+
+            gameInfoCanvas.style.position = 'absolute';
+            gameInfoCanvas.style.left = cvx + BORDER_WIDTH + 'px';
+            gameInfoCanvas.style.top = cvy + BORDER_WIDTH + 'px';
         }
     }, {
         key: 'renderBackground',
         value: function renderBackground() {
-            var gradient = bgCtx.createRadialGradient((WIDTH + _constant.GAME_CONTROL_WIDTH) * 0.5, HEIGHT * 0.5, 0, (WIDTH + _constant.GAME_CONTROL_WIDTH) * 0.5, HEIGHT * 0.5, 500);
+            var gradient = bgCtx.createRadialGradient((_constant.WIDTH + _constant.GAME_CONTROL_WIDTH) * 0.5, _constant.HEIGHT * 0.5, 0, (_constant.WIDTH + _constant.GAME_CONTROL_WIDTH) * 0.5, _constant.HEIGHT * 0.5, 500);
 
             gradient.addColorStop(0, 'rgba(0, 70, 70, 1)');
             gradient.addColorStop(1, 'rgba(0, 8, 14, 1');
@@ -3534,7 +3463,7 @@ var Game = function () {
             bgCtx.fillStyle = gradient;
             ctx.fillStyle = gradient;
 
-            bgCtx.fillRect(0, 0, WIDTH + _constant.GAME_CONTROL_WIDTH, HEIGHT);
+            bgCtx.fillRect(0, 0, _constant.WIDTH + _constant.GAME_CONTROL_WIDTH, _constant.HEIGHT);
         }
     }, {
         key: 'startButtonClickHandler',
@@ -3596,7 +3525,7 @@ var Game = function () {
                     color: cfg.color,
                     radius: cfg.radius,
                     speed: cfg.speed,
-                    health: cfg.health * (1 + this.wave / 10)
+                    health: cfg.health * (1 + this.wave / 40)
                 });
 
                 this.enemies.push(enemy);
@@ -3677,15 +3606,29 @@ var Game = function () {
                             }
                             break;
                         }
+                    case 'slow':
+                    case 'fire':
+                        {
+                            if (bullet.life <= 0) {
+                                this.bullets.remove(i--);
+                                bullet.parent.shooting = false;
+                            } else {
+                                bullet.parent.shooting = true;
+                                bullet.draw(ctx);
+                            }
+                            break;
+                        }
+                    default:
+                        bullet.draw(ctx);
                 }
             }
 
             if (this.mode === 'ADD_TOWER') {
                 // 添加塔模式
-                if (0 <= this.coordX && this.coordX < _constant.gridNumX && 0 <= this.coordY && this.coordY < _constant.gridNumY) {
-                    if (this.map.coord[this.coordX][this.coordY] !== 'T') {
+                if (0 <= this.col && this.col < _constant.gridNumX && 0 <= this.row && this.row < _constant.gridNumY) {
+                    if (this.map.coord[this.col][this.row] !== 'T') {
                         // 该位置没有塔
-                        this.drawGhostTower(ctx, this.coordX * _constant.gridWidth + _constant.gridWidth / 2, this.coordY * _constant.gridHeight + _constant.gridHeight / 2, this.addTowerType);
+                        this.drawGhostTower(ctx, this.col * _constant.gridWidth + _constant.gridWidth / 2, this.row * _constant.gridHeight + _constant.gridHeight / 2, this.addTowerType);
                     }
                 }
             }
@@ -3702,14 +3645,17 @@ var Game = function () {
     }, {
         key: 'detectImpact',
         value: function detectImpact() {
-            for (var i = 0; i < this.bullets.length; i++) {
+            var _this2 = this;
+
+            var _loop = function _loop() {
                 var impact = false;
                 var distance = 0;
-                var bullet = this.bullets[i];
+                var bullet = _this2.bullets[i];
 
-                for (var j = 0; j < this.enemies.length; j++) {
-                    var enemy = this.enemies[j];
+                for (j = 0; j < _this2.enemies.length; j++) {
+                    var enemy = _this2.enemies[j];
 
+                    // 计算 bullet 和 enemy 距离
                     if (bullet.type === 'line') {
                         // 求圆心至bullet的垂足
                         var normal = _glMatrix.vec2.create();
@@ -3722,81 +3668,97 @@ var Game = function () {
                         _glMatrix.vec2.add(normal, bullet.start, bVec);
 
                         distance = (0, _utils.calcuteDistance)(normal[0], normal[1], enemy.x, enemy.y);
-                    } else if (bullet.type === 'circle') {
+                    } else if (bullet.type === 'circle' || bullet.type === 'slow' || bullet.type === 'fire') {
                         distance = (0, _utils.calcuteDistance)(bullet.x, bullet.y, enemy.x, enemy.y);
                     }
-
                     if (bullet.type === 'laser') {
                         if (bullet.target.id === enemy.id) {
                             distance = 0;
                         }
                     }
 
-                    if (distance <= enemy.radius + 2) {
-                        impact = true;
-                        enemy.health -= bullet.damage;
-                        if (enemy.health <= 0) {
-                            this.money += enemy.value;
-                            this.enemies.remove(j--);
-                            this.score += 100;
+                    // enemy进入bullet的作用范围后，依据其种类产生效果
+                    if (bullet.type === 'circle' || bullet.type === 'laser') {
+                        if (distance <= enemy.radius + 2) {
+                            impact = true;
+                            enemy.health -= bullet.damage;
+                            if (enemy.health <= 0) {
+                                _this2.money += enemy.value;
+                                _this2.enemies.remove(j--);
+                                _this2.score += 100;
+                            }
+                            break;
                         }
-                        break;
+                    } else if (bullet.type === 'slow') {
+                        if (distance <= bullet.range) {
+                            if (enemy.buff.every(function (b) {
+                                return b.source !== bullet.id;
+                            })) {
+                                enemy.buff.push({
+                                    type: 'deceleration',
+                                    value: 0.35,
+                                    source: bullet.id,
+                                    duration: 10
+                                });
+                            }
+                        }
+                    } else if (bullet.type === 'fire') {
+                        if (distance <= bullet.range) {
+                            enemy.health -= bullet.damage;
+                            if (enemy.health <= 0) {
+                                _this2.money += enemy.value;
+                                _this2.enemies.remove(j--);
+                                _this2.score += 100;
+                            }
+                        }
                     }
                 }
-                if (bullet.type === 'laser') {
+                if (bullet.type === 'laser' || bullet.type === 'slow' || bullet.type === 'fire') {
                     impact = false;
                 }
                 if (impact) {
-                    this.bullets.remove(i--);
+                    _this2.bullets.remove(i--);
                 }
+            };
+
+            for (var i = 0; i < this.bullets.length; i++) {
+                var j;
+
+                _loop();
             }
         }
 
         /**
          * 创建一个新的tower
-         * @param {Number} coordX x轴的坐标  
-         * @param {Number} coordY y轴的坐标
+         * @param {Number} col x轴的坐标  
+         * @param {Number} row y轴的坐标
          */
 
     }, {
         key: 'createNewTower',
-        value: function createNewTower(coordX, coordY, towerType) {
-
+        value: function createNewTower(col, row, towerType) {
             // 检查当前位置是否已有物体
-            if (this.map.coord[coordX][coordY] === 'T') {
+            if (this.map.coord[col][row] === 'T') {
                 console.log('You can not place tower here!');
                 return -1;
             }
-
-            var cost = _constant.towerCost.baseTower;
+            var cost = _constant.towerCost[towerType];
             // 检查是否有足够金钱
             if (this.money - cost < 0) {
+                // TODO: 将提示信息显示在画面中
                 console.log('You do not have enough money.');
                 return -1;
             }
 
-            var x = coordX * _constant.gridWidth + _constant.gridWidth / 2;
-            var y = coordY * _constant.gridWidth + _constant.gridWidth / 2;
+            var x = col * _constant.gridWidth + _constant.gridWidth / 2;
+            var y = row * _constant.gridWidth + _constant.gridWidth / 2;
             var id = _id2.default.genId();
 
             var config = { id: id, ctx: ctx, x: x, y: y, bullets: this.bullets };
 
-            var tower = null;
-            switch (towerType) {
-                case 'BASE':
-                    tower = new _BaseTower2.default(config);
-                    break;
-                case 'BULLET':
-                    tower = new _BulletTower2.default(config);
-                    break;
-                case 'LASER':
-                    tower = new _LaserTower2.default(config);
-                    break;
-                default:
-                    tower = new _BulletTower2.default(config);
-            }
+            var tower = new _tower2.default[towerType](config);
 
-            this.map.coord[coordX][coordY] = 'T';
+            this.map.coord[col][row] = 'T';
             this.money -= cost;
             this.towers.push(tower);
         }
@@ -3805,13 +3767,18 @@ var Game = function () {
         value: function sellTower() {
             var index = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.towerSelectIndex;
 
-            var coordX = this.towers[index].coordX;
-            var coordY = this.towers[index].coordY;
+            var tower = this.towers[index];
+            var col = tower.col,
+                row = tower.row,
+                _tower$type = tower.type,
+                towerType = _tower$type === undefined ? 'BASE' : _tower$type;
+
             this.towers.remove(index);
             console.log(index);
-            this.map.coord[coordX][coordY] = '';
+            this.map.coord[col][row] = '';
 
-            this.money += 400;
+            // 出售价格改为购买价格的 50%
+            this.money += _constant.towerCost[towerType] * 0.5;
             this.towerSelect = false;
             this.towerSelectIndex = -1;
         }
@@ -3821,23 +3788,8 @@ var Game = function () {
     }, {
         key: 'drawGhostTower',
         value: function drawGhostTower(ctx, x, y, towerType) {
-            var tower = null;
             var config = { ctx: ctx, x: x, y: y, bullets: this.bullets, selected: true };
-
-            switch (towerType) {
-                case 'BASE':
-                    tower = new _BaseTower2.default(config);
-                    break;
-                case 'BULLET':
-                    tower = new _BulletTower2.default(config);
-                    break;
-                case 'LASER':
-                    tower = new _LaserTower2.default(config);
-                    break;
-
-                default:
-                    tower = null;
-            }
+            var tower = new _tower2.default[towerType](config);
             tower.draw(ctx);
         }
     }, {
@@ -3857,7 +3809,7 @@ var Game = function () {
     }, {
         key: 'shouldGenerateEnemy',
         value: function shouldGenerateEnemy() {
-            return this.wave < 100 && new Date() - this.lastCreatedEnemyTime > 500;
+            return this.wave < 999 && new Date() - this.lastCreatedEnemyTime > 500;
         }
     }, {
         key: 'shouldGenerateWave',
@@ -3889,10 +3841,10 @@ exports.default = Game;
 function bulletOutOfBound(bullet) {
     switch (bullet.type) {
         case 'circle':
-            return bullet.x < 0 || bullet.y < 0 || bullet.x > WIDTH || bullet.y > HEIGHT;
+            return bullet.x < 0 || bullet.y < 0 || bullet.x > _constant.WIDTH || bullet.y > _constant.HEIGHT;
 
         case 'line':
-            return bullet.start[0] < 0 || bullet.start[1] < 0 || bullet.start[0] > WIDTH || bullet.start[1] > HEIGHT;
+            return bullet.start[0] < 0 || bullet.start[1] < 0 || bullet.start[0] > _constant.WIDTH || bullet.start[1] > _constant.HEIGHT;
 
         default:
             return false;
@@ -3929,7 +3881,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
 /* harmony export (immutable) */ __webpack_exports__["multiplyScalar"] = multiplyScalar;
 /* harmony export (immutable) */ __webpack_exports__["multiplyScalarAndAdd"] = multiplyScalarAndAdd;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -4398,7 +4350,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["multiplyScalarAndAdd"] = multiplyScalarAndAdd;
 /* harmony export (immutable) */ __webpack_exports__["exactEquals"] = exactEquals;
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -4921,7 +4873,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["multiplyScalarAndAdd"] = multiplyScalarAndAdd;
 /* harmony export (immutable) */ __webpack_exports__["exactEquals"] = exactEquals;
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -6630,10 +6582,10 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["fromMat3"] = fromMat3;
 /* harmony export (immutable) */ __webpack_exports__["fromEuler"] = fromEuler;
 /* harmony export (immutable) */ __webpack_exports__["str"] = str;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__mat3__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vec3__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__vec4__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__mat3__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vec3__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__vec4__ = __webpack_require__(10);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -7340,7 +7292,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["str"] = str;
 /* harmony export (immutable) */ __webpack_exports__["exactEquals"] = exactEquals;
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -7956,9 +7908,9 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _glMatrix = __webpack_require__(1);
+var _glMatrix = __webpack_require__(2);
 
-var _utils = __webpack_require__(2);
+var _utils = __webpack_require__(3);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -8043,9 +7995,9 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _glMatrix = __webpack_require__(1);
+var _glMatrix = __webpack_require__(2);
 
-var _utils = __webpack_require__(2);
+var _utils = __webpack_require__(3);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -8123,68 +8075,130 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _glMatrix = __webpack_require__(1);
+var _BaseTower2 = __webpack_require__(4);
 
-var _utils = __webpack_require__(2);
+var _BaseTower3 = _interopRequireDefault(_BaseTower2);
+
+var _Laser = __webpack_require__(24);
+
+var _Laser2 = _interopRequireDefault(_Laser);
+
+var _glMatrix = __webpack_require__(2);
+
+var _utils = __webpack_require__(3);
+
+var _config = __webpack_require__(7);
+
+var _constant = __webpack_require__(0);
+
+var _id = __webpack_require__(5);
+
+var _id2 = _interopRequireDefault(_id);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var CircleBullet = function () {
-    function CircleBullet(_ref) {
-        var ctx = _ref.ctx,
-            x = _ref.x,
-            y = _ref.y,
-            parent = _ref.parent,
-            target = _ref.target,
-            range = _ref.range,
-            damage = _ref.damage;
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-        _classCallCheck(this, CircleBullet);
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-        this.type = 'laser';
-        this.x = x;
-        this.y = y;
-        this.ctx = ctx;
-        this.target = target;
-        this.width = 5;
-        // this.speed = 8;
-        this.vx = 0;
-        this.vy = 0;
-        this.angle = 0;
-        this.hue = 100;
-        this.range = range;
-        this.damage = damage || 5;
-        this.parent = parent;
+var LaserTower = function (_BaseTower) {
+    _inherits(LaserTower, _BaseTower);
+
+    function LaserTower(opt) {
+        _classCallCheck(this, LaserTower);
+
+        var ctx = opt.ctx,
+            x = opt.x,
+            y = opt.y,
+            bullets = opt.bullets,
+            selected = opt.selected,
+            damage = opt.damage;
+
+        var _this = _possibleConstructorReturn(this, (LaserTower.__proto__ || Object.getPrototypeOf(LaserTower)).call(this, opt));
+
+        _this.type = 'LASER';
+        _this.hue = 60;
+        _this.cost = _constant.towerCost.laserTower;
+        _this.range = 4 * _constant.gridWidth;
+
+        _this.direction = opt.direction || 0; // 用度数表示的tower指向
+        _this.bulletStartPosVec = _glMatrix.vec2.fromValues(0, 0);
+        _this.directionVec = _glMatrix.vec2.create();
+
+        _this.shooting = false;
+        _this.damage = 0.1;
+        return _this;
     }
 
-    _createClass(CircleBullet, [{
-        key: 'step',
-        value: function step() {
-            var parent = this.parent;
-            this.x = parent.x + parent.bulletStartPosVec[0];
-            this.y = parent.y + parent.bulletStartPosVec[1];
+    _createClass(LaserTower, [{
+        key: 'shoot',
+        value: function shoot() {
+            if (this.target) {
+                this.bullets.push(new _Laser2.default({
+                    id: _id2.default.genId(),
+                    target: this.target,
+                    ctx: this.ctx,
+                    x: this.x + this.bulletStartPosVec[0],
+                    y: this.y + this.bulletStartPosVec[1],
+                    range: this.range, // 宽度？
+                    damage: this.damage,
+                    parent: this
+                }));
+            }
         }
     }, {
         key: 'draw',
-        value: function draw(ctx, enemies) {
+        value: function draw() {
             this.step();
+            var ctx = this.ctx;
 
-            // 绘图开始
             ctx.save();
-            ctx.strokeStyle = 'hsl(' + this.hue + ', 100%, 40%)';
+
+            if (_config.config.renderShadow) {
+                ctx.shadowBlur = this.radius;
+                ctx.shadowColor = 'hsl(' + this.hue + ',100%,60%)';
+            }
+
+            // 在选中的情况下，画出其射程范围
+            if (this.selected) {
+                ctx.beginPath();
+                ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+                ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            ctx.strokeStyle = 'hsl(' + this.hue + ',100%, 80%';
+            ctx.fillStyle = 'hsl(' + this.hue + ',100%, 80%';
+            ctx.lineWidth = Math.max(3, this.radius / 8);
+
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.fill();
+
             ctx.beginPath();
             ctx.moveTo(this.x, this.y);
-            ctx.lineTo(this.target.x, this.target.y);
+            ctx.lineTo(this.x + this.bulletStartPosVec[0], this.y + this.bulletStartPosVec[1]);
+            ctx.lineWidth = 5;
             ctx.stroke();
             ctx.closePath();
+
+            if (this.targetIndex !== -1 && this.shooting === false) {
+                this.shoot(ctx);
+                this.shooting = true;
+            }
+
             ctx.restore();
         }
     }]);
 
-    return CircleBullet;
-}();
+    return LaserTower;
+}(_BaseTower3.default);
 
-exports.default = CircleBullet;
+exports.default = LaserTower;
 
 /***/ }),
 /* 24 */
@@ -8199,7 +8213,483 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _constant = __webpack_require__(3);
+var _glMatrix = __webpack_require__(2);
+
+var _utils = __webpack_require__(3);
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Laser = function () {
+    function Laser(_ref) {
+        var ctx = _ref.ctx,
+            x = _ref.x,
+            y = _ref.y,
+            parent = _ref.parent,
+            target = _ref.target,
+            range = _ref.range,
+            damage = _ref.damage;
+
+        _classCallCheck(this, Laser);
+
+        this.type = 'laser';
+        this.x = x;
+        this.y = y;
+        this.ctx = ctx;
+        this.target = target;
+        this.width = 5;
+        // this.speed = 8;
+        this.vx = 0;
+        this.vy = 0;
+        this.angle = 0;
+        this.hue = parent.hue;
+        this.range = range;
+        this.damage = damage || 5;
+        this.parent = parent;
+    }
+
+    _createClass(Laser, [{
+        key: 'step',
+        value: function step() {
+            var parent = this.parent;
+            this.x = parent.x + parent.bulletStartPosVec[0];
+            this.y = parent.y + parent.bulletStartPosVec[1];
+        }
+    }, {
+        key: 'draw',
+        value: function draw(ctx, enemies) {
+            this.step();
+
+            // 绘图开始
+            ctx.save();
+            ctx.strokeStyle = 'hsl(' + this.hue + ', 100%, 80%)';
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y);
+            ctx.lineTo(this.target.x, this.target.y);
+            ctx.stroke();
+            ctx.closePath();
+            ctx.restore();
+        }
+    }]);
+
+    return Laser;
+}();
+
+exports.default = Laser;
+
+/***/ }),
+/* 25 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _BaseTower2 = __webpack_require__(4);
+
+var _BaseTower3 = _interopRequireDefault(_BaseTower2);
+
+var _SlowField = __webpack_require__(26);
+
+var _SlowField2 = _interopRequireDefault(_SlowField);
+
+var _constant = __webpack_require__(0);
+
+var _id = __webpack_require__(5);
+
+var _id2 = _interopRequireDefault(_id);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * 减速塔
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+
+var SlowTower = function (_BaseTower) {
+    _inherits(SlowTower, _BaseTower);
+
+    function SlowTower(opt) {
+        _classCallCheck(this, SlowTower);
+
+        var _this = _possibleConstructorReturn(this, (SlowTower.__proto__ || Object.getPrototypeOf(SlowTower)).call(this, opt));
+
+        var ctx = opt.ctx,
+            x = opt.x,
+            y = opt.y,
+            selected = opt.selected,
+            damage = opt.damage;
+
+
+        _this.type = 'SLOW';
+        _this.hue = 120;
+        _this.cost = _constant.towerCost.slowTower;
+
+        _this.range = 2.5 * _constant.gridWidth;
+
+        _this.shooting = false;
+        _this.ratio = 0.3;
+
+        _this.counter = 0;
+        return _this;
+    }
+
+    _createClass(SlowTower, [{
+        key: 'shoot',
+        value: function shoot() {
+            var slowField = new _SlowField2.default({
+                id: _id2.default.genId(),
+                ctx: this.ctx,
+                range: this.range,
+                ratio: this.ratio,
+                parent: this
+            });
+            this.bullets.push(slowField);
+        }
+    }, {
+        key: 'draw',
+        value: function draw() {
+            var ctx = this.ctx;
+            ctx.save();
+            // 在选中的情况下，画出其射程范围
+            if (this.selected) {
+                ctx.beginPath();
+                ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+                ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            ctx.strokeStyle = 'hsl(' + this.hue + ',100%, 80%';
+            // ctx.fillStyle = 'hsl(' + this.hue + ',100%, 80%';
+            ctx.fillStyle = 'rgba(1, 158, 213, 0.15)';
+            ctx.lineWidth = Math.max(3, this.radius / 8);
+
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.fill();
+
+            if (this.targetIndex !== -1 && !this.shooting) {
+                this.shoot();
+                this.shooting = true;
+            }
+
+            ctx.restore();
+        }
+    }]);
+
+    return SlowTower;
+}(_BaseTower3.default);
+
+exports.default = SlowTower;
+
+/***/ }),
+/* 26 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * 减速场 ====> 就是一个大圆圈
+ */
+
+var SlowField = function () {
+    function SlowField(opt) {
+        _classCallCheck(this, SlowField);
+
+        var ctx = opt.ctx,
+            parent = opt.parent,
+            range = opt.range,
+            ratio = opt.ratio,
+            id = opt.id;
+
+        this.type = 'slow';
+        this.ctx = ctx;
+        this.id = id;
+
+        // range 将随时间逐渐加大
+        this.minRange = 20;
+        this.maxRange = range;
+        this.range = this.minRange;
+
+        this.parent = parent;
+        this.ratio = ratio; // 减速系数
+
+        this.maxLife = 300;
+        this.life = this.maxLife;
+
+        this.x = parent.x;
+        this.y = parent.y;
+    }
+
+    _createClass(SlowField, [{
+        key: 'draw',
+        value: function draw(ctx) {
+            if (this.life > 0) {
+                this.range = this.calcRange();
+                ctx.save();
+                ctx.fillStyle = 'rgba(1, 158, 213, 0.15)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.range, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                this.life--;
+            }
+        }
+
+        /**
+         * range 会随时间由最小值逐步加大至最大值，然后保持在最大值
+         */
+
+    }, {
+        key: 'calcRange',
+        value: function calcRange() {
+            var minR = this.minRange;
+            var maxR = this.maxRange;
+            var timePassed = this.maxLife - this.life;
+            var timeStop = 100; // 在该时间点range达到最大
+
+            var range = minR + Math.min(timeStop, timePassed) * (maxR - minR) / timeStop;
+            return range;
+        }
+    }]);
+
+    return SlowField;
+}();
+
+exports.default = SlowField;
+
+/***/ }),
+/* 27 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _BaseTower2 = __webpack_require__(4);
+
+var _BaseTower3 = _interopRequireDefault(_BaseTower2);
+
+var _FireZone = __webpack_require__(28);
+
+var _FireZone2 = _interopRequireDefault(_FireZone);
+
+var _constant = __webpack_require__(0);
+
+var _id = __webpack_require__(5);
+
+var _id2 = _interopRequireDefault(_id);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * 范围攻击
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+
+var FireTower = function (_BaseTower) {
+    _inherits(FireTower, _BaseTower);
+
+    function FireTower(opt) {
+        _classCallCheck(this, FireTower);
+
+        var _this = _possibleConstructorReturn(this, (FireTower.__proto__ || Object.getPrototypeOf(FireTower)).call(this, opt));
+
+        var ctx = opt.ctx,
+            x = opt.x,
+            y = opt.y,
+            selected = opt.selected,
+            damage = opt.damage;
+
+
+        _this.type = 'FIRE';
+        _this.hue = 0;
+        _this.cost = _constant.towerCost.slowTower;
+
+        _this.range = 3 * _constant.gridWidth;
+
+        _this.shooting = false;
+        _this.damage = 0.05;
+
+        _this.counter = 0;
+        return _this;
+    }
+
+    _createClass(FireTower, [{
+        key: 'shoot',
+        value: function shoot() {
+            var fireZone = new _FireZone2.default({
+                id: _id2.default.genId(),
+                ctx: this.ctx,
+                range: this.range,
+                damage: this.damage,
+                parent: this
+            });
+            this.bullets.push(fireZone);
+        }
+    }, {
+        key: 'draw',
+        value: function draw() {
+            var ctx = this.ctx;
+            ctx.save();
+            // 在选中的情况下，画出其射程范围
+            if (this.selected) {
+                ctx.beginPath();
+                ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+                ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            ctx.strokeStyle = 'hsl(' + this.hue + ',100%, 80%';
+            ctx.fillStyle = 'hsl(' + this.hue + ',100%, 80%';
+            // ctx.fillStyle = 'rgba(1, 158, 213, 0.3)';
+            ctx.lineWidth = Math.max(3, this.radius / 8);
+
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.fill();
+
+            if (this.targetIndex !== -1 && !this.shooting) {
+                this.shoot();
+                this.shooting = true;
+            }
+
+            ctx.restore();
+        }
+    }]);
+
+    return FireTower;
+}(_BaseTower3.default);
+
+exports.default = FireTower;
+
+/***/ }),
+/* 28 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * 范围伤害 aoe
+ */
+
+var FireZone = function () {
+    function FireZone(opt) {
+        _classCallCheck(this, FireZone);
+
+        var ctx = opt.ctx,
+            parent = opt.parent,
+            range = opt.range,
+            damage = opt.damage,
+            id = opt.id;
+
+        this.type = 'fire';
+        this.ctx = ctx;
+        this.id = id;
+
+        // range 将随时间逐渐加大
+        this.minRange = 20;
+        this.maxRange = range;
+        this.range = this.minRange;
+
+        this.parent = parent;
+        this.damage = damage;
+
+        this.maxLife = 300;
+        this.life = this.maxLife;
+
+        this.x = parent.x;
+        this.y = parent.y;
+    }
+
+    _createClass(FireZone, [{
+        key: 'draw',
+        value: function draw(ctx) {
+            if (this.life > 0) {
+                this.range = this.calcRange();
+                ctx.save();
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.15)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.range, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                this.life--;
+            }
+        }
+
+        /**
+         * range 会随时间由最小值逐步加大至最大值，然后保持在最大值
+         */
+
+    }, {
+        key: 'calcRange',
+        value: function calcRange() {
+            var minR = this.minRange;
+            var maxR = this.maxRange;
+            var timePassed = this.maxLife - this.life;
+            var timeStop = 100; // 在该时间点range达到最大
+
+            var range = minR + Math.min(timeStop, timePassed) * (maxR - minR) / timeStop;
+            return range;
+        }
+    }]);
+
+    return FireZone;
+}();
+
+exports.default = FireZone;
+
+/***/ }),
+/* 29 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _constant = __webpack_require__(0);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -8240,14 +8730,42 @@ var Enemy = function () {
 
         this.value = opt.value || 50;
         this.damage = opt.damage || 5;
+
+        /**
+         * {
+         *   type: 'deceleration',
+         *   value: 0.1,
+         *   source: someId,
+         *   duration: 2000     // ms
+         * }
+         */
+        this.buff = [];
     }
 
     _createClass(Enemy, [{
         key: 'step',
         value: function step(_ref) {
+            var _this = this;
+
             var path = _ref.path;
 
+            // 对 this.buff 中的数据进行依次处理
             var speed = this.speed;
+            if (this.buff.length > 0) {
+                this.buff.forEach(function (b, idx) {
+                    if (b.type === 'deceleration') {
+                        // 减速效果
+                        if (b.duration-- > 0) {
+                            speed *= 1 - b.value;
+                        }
+                    }
+                    if (b.duration <= 0) {
+                        _this.buff.remove(idx);
+                    }
+                });
+            }
+
+            // const speed = this.speed;
             var wp = path[this.wp];
             this.dx = wp[0] * _constant.gridSize + _constant.gridSize * 0.5 - this.x;
             this.dy = wp[1] * _constant.gridSize + _constant.gridSize * 0.5 - this.y;
@@ -8307,7 +8825,7 @@ var Enemy = function () {
 exports.default = Enemy;
 
 /***/ }),
-/* 25 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8319,9 +8837,9 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _constant = __webpack_require__(3);
+var _constant = __webpack_require__(0);
 
-var _Path = __webpack_require__(12);
+var _Path = __webpack_require__(11);
 
 var _Path2 = _interopRequireDefault(_Path);
 
@@ -8403,9 +8921,9 @@ var Map = function () {
             // 当前选中的格子突出显示
             // TODO: 这一部分移入game.js中
             if (towerSelect) {
-                var coordX = towers[towerSelectIndex].coordX;
-                var coordY = towers[towerSelectIndex].coordY;
-                fillGrid(coordX, coordY, 'pink');
+                var col = towers[towerSelectIndex].col;
+                var row = towers[towerSelectIndex].row;
+                fillGrid(col, row, 'pink');
             }
 
             // 给一个格子上色
@@ -8426,7 +8944,7 @@ var Map = function () {
 exports.default = Map;
 
 /***/ }),
-/* 26 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8463,19 +8981,19 @@ var Wave = function () {
         this.enemyCfg = {
             a: {
                 radius: 10,
-                speed: 2,
+                speed: 1,
                 color: '#FFDDA0',
                 health: 20
             },
             b: {
                 radius: 8,
-                speed: 3,
+                speed: 1.5,
                 color: '#0280B2',
                 health: 16
             },
             c: {
                 radius: 6,
-                speed: 4,
+                speed: 2,
                 color: '#FFD387',
                 health: 12
             }
@@ -8516,7 +9034,7 @@ var Wave = function () {
 exports.default = Wave;
 
 /***/ }),
-/* 27 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8528,23 +9046,13 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _BaseTower = __webpack_require__(4);
+var _tower = __webpack_require__(12);
 
-var _BaseTower2 = _interopRequireDefault(_BaseTower);
+var _utils = __webpack_require__(3);
 
-var _BulletTower = __webpack_require__(7);
+var _constant = __webpack_require__(0);
 
-var _BulletTower2 = _interopRequireDefault(_BulletTower);
-
-var _LaserTower = __webpack_require__(13);
-
-var _LaserTower2 = _interopRequireDefault(_LaserTower);
-
-var _utils = __webpack_require__(2);
-
-var _constant = __webpack_require__(3);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _index = __webpack_require__(6);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -8556,6 +9064,9 @@ var WIDTH = _constant.GAME_CONTROL_WIDTH; // 230
 var HEIGHT = _constant.GAME_CONTROL_HEIGHT; // 640
 
 var FILL_COLOR = '#fafafa';
+
+var gameInfoCanvas = document.getElementById('game-info');
+var infoCtx = gameInfoCanvas.getContext('2d');
 
 var GameControl = function () {
     function GameControl(opt) {
@@ -8615,7 +9126,7 @@ var GameControl = function () {
         value: function draw() {
             var _this = this;
 
-            // 游戏未开始时，不画出该组件
+            // 游戏未开始时，不绘制该区域
             if (this.game.status === '') {
                 return;
             }
@@ -8634,7 +9145,7 @@ var GameControl = function () {
 
             requestAnimationFrame(function () {
                 return _this.draw();
-            }, 100);
+            }, 1000);
         }
     }, {
         key: 'drawGrid',
@@ -8721,16 +9232,6 @@ var GameControl = function () {
                             _this2.towerArea.selected = [0, 0]; // 突出显示
                         }
                     } else if (xIdx === 1 && yIdx === 0) {
-                        // 点击了 BulletTower
-                        if (game.mode === 'ADD_TOWER' && game.addTowerType === 'BULLET') {
-                            game.mode = '';
-                            game.addTowerType = '';
-                        } else {
-                            game.mode = 'ADD_TOWER';
-                            game.addTowerType = 'BULLET';
-                            _this2.towerArea.selected = [1, 0];
-                        }
-                    } else if (xIdx === 2 && yIdx === 0) {
                         // 点击了 LaserTower
                         if (game.mode === 'ADD_TOWER' && game.addTowerType === 'LASER') {
                             game.mode = '';
@@ -8738,14 +9239,35 @@ var GameControl = function () {
                         } else {
                             game.mode = 'ADD_TOWER';
                             game.addTowerType = 'LASER';
+                            _this2.towerArea.selected = [1, 0];
+                        }
+                    } else if (xIdx === 2 && yIdx === 0) {
+                        // 点击了 SlowTower
+                        if (game.mode === 'ADD_TOWER' && game.addTowerType === 'SLOW') {
+                            game.mode = '';
+                            game.addTowerType = '';
+                        } else {
+                            game.mode = 'ADD_TOWER';
+                            game.addTowerType = 'SLOW';
                             _this2.towerArea.selected = [2, 0];
+                        }
+                    } else if (xIdx === 0 && yIdx === 1) {
+                        // 点击了火焰塔
+                        if (game.mode === 'ADD_TOWER' && game.addTowerType === 'FIRE') {
+                            game.mode = '';
+                            game.addTowerType = '';
+                        } else {
+                            game.mode = 'ADD_TOWER';
+                            game.addTowerType = 'FIRE';
+                            _this2.towerArea.selected = [0, 1];
                         }
                     } else {
                         _this2.towerArea.selected = -1;
                     }
-                } else {
-                    console.log('out');
                 }
+                // else {
+                //     console.log('out');
+                // }
 
                 if ((0, _utils.isInside)({ x: x, y: y }, _this2.pauseBtn)) {
                     _this2.pauseBtn.text = game.status === 'running' ? '继续' : '暂停';
@@ -8788,6 +9310,39 @@ var GameControl = function () {
                 } else {
                     sellBtn.status = '';
                 }
+
+                // 鼠标 hover 在 tower 上时，显示相应提示信息
+                // TODO: 显示造价和伤害信息
+                if ((0, _utils.isInside)({ x: x, y: y }, _this2.towerAreaRect)) {
+                    // 计算当前是在哪个格子中
+                    var col = Math.floor((x - _this2.offsetX) / GRID_WIDTH);
+                    var row = Math.floor((y - _this2.offsetY) / GRID_HEIGHT);
+
+                    var text = '';
+                    var infoX = _this2.offsetX + col * GRID_WIDTH - 100;
+                    if (row === 0 && col === 0) {
+                        text = '子弹塔：沙包大的子弹见过没有？';
+                    } else if (row === 0 && col === 1) {
+                        text = '激光塔：哎哟，不错！';
+                    } else if (row === 0 && col === 2) {
+                        text = '减速塔：Yo, Yo, Yo, 留下来！';
+                        infoX -= 120;
+                    } else if (row === 1 && col === 0) {
+                        text = '火焰塔：啊哈，你想被烤成几分熟？';
+                        infoX -= 50;
+                    }
+
+                    _index.gameInfo.infos = [{
+                        x: infoX,
+                        y: _this2.offsetY + row * GRID_HEIGHT,
+                        width: 200,
+                        height: 50,
+                        text: text
+                    }];
+                } else {
+                    // infoCtx.clearRect(0, 0, 150, 75);
+                    _index.gameInfo.infos = [];
+                }
             });
         }
     }]);
@@ -8806,28 +9361,36 @@ var TowerArea = function () {
         this.offsetX = opt.x;
         this.offsetY = opt.y;
 
-        this.baseTower = new _BaseTower2.default({
+        this.baseTower = new _tower.BaseTower({
             x: this.offsetX + GRID_WIDTH / 2 + 10,
             y: this.offsetY + GRID_HEIGHT / 2,
             ctx: this.ctx,
             radius: 12
         });
 
-        this.bulletTower = new _BulletTower2.default({
-            x: this.offsetX + GRID_WIDTH * 1.5 + 10,
-            y: this.offsetY + GRID_HEIGHT / 2,
-            ctx: this.ctx,
-            direction: 180,
-            radius: 12
-        });
-
-        this.laserTower = new _LaserTower2.default({
-            x: this.offsetX + GRID_WIDTH * 2.5 + 10,
+        this.laserTower = new _tower.LaserTower({
+            x: this.offsetX + GRID_WIDTH * 1.5 + 5,
             y: this.offsetY + GRID_HEIGHT / 2,
             ctx: this.ctx,
             direction: 90,
-            radius: 8
+            radius: 12
         });
+
+        this.slowTower = new _tower.SlowTower({
+            x: this.offsetX + GRID_WIDTH * 2.5 + 5,
+            y: this.offsetY + GRID_HEIGHT / 2,
+            ctx: this.ctx,
+            radius: 12
+        });
+
+        this.fireTower = new _tower.FireTower({
+            x: this.offsetX + GRID_WIDTH / 2 + 5,
+            y: this.offsetY + GRID_HEIGHT * 1.5,
+            ctx: this.ctx,
+            radius: 10
+        });
+
+        this.towers = [this.baseTower, this.laserTower, this.slowTower, this.fireTower];
     }
 
     _createClass(TowerArea, [{
@@ -8855,9 +9418,10 @@ var TowerArea = function () {
             if (this.selected !== -1) {
                 this.highlightTower(this.selected[0], this.selected[1]);
             }
-            this.baseTower.draw(ctx);
-            this.bulletTower.draw(ctx);
-            this.laserTower.draw(ctx);
+
+            this.towers.forEach(function (t) {
+                return t.draw(ctx);
+            });
         }
 
         // 选中的tower突出显示
@@ -8894,6 +9458,87 @@ var TowerArea = function () {
 
     return TowerArea;
 }();
+
+/***/ }),
+/* 33 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _constant = __webpack_require__(0);
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var GameInfo = function () {
+    function GameInfo(opt) {
+        _classCallCheck(this, GameInfo);
+
+        this.element = opt.element;
+        this.game = opt.game;
+
+        this.element.width = _constant.WIDTH + _constant.GAME_CONTROL_WIDTH;
+        this.element.height = _constant.HEIGHT;
+
+        this.infos = [{
+            x: 100,
+            y: 100,
+            width: 100,
+            height: 100
+        }];
+
+        this.count = 0;
+    }
+
+    _createClass(GameInfo, [{
+        key: 'draw',
+        value: function draw() {
+            var _this = this;
+
+            var infos = this.infos;
+            var ctx = this.element.getContext('2d');
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0)';
+            ctx.clearRect(0, 0, this.element.width, this.element.height);
+
+            infos.forEach(function (info) {
+                var rect = [info.x, info.y, info.width, info.height];
+                ctx.font = '20px Arial';
+
+                if (info.text) {
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(0, 255, 0, 0.1)';
+                    // 确定信息显示的位置
+                    var textStartX = info.x + _constant.WIDTH;
+                    // 确定信息的宽度
+                    var textWidth = ctx.measureText(info.text).width;
+                    // 画出信息显示时的背景
+                    ctx.fillRect(textStartX - 20, info.y - 50, textWidth + 40, 60);
+
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                    ctx.fillText(info.text, textStartX, info.y);
+
+                    ctx.restore();
+                }
+            });
+            // console.log(this.count++);
+            // requestAnimationFrame(() => this.draw());
+            setTimeout(function () {
+                return _this.draw();
+            }, 300);
+        }
+    }]);
+
+    return GameInfo;
+}();
+
+exports.default = GameInfo;
 
 /***/ })
 /******/ ]);

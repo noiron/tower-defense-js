@@ -1,18 +1,23 @@
 import { vec2 } from 'gl-matrix';
 import Path from './Entity/Path.js';
 import { gameControl } from './../index';
-import BaseTower from './Entity/tower/BaseTower.js';
-import BulletTower from './Entity/tower/BulletTower.js';
-import LaserTower from './Entity/tower/LaserTower.js';
+import TowerFactory from './Entity/tower';
 import Enemy from './Entity/Enemy';
 import Map from './Entity/Map';
 import Wave from './Wave';
 import { calcuteDistance } from './utils/utils';
-import { gridWidth, gridHeight, gridNumX, gridNumY, towerCost, GAME_CONTROL_WIDTH } from './utils/constant';
+import {
+    gridWidth,
+    gridHeight,
+    gridNumX,
+    gridNumY,
+    towerCost,
+    WIDTH,
+    HEIGHT,
+    GAME_CONTROL_WIDTH
+} from './utils/constant';
 import globalId from './id';
 
-const WIDTH = 800;
-const HEIGHT = 640;
 const BORDER_WIDTH = 6;
 
 const canvas = document.getElementById('drawing');
@@ -28,6 +33,8 @@ backgroundCanvas.height = HEIGHT;
 const gameControlCanvas = document.getElementById('game-control');
 const panels = document.getElementById('panels');
 const startButton = document.getElementById('start-button');
+
+const gameInfoCanvas = document.getElementById('game-info');
 
 export default class Game {
     constructor(opt) {
@@ -55,46 +62,53 @@ export default class Game {
     initData() {
         this.genId = 0;
         globalId.clear();
-   
+
         this.bullets = [];
         this.towers = [];
         this.enemies = [];
 
-        this.money = 1000;
-        this.coordX = 0;
-        this.coordY = 0;
-        this.enemyCreatedCount = 0;    // 目前已经创建的enemy的总数
+        this.money = 5000;
+        this.col = 0;
+        this.row = 0;
+        this.enemyCreatedCount = 0; // 目前已经创建的enemy的总数
         this.lastCreatedEnemyTime = new Date();
 
         this.pathCoord = [
-            [0, 0], [18, 0], [18, 4], [10, 4], [10, 10], [16, 10], [16, 14], [-1, 14]
+            [0, 0],
+            [18, 0],
+            [18, 4],
+            [8, 4],
+            [8, 10],
+            [16, 10],
+            [16, 14],
+            [-1, 14]
         ];
 
         const newTowerCoord = [8, 3];
         this.map = new Map({ ctx, WIDTH, HEIGHT, newTowerCoord, pathCoord: this.pathCoord });
 
         // 放置一个初始状态下的塔
-        const tower = new BaseTower({
+        const tower = new TowerFactory['BASE']({
             id: globalId.genId(),
             ctx,
             x: gridWidth / 2 + newTowerCoord[0] * gridWidth,
             y: gridHeight / 2 + newTowerCoord[1] * gridHeight,
-            bullets: this.bullets,
+            bullets: this.bullets
         });
         this.towers.push(tower);
-        
+
         this.mode = '';
         this.addTowerType = 'BASE';
         this.status = '';
         this.score = 0;
-        this.life = 100;
-        
+        this.life = 1000000;
+
         // 当前是否选中塔
         this.towerSelect = false;
         this.towerSelectIndex = -1;
         this.towerSelectId = -1;
-        
-        this.wave = -1;  // 当前第几波
+
+        this.wave = -1; // 当前第几波
         this.waves = [];
     }
 
@@ -118,6 +132,10 @@ export default class Game {
         panels.style.position = 'absolute';
         panels.style.left = cvx + BORDER_WIDTH + 'px';
         panels.style.top = cvy + 200 + 'px';
+
+        gameInfoCanvas.style.position = 'absolute';
+        gameInfoCanvas.style.left = cvx + BORDER_WIDTH + 'px';
+        gameInfoCanvas.style.top = cvy + BORDER_WIDTH + 'px';
     }
 
     renderBackground() {
@@ -141,7 +159,7 @@ export default class Game {
 
     startButtonClickHandler(e) {
         e.stopPropagation();
-        
+
         if (this.status === '' || this.status === 'gameOver') {
             panels.style.display = 'none';
             this.initData();
@@ -150,7 +168,6 @@ export default class Game {
             gameControl.draw();
         }
     }
-    
 
     draw() {
         // 游戏尚未开始的状态
@@ -195,7 +212,7 @@ export default class Game {
                 color: cfg.color,
                 radius: cfg.radius,
                 speed: cfg.speed,
-                health: cfg.health * (1 + this.wave / 10)
+                health: cfg.health * (1 + this.wave / 40)
             });
 
             this.enemies.push(enemy);
@@ -229,7 +246,7 @@ export default class Game {
         });
 
         // 确定游戏是否结束
-        if (this.enemyCreatedCount > 0  && this.enemies.length === 0) {
+        if (this.enemyCreatedCount > 0 && this.enemies.length === 0) {
             setTimeout(() => {
                 this.status = 'gameOver';
             }, 1000);
@@ -241,16 +258,12 @@ export default class Game {
             if (tower.target !== null) {
                 const target = tower.target;
                 // 调整其朝向
-                tower.directionVec = vec2.fromValues(
-                    target.x - tower.x,
-                    target.y - tower.y
-                );
+                tower.directionVec = vec2.fromValues(target.x - tower.x, target.y - tower.y);
 
-                tower.direction = Math.atan2(target.y - tower.y,
-                    target.x - tower.x) * (180 / Math.PI);
+                tower.direction =
+                    Math.atan2(target.y - tower.y, target.x - tower.x) * (180 / Math.PI);
             }
         });
-
 
         // 检查bullet是否与enemy相撞
         this.detectImpact();
@@ -258,7 +271,7 @@ export default class Game {
         // 移除出界的bullet，画出剩下的bullet
         for (let i = 0; i < this.bullets.length; i++) {
             const bullet = this.bullets[i];
-            
+
             switch (bullet.type) {
                 case 'line':
                 case 'circle': {
@@ -279,17 +292,36 @@ export default class Game {
                     }
                     break;
                 }
+                case 'slow': 
+                case 'fire': {
+                    if (bullet.life <= 0) {
+                        this.bullets.remove(i--);
+                        bullet.parent.shooting = false;
+                    } else {
+                        bullet.parent.shooting = true;
+                        bullet.draw(ctx);
+                    }
+                    break;
+                }
+                default:
+                    bullet.draw(ctx);
             }
         }
 
-        if (this.mode === 'ADD_TOWER') {    // 添加塔模式
-            if (0 <= this.coordX && this.coordX < gridNumX
-                && 0 <= this.coordY && this.coordY < gridNumY) {
-                if (this.map.coord[this.coordX][this.coordY] !== 'T') {  // 该位置没有塔
+        if (this.mode === 'ADD_TOWER') {
+            // 添加塔模式
+            if (
+                0 <= this.col &&
+                this.col < gridNumX &&
+                0 <= this.row &&
+                this.row < gridNumY
+            ) {
+                if (this.map.coord[this.col][this.row] !== 'T') {
+                    // 该位置没有塔
                     this.drawGhostTower(
                         ctx,
-                        this.coordX * gridWidth + gridWidth / 2,
-                        this.coordY * gridHeight + gridHeight / 2,
+                        this.col * gridWidth + gridWidth / 2,
+                        this.row * gridHeight + gridHeight / 2,
                         this.addTowerType
                     );
                 }
@@ -311,6 +343,7 @@ export default class Game {
             for (var j = 0; j < this.enemies.length; j++) {
                 const enemy = this.enemies[j];
 
+                // 计算 bullet 和 enemy 距离
                 if (bullet.type === 'line') {
                     // 求圆心至bullet的垂足
                     let normal = vec2.create();
@@ -326,28 +359,50 @@ export default class Game {
                     vec2.add(normal, bullet.start, bVec);
 
                     distance = calcuteDistance(normal[0], normal[1], enemy.x, enemy.y);
-                } else if (bullet.type === 'circle') {
+                } else if (bullet.type === 'circle' || bullet.type === 'slow' || bullet.type === 'fire') {
                     distance = calcuteDistance(bullet.x, bullet.y, enemy.x, enemy.y);
-                } 
-                
+                }
                 if (bullet.type === 'laser') {
                     if (bullet.target.id === enemy.id) {
                         distance = 0;
                     }
                 }
 
-                if (distance <= enemy.radius + 2) {
-                    impact = true;
-                    enemy.health -= bullet.damage;
-                    if (enemy.health <= 0) {
-                        this.money += enemy.value;
-                        this.enemies.remove(j--);
-                        this.score += 100;
+                // enemy进入bullet的作用范围后，依据其种类产生效果
+                if (bullet.type === 'circle' || bullet.type === 'laser') {
+                    if (distance <= enemy.radius + 2) {
+                        impact = true;
+                        enemy.health -= bullet.damage;
+                        if (enemy.health <= 0) {
+                            this.money += enemy.value;
+                            this.enemies.remove(j--);
+                            this.score += 100;
+                        }
+                        break;
                     }
-                    break;
+                } else if (bullet.type === 'slow') {
+                    if (distance <= bullet.range) {
+                        if (enemy.buff.every(b => b.source !== bullet.id)) {
+                            enemy.buff.push({
+                                type: 'deceleration',
+                                value: 0.35,
+                                source: bullet.id,
+                                duration: 10
+                            });
+                        }
+                    }
+                } else if (bullet.type === 'fire') {
+                    if (distance <= bullet.range) {
+                        enemy.health -= bullet.damage;
+                        if (enemy.health <= 0) {
+                            this.money += enemy.value;
+                            this.enemies.remove(j--);
+                            this.score += 100;
+                        }
+                    }
                 }
             }
-            if (bullet.type === 'laser') {
+            if (bullet.type === 'laser' || bullet.type === 'slow' || bullet.type === 'fire') {
                 impact = false;
             }
             if (impact) {
@@ -358,91 +413,62 @@ export default class Game {
 
     /**
      * 创建一个新的tower
-     * @param {Number} coordX x轴的坐标  
-     * @param {Number} coordY y轴的坐标
+     * @param {Number} col x轴的坐标  
+     * @param {Number} row y轴的坐标
      */
-    createNewTower(coordX, coordY, towerType) {
-
+    createNewTower(col, row, towerType) {
         // 检查当前位置是否已有物体
-        if (this.map.coord[coordX][coordY] === 'T') {
+        if (this.map.coord[col][row] === 'T') {
             console.log('You can not place tower here!');
             return -1;
         }
-
-        const cost = towerCost.baseTower;
+        const cost = towerCost[towerType];
         // 检查是否有足够金钱
         if (this.money - cost < 0) {
+            // TODO: 将提示信息显示在画面中
             console.log('You do not have enough money.');
             return -1;
         }
 
-        const x = coordX * gridWidth + gridWidth / 2;
-        const y = coordY * gridWidth + gridWidth / 2;
+        const x = col * gridWidth + gridWidth / 2;
+        const y = row * gridWidth + gridWidth / 2;
         const id = globalId.genId();
 
         const config = { id, ctx, x, y, bullets: this.bullets };
 
-        let tower = null;
-        switch (towerType) {
-            case 'BASE':
-                tower = new BaseTower(config);
-                break;
-            case 'BULLET':
-                tower = new BulletTower(config);
-                break;
-            case 'LASER':
-                tower = new LaserTower(config);
-                break;
-            default:
-                tower = new BulletTower(config);
-        }
+        let tower = new TowerFactory[towerType](config);
 
-        this.map.coord[coordX][coordY] = 'T';
+        this.map.coord[col][row] = 'T';
         this.money -= cost;
         this.towers.push(tower);
     }
 
     sellTower(index = this.towerSelectIndex) {
-        const coordX = this.towers[index].coordX;
-        const coordY = this.towers[index].coordY;
+        const tower = this.towers[index];
+        const { col, row, type: towerType = 'BASE' } = tower;
         this.towers.remove(index);
         console.log(index);
-        this.map.coord[coordX][coordY] = '';
+        this.map.coord[col][row] = '';
 
-        this.money += 400;
+        // 出售价格改为购买价格的 50%
+        this.money += (towerCost[towerType] * 0.5);
         this.towerSelect = false;
         this.towerSelectIndex = -1;
     }
 
     // 准备放置塔时，在鼠标所在位置画一个虚拟的塔
     drawGhostTower(ctx, x, y, towerType) {
-        let tower = null;
         const config = { ctx, x, y, bullets: this.bullets, selected: true };
-
-        switch(towerType) {
-            case 'BASE':
-                tower = new BaseTower(config);
-                break;
-            case 'BULLET':
-                tower = new BulletTower(config);
-                break;
-            case 'LASER':
-                tower = new LaserTower(config);
-                break;
-
-            default:
-                tower = null;
-        }
+        const tower = new TowerFactory[towerType](config);
         tower.draw(ctx);
     }
-
 
     displayInfo() {
         // 画面信息的显示
         const enemyCountElement = document.getElementById('enemyCount');
         if (enemyCountElement) {
-            enemyCountElement.innerHTML = 
-                `Enemy Count: ${this.enemies.length}, Bullets: ${this.bullets.length}`;
+            enemyCountElement.innerHTML = `Enemy Count: ${this.enemies.length}, Bullets: ${this
+                .bullets.length}`;
         }
     }
 
@@ -451,7 +477,7 @@ export default class Game {
     }
 
     shouldGenerateEnemy() {
-        return this.wave < 100 && new Date() - this.lastCreatedEnemyTime > 500;
+        return this.wave < 999 && new Date() - this.lastCreatedEnemyTime > 500;
     }
 
     shouldGenerateWave() {
@@ -474,12 +500,15 @@ export default class Game {
 function bulletOutOfBound(bullet) {
     switch (bullet.type) {
         case 'circle':
-            return (bullet.x < 0 || bullet.y < 0 ||
-                bullet.x > WIDTH || bullet.y > HEIGHT);
+            return bullet.x < 0 || bullet.y < 0 || bullet.x > WIDTH || bullet.y > HEIGHT;
 
         case 'line':
-            return (bullet.start[0] < 0 || bullet.start[1] < 0 ||
-            bullet.start[0] > WIDTH || bullet.start[1] > HEIGHT);
+            return (
+                bullet.start[0] < 0 ||
+                bullet.start[1] < 0 ||
+                bullet.start[0] > WIDTH ||
+                bullet.start[1] > HEIGHT
+            );
 
         default:
             return false;

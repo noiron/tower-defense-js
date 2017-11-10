@@ -1,6 +1,7 @@
 var path = require('path');
 var webpack = require('webpack');
 var PorgressBarPlugin = require('progress-bar-webpack-plugin');
+// const WebpackMonitor = require('webpack-monitor');
 
 module.exports = {
     entry: ['./src/index'],
@@ -23,6 +24,12 @@ module.exports = {
         stats: 'errors-only'
     },
     plugins: [
-        new PorgressBarPlugin()
+        new PorgressBarPlugin(),
+        // new WebpackMonitor({
+        //     capture: true, // -> default 'true'
+        //     target: '../monitor/myStatsStore.json', // default -> '../monitor/stats.json'
+        //     launch: true, // -> default 'false'
+        //     port: 3030, // default -> 8081
+        // }),
     ]
 };

@@ -11,7 +11,8 @@ export default class LaserTower extends BaseTower {
         const { ctx, x, y, bullets, selected, damage } = opt;
         super(opt);
 
-        this.hue = 250;
+        this.type = 'LASER';
+        this.hue = 60;
         this.cost = towerCost.laserTower;
         this.range = 4 * gridWidth;
 
@@ -20,7 +21,7 @@ export default class LaserTower extends BaseTower {
         this.directionVec = vec2.create();
 
         this.shooting = false;
-        this.damage = 0.5;
+        this.damage = 0.1;
     }
 
     shoot() {
@@ -72,6 +73,7 @@ export default class LaserTower extends BaseTower {
         ctx.beginPath();
         ctx.moveTo(this.x, this.y);
         ctx.lineTo(this.x + this.bulletStartPosVec[0], this.y + this.bulletStartPosVec[1]);
+        ctx.lineWidth = 5;
         ctx.stroke();
         ctx.closePath();
 
