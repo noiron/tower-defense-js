@@ -177,7 +177,7 @@ export default class Game {
 
         // 游戏结束
         if (this.status === 'gameOver') {
-            gameOverEle.style.display = 'block';
+            // gameOverEle.style.display = 'block';
             return;
         }
 
@@ -245,12 +245,12 @@ export default class Game {
             tower.draw(ctx);
         });
 
-        // 确定游戏是否结束
-        if (this.enemyCreatedCount > 0 && this.enemies.length === 0) {
-            setTimeout(() => {
-                this.status = 'gameOver';
-            }, 1000);
-        }
+        // // 确定游戏是否结束
+        // if (this.enemyCreatedCount > 0 && this.enemies.length === 0) {
+        //     setTimeout(() => {
+        //         this.status = 'gameOver';
+        //     }, 1000);
+        // }
 
         // 确定 tower 的目标
         this.towers.forEach(tower => {
@@ -454,6 +454,13 @@ export default class Game {
         this.money += (towerCost[towerType] * 0.5);
         this.towerSelect = false;
         this.towerSelectIndex = -1;
+    }
+
+    upgradeTower(index = this.towerSelectIndex) {
+        const tower = this.towers[index];
+        // TODO: 对塔的升级应该按预设数值，或按比例
+        tower.range *= 2;
+        tower.damage *= 2;
     }
 
     // 准备放置塔时，在鼠标所在位置画一个虚拟的塔

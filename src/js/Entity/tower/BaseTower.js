@@ -17,6 +17,7 @@ export default class BaseTower {
         this.y = y;
         this.ctx = ctx;
         this.type = 'BASE';
+        this.level = 1;
         this.col = Math.floor((x - gridWidth / 2) / gridWidth);
         this.row = Math.floor((y - gridHeight / 2) / gridHeight);
         this.radius = radius || 12;
@@ -34,6 +35,8 @@ export default class BaseTower {
         this.range = 4 * gridWidth;
         this.selected = selected || false;
         this.damage = damage || 5;
+        this.upgradeGain = damage * 0.4;  // 升级后的伤害增益
+        this.upgradeCost = this.cost * 0.6;   
     }
 
     step() {

@@ -42,22 +42,29 @@ class GameControl {
             height: GRID_NUM_Y * GRID_HEIGHT
         };
 
-        this.pauseBtn = {
+        const commonBtnProp = {
             x: this.offsetX,
-            y: 400,
             width: 100,
             height: 40,
-            text: '暂停',
             status: ''
         };
 
+        this.pauseBtn = {
+            y: 400,
+            text: '暂停',
+            ...commonBtnProp
+        };
+
         this.sellBtn = {
-            x: this.offsetX,
             y: 470,
-            width: 100,
-            height: 40,
             text: '出售',
-            status: ''
+            ...commonBtnProp
+        };
+
+        this.upgradeBtn = {
+            y: 540,
+            text: '升级',
+            ...commonBtnProp
         };
 
         this.towerArea = new TowerArea({
@@ -117,7 +124,7 @@ class GameControl {
     drawButton() {
         const ctx = this.ctx;
 
-        [this.pauseBtn, this.sellBtn].forEach(btn => {
+        [this.pauseBtn, this.sellBtn, this.upgradeBtn].forEach(btn => {
             if (btn.status === 'hover') {
                 ctx.strokeStyle = 'red';
                 ctx.fillStyle = 'red';
@@ -217,6 +224,14 @@ class GameControl {
                     game.sellTower();
                 } else {
                     // console.log('do nothing');
+                }
+            }
+
+            if (isInside({ x, y }, this.upgradeBtn)) {
+                if (game.towerSelect === true) {
+                    game.upgradeTower();
+                } else {
+                    // 
                 }
             }
         });
