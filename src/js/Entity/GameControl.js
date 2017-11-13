@@ -15,6 +15,13 @@ const FILL_COLOR = '#fafafa';
 const gameInfoCanvas = document.getElementById('game-info');
 const infoCtx = gameInfoCanvas.getContext('2d');
 
+// 每一个子数组代表一列
+const TOWER_TYPE = [
+    ['BASE', 'FIRE'],
+    ['LASER'],
+    ['SLOW']
+];
+
 class GameControl {
     constructor(opt) {
         this.option = Object.assign(
@@ -138,7 +145,6 @@ class GameControl {
     }
 
     // 在游戏的控制区域绑定事件
-    // TODO: 简化判断事件对应元素的逻辑
     bindEvent() {
         const $element = $(this.option.element);
         const game = this.game;
@@ -157,58 +163,21 @@ class GameControl {
                 const xIdx = Math.floor((x - this.offsetX) / GRID_WIDTH);
                 const yIdx = Math.floor((y - this.offsetY) / GRID_HEIGHT);
 
-                // 点击了 BaseTower
-                if (xIdx === 0 && yIdx === 0) {
-                    if (game.mode === 'ADD_TOWER') {
-                        if (game.addTowerType !== 'BASE') {
-                            game.addTowerType = 'BASE';
-                            this.towerArea.selected = [0, 0];
-                        } else {
-                            game.mode = '';
-                            game.addTowerType = '';
-                        }
-                    } else {
-                        game.mode = 'ADD_TOWER';
-                        game.addTowerType = 'BASE';
-                        this.towerArea.selected = [0, 0]; // 突出显示
-                    }
-                } else if (xIdx === 1 && yIdx === 0) {
-                    // 点击了 LaserTower
-                    if (game.mode === 'ADD_TOWER' && game.addTowerType === 'LASER') {
+                if (TOWER_TYPE[xIdx][yIdx]) {
+                    if (game.mode === 'ADD_TOWER' && game.addTowerType === TOWER_TYPE[xIdx][yIdx]) {
+                        /* 添加塔模式下，点击同一种类的塔，则取消添加状态 */
                         game.mode = '';
                         game.addTowerType = '';
                     } else {
+                        /* 进入添加塔模式，或切换塔的种类 */
                         game.mode = 'ADD_TOWER';
-                        game.addTowerType = 'LASER';
-                        this.towerArea.selected = [1, 0];
+                        game.addTowerType = TOWER_TYPE[xIdx][yIdx];
+                        this.towerArea.selected = [xIdx, yIdx];
                     }
-                } else if (xIdx === 2 && yIdx === 0) {
-                    // 点击了 SlowTower
-                    if (game.mode === 'ADD_TOWER' && game.addTowerType === 'SLOW') {
-                        game.mode = '';
-                        game.addTowerType = '';
-                    } else {
-                        game.mode = 'ADD_TOWER';
-                        game.addTowerType = 'SLOW';
-                        this.towerArea.selected = [2, 0];
-                    }
-                } else if (xIdx === 0 && yIdx === 1) {
-                    // 点击了火焰塔
-                    if (game.mode === 'ADD_TOWER' && game.addTowerType === 'FIRE') {
-                        game.mode = '';
-                        game.addTowerType = '';
-                    } else {
-                        game.mode = 'ADD_TOWER';
-                        game.addTowerType = 'FIRE';
-                        this.towerArea.selected = [0, 1];
-                    }
-                } else {
-                    this.towerArea.selected = -1;
                 }
-            } 
-            // else {
-            //     console.log('out');
-            // }
+            } else {
+                this.towerArea.selected = -1;
+            }
 
             if (isInside({ x, y }, this.pauseBtn)) {
                 this.pauseBtn.text = game.status === 'running' ? '继续' : '暂停';
