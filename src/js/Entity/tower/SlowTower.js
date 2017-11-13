@@ -4,13 +4,13 @@
 
 import BaseTower from './BaseTower';
 import SlowField from '../bullet/SlowField';
-import { towerData, gridWidth, gridHeight } from './../../utils/constant';
+import { towerData, gridWidth } from './../../utils/constant';
 import globalId from './../../id';
 
 export default class SlowTower extends BaseTower {
     constructor(opt) {
         super(opt);
-        const { ctx, x, y, selected, damage } = opt;    
+        // const { ctx, x, y, selected, damage } = opt;    
 
         this.type = 'SLOW';
         this.hue = 120;

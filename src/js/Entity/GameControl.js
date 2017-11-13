@@ -11,9 +11,7 @@ const WIDTH = GAME_CONTROL_WIDTH;   // 230
 const HEIGHT = GAME_CONTROL_HEIGHT; // 640
 
 const FILL_COLOR = '#fafafa';
-
-const gameInfoCanvas = document.getElementById('game-info');
-const infoCtx = gameInfoCanvas.getContext('2d');
+const DISABLE_COLOR = '#aaa';
 
 // 每一个子数组代表一列
 const TOWER_TYPE = [
@@ -139,8 +137,8 @@ class GameControl {
         [this.pauseBtn, this.sellBtn, this.upgradeBtn].forEach(btn => {
             if (btn.disable) {
                 /* 按钮当前处于不可用状态 */
-                ctx.strokeStyle = '#aaa';
-                ctx.fillStyle = '#666';
+                ctx.strokeStyle = DISABLE_COLOR;
+                ctx.fillStyle = DISABLE_COLOR;
             } else if (btn.status === 'hover') {
                 ctx.strokeStyle = 'red';
                 ctx.fillStyle = 'red';
@@ -162,7 +160,6 @@ class GameControl {
 
         $element.click(e => {
             const $canvas = $(e.target);
-            const game = this.game;
             const offset = $canvas.offset();
             x = e.clientX - offset.left;
             y = e.clientY - offset.top;
@@ -218,7 +215,6 @@ class GameControl {
             // e.stopPropagation()
             const pauseBtn = this.pauseBtn;
             const sellBtn = this.sellBtn;
-            const game = this.game;
 
             const $canvas = $(e.target);
             const offset = $canvas.offset();

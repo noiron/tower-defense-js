@@ -1,14 +1,14 @@
 import BaseTower from './BaseTower';
 import Bullet from './../bullet/Bullet';
 import { vec2 } from 'gl-matrix';
-import { toRadians, calcuteDistance } from './../../utils/utils';
+import { toRadians } from './../../utils/utils';
 import { config } from './../../utils/config';
-import { gridWidth, gridHeight, towerData } from './../../utils/constant';
+import { gridWidth, towerData } from './../../utils/constant';
 
 
 export default class BulletTower extends BaseTower {
     constructor(opt) {
-        const { ctx, x, y, bullets, selected, damage } = opt;
+        // const { ctx, x, y, bullets, selected, damage } = opt;
         super(opt);
 
         this.type = 'BULLET';

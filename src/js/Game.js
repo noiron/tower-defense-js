@@ -1,5 +1,4 @@
 import { vec2 } from 'gl-matrix';
-import Path from './Entity/Path.js';
 import { gameControl } from './../index';
 import TowerFactory from './Entity/tower';
 import Enemy from './Entity/Enemy';
@@ -22,8 +21,6 @@ const BORDER_WIDTH = 6;
 
 const canvas = document.getElementById('drawing');
 const ctx = canvas.getContext('2d');
-
-const gameOverEle = document.getElementById('game-over');
 
 const backgroundCanvas = document.getElementById('background');
 const bgCtx = backgroundCanvas.getContext('2d');
@@ -177,7 +174,6 @@ export default class Game {
 
         // 游戏结束
         if (this.status === 'gameOver') {
-            // gameOverEle.style.display = 'block';
             return;
         }
 
@@ -484,7 +480,7 @@ export default class Game {
     }
 
     bindEvent() {
-        const element = this.element;
+        // const element = this.element;
     }
 
     shouldGenerateEnemy() {
