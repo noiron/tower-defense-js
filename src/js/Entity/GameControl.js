@@ -65,12 +65,14 @@ class GameControl {
         this.sellBtn = {
             y: 470,
             text: '出售',
+            disable: true,
             ...commonBtnProp
         };
 
         this.upgradeBtn = {
             y: 540,
             text: '升级',
+            disable: true,
             ...commonBtnProp
         };
 
@@ -88,6 +90,7 @@ class GameControl {
         if (this.game.status === '') { 
             return; 
         }
+    
         const ctx = this.ctx;
         // ctx.fillStyle = '#eee';
         ctx.fillStyle = '#010c12';
@@ -131,8 +134,14 @@ class GameControl {
     drawButton() {
         const ctx = this.ctx;
 
+        [this.sellBtn, this.upgradeBtn].forEach(b => b.disable = !this.game.towerSelect);
+
         [this.pauseBtn, this.sellBtn, this.upgradeBtn].forEach(btn => {
-            if (btn.status === 'hover') {
+            if (btn.disable) {
+                /* 按钮当前处于不可用状态 */
+                ctx.strokeStyle = '#aaa';
+                ctx.fillStyle = '#666';
+            } else if (btn.status === 'hover') {
                 ctx.strokeStyle = 'red';
                 ctx.fillStyle = 'red';
             } else {
