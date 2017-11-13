@@ -1,6 +1,6 @@
 import { BaseTower, LaserTower, SlowTower, FireTower } from './tower';
 import { isInside } from './../utils/utils';
-import { GAME_CONTROL_WIDTH, GAME_CONTROL_HEIGHT } from '../utils/constant';
+import { GAME_CONTROL_WIDTH, GAME_CONTROL_HEIGHT, towerData } from '../utils/constant';
 import { gameInfo } from './../../index';
 
 const GRID_WIDTH = 60;
@@ -245,17 +245,13 @@ class GameControl {
                 const col = Math.floor((x - this.offsetX) / GRID_WIDTH);
                 const row = Math.floor((y - this.offsetY) / GRID_HEIGHT);
 
-                let text = '';
                 let infoX = this.offsetX + col * GRID_WIDTH - 100;
-                if (row === 0 && col === 0) {
-                    text = '子弹塔：沙包大的子弹见过没有？';
-                } else if (row === 0 && col === 1) {
-                    text = '激光塔：哎哟，不错！';
-                } else if (row === 0 && col === 2) {
-                    text = '减速塔：Yo, Yo, Yo, 留下来！';
+
+                const towerType = TOWER_TYPE[col][row];
+                let text = towerType ? towerData[towerType].info : '';
+                if (row === 0 && col === 2) {
                     infoX -= 120;
                 } else if (row === 1 && col === 0) {
-                    text = '火焰塔：啊哈，你想被烤成几分熟？';
                     infoX -= 50;
                 }
 

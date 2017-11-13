@@ -4,7 +4,7 @@
 
 import BaseTower from './BaseTower';
 import SlowField from '../bullet/SlowField';
-import { towerCost, gridWidth, gridHeight } from './../../utils/constant';
+import { towerData, gridWidth, gridHeight } from './../../utils/constant';
 import globalId from './../../id';
 
 export default class SlowTower extends BaseTower {
@@ -14,7 +14,7 @@ export default class SlowTower extends BaseTower {
 
         this.type = 'SLOW';
         this.hue = 120;
-        this.cost = towerCost.slowTower;
+        this.cost = towerData[this.type].cost;
 
         this.range = 2.5 * gridWidth;
 

@@ -11,10 +11,10 @@ import {
     gridHeight,
     gridNumX,
     gridNumY,
-    towerCost,
     WIDTH,
     HEIGHT,
-    GAME_CONTROL_WIDTH
+    GAME_CONTROL_WIDTH,
+    towerData
 } from './utils/constant';
 import globalId from './id';
 
@@ -422,7 +422,7 @@ export default class Game {
             console.log('You can not place tower here!');
             return -1;
         }
-        const cost = towerCost[towerType];
+        const cost = towerData[towerType].cost;
         // 检查是否有足够金钱
         if (this.money - cost < 0) {
             // TODO: 将提示信息显示在画面中
@@ -451,16 +451,20 @@ export default class Game {
         this.map.coord[col][row] = '';
 
         // 出售价格改为购买价格的 50%
-        this.money += (towerCost[towerType] * 0.5);
+        this.money += (towerData[towerType].cost * 0.5);
         this.towerSelect = false;
         this.towerSelectIndex = -1;
     }
 
     upgradeTower(index = this.towerSelectIndex) {
         const tower = this.towers[index];
-        // TODO: 对塔的升级应该按预设数值，或按比例
-        tower.range *= 2;
-        tower.damage *= 2;
+        // TODO: 已升级至最大值后，需提示玩家
+        if (tower.level < 4) {
+            // TODO: 对塔的升级应该按预设数值，或按比例
+            tower.range *= 1.5;
+            tower.damage *= 1.5;
+            tower.level++;
+        }
     }
 
     // 准备放置塔时，在鼠标所在位置画一个虚拟的塔

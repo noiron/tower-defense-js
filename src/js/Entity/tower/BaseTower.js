@@ -6,7 +6,7 @@ import Bullet from './../bullet/CircleBullet';
 import { vec2 } from 'gl-matrix';
 import { toRadians, calcuteDistance } from './../../utils/utils';
 import { config } from './../../utils/config';
-import { towerCost, gridWidth, gridHeight } from './../../utils/constant';
+import { gridWidth, gridHeight, towerData } from './../../utils/constant';
 import globalId from './../../id';
 
 
@@ -23,7 +23,7 @@ export default class BaseTower {
         this.radius = radius || 12;
         this.hue = 200;
         this.bullets = bullets;
-        this.cost = towerCost.base;
+        this.cost = towerData[this.type].cost;
         this.lastShootTime = new Date();
         this.shootInterval = 500;   // 发射间隔，单位ms
         this.direction = 180;     // 用度数表示的tower指向

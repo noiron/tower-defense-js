@@ -3,7 +3,7 @@ import Laser from '../bullet/Laser';
 import { vec2 } from 'gl-matrix';
 import { toRadians, calcuteDistance } from '../../utils/utils';
 import { config } from './../../utils/config';
-import { towerCost, gridWidth, gridHeight } from './../../utils/constant';
+import { gridWidth, gridHeight, towerData } from './../../utils/constant';
 import globalId from './../../id';
 
 export default class LaserTower extends BaseTower {
@@ -13,7 +13,7 @@ export default class LaserTower extends BaseTower {
 
         this.type = 'LASER';
         this.hue = 60;
-        this.cost = towerCost.laserTower;
+        this.cost = towerData[this.type].cost;
         this.range = 4 * gridWidth;
 
         this.direction = opt.direction || 0; // 用度数表示的tower指向
