@@ -1,5 +1,5 @@
 import { BaseTower, LaserTower, SlowTower, FireTower } from './tower';
-import { isInside } from './../utils/utils';
+import { isInside, highlightGrid } from './../utils/utils';
 import { GAME_CONTROL_WIDTH, GAME_CONTROL_HEIGHT, towerData } from '../utils/constant';
 import { gameInfo } from './../../index';
 
@@ -335,46 +335,11 @@ class TowerArea {
         this.towers.forEach(t => t.draw(ctx));
     }
 
-    // 选中的tower突出显示
-    highlightTower(x, y) {
-        const ctx = this.ctx;
-        ctx.strokeStyle = 'pink';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(x * GRID_WIDTH + this.offsetX + 3, y * GRID_HEIGHT + this.offsetY + 3);
-        ctx.lineTo((x + 0.35) * GRID_WIDTH + this.offsetX + 3, y * GRID_HEIGHT + this.offsetY + 3);
 
-        ctx.moveTo((x + 0.65) * GRID_WIDTH + this.offsetX, y * GRID_HEIGHT + this.offsetY + 3);
-        ctx.lineTo((x + 1) * GRID_WIDTH + this.offsetX - 3, y * GRID_HEIGHT + this.offsetY + 3);
-        ctx.lineTo(
-            (x + 1) * GRID_WIDTH + this.offsetX - 3,
-            (y + 0.35) * GRID_HEIGHT + this.offsetY
-        );
-
-        ctx.moveTo(
-            (x + 1) * GRID_WIDTH + this.offsetX - 3,
-            (y + 0.65) * GRID_HEIGHT + this.offsetY - 3
-        );
-        ctx.lineTo(
-            (x + 1) * GRID_WIDTH + this.offsetX - 3,
-            (y + 1) * GRID_HEIGHT + this.offsetY - 3
-        );
-        ctx.lineTo(
-            (x + 0.65) * GRID_WIDTH + this.offsetX,
-            (y + 1) * GRID_HEIGHT + this.offsetY - 3
-        );
-
-        ctx.moveTo(
-            (x + 0.35) * GRID_WIDTH + this.offsetX,
-            (y + 1) * GRID_HEIGHT + this.offsetY - 3
-        );
-        ctx.lineTo(x * GRID_WIDTH + this.offsetX + 3, (y + 1) * GRID_HEIGHT + this.offsetY - 3);
-        ctx.lineTo(x * GRID_WIDTH + this.offsetX + 3, (y + 0.65) * GRID_HEIGHT + this.offsetY - 3);
-
-        ctx.moveTo(x * GRID_WIDTH + this.offsetX + 3, (y + 0.35) * GRID_HEIGHT + this.offsetY);
-        ctx.lineTo(x * GRID_WIDTH + this.offsetX + 3, y * GRID_HEIGHT + this.offsetY + 3);
-
-        ctx.closePath();
-        ctx.stroke();
+    highlightTower(col, row) {
+        const x = col * GRID_WIDTH + this.offsetX;
+        const y = row * GRID_HEIGHT + this.offsetY;
+        highlightGrid(this.ctx, x, y, GRID_WIDTH, GRID_HEIGHT);
     }
+
 }

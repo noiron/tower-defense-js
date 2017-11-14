@@ -1,5 +1,6 @@
 import { gridWidth, gridHeight, gridNumX, gridNumY } from './../utils/constant';
 import Path from './Path';
+import { highlightGrid } from '../utils/utils';
 
 export default class Map {
     constructor(opt) {
@@ -69,13 +70,7 @@ export default class Map {
         if (towerSelect) {
             const col = towers[towerSelectIndex].col;
             const row = towers[towerSelectIndex].row;
-            fillGrid(col, row, 'pink');
-        }
-
-        // 给一个格子上色
-        function fillGrid(x, y, color) {
-            ctx.fillStyle = color || '#666';
-            ctx.fillRect(x * gridWidth + 1, y * gridHeight + 1, gridWidth - 2, gridHeight - 2);
+            highlightGrid(ctx, col * gridWidth, row * gridHeight, gridWidth, gridHeight);
         }
 
         ctx.restore();
