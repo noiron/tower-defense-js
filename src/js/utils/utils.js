@@ -66,3 +66,49 @@ export function isInside(pos, rect) {
         pos.y > rect.y
     );
 }
+
+/**
+ * 
+ * @param {*} ctx 
+ * @param {*} x  top left x coordinate
+ * @param {*} y  top left y coordinate
+ * @param {*} WIDTH grid's width
+ * @param {*} HEIGHT grid's height
+ *       ____
+ *      |    |
+ *      |____|
+ */
+export function highlightGrid(ctx, x, y, WIDTH, HEIGHT) {
+    const LW = 3;   // lineWidth
+    const innerWidth = WIDTH - LW;
+    const innerHeight = HEIGHT - LW;
+    const lowRatio = 0.35;
+    const upRatio = 1 - lowRatio;
+
+    ctx.save();
+    ctx.strokeStyle = 'pink';
+    ctx.lineWidth = LW;
+
+    ctx.beginPath();
+    ctx.moveTo(x + LW, y + LW);
+    ctx.lineTo(x + lowRatio * WIDTH + LW, y + LW);
+
+    ctx.moveTo(x + upRatio * WIDTH, y + LW);
+    ctx.lineTo(x + innerWidth, y + LW);
+    ctx.lineTo(x + innerWidth, y + lowRatio * HEIGHT);
+
+    ctx.moveTo(x + innerWidth, y + upRatio * HEIGHT - LW);
+    ctx.lineTo(x + innerWidth, y + innerHeight);
+    ctx.lineTo(x + upRatio * WIDTH, y + innerHeight);
+
+    ctx.moveTo(x + lowRatio * WIDTH, y + innerHeight);
+    ctx.lineTo(x + LW, y + innerHeight);
+    ctx.lineTo(x + LW, y + upRatio * HEIGHT - LW);
+
+    ctx.moveTo(x + LW, y + lowRatio * HEIGHT);
+    ctx.lineTo(x + LW, y + LW);
+
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+}

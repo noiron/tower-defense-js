@@ -1,6 +1,6 @@
 import { BaseTower, LaserTower, SlowTower, FireTower } from './tower';
-import { isInside } from './../utils/utils';
-import { GAME_CONTROL_WIDTH, GAME_CONTROL_HEIGHT } from '../utils/constant';
+import { isInside, highlightGrid } from './../utils/utils';
+import { GAME_CONTROL_WIDTH, GAME_CONTROL_HEIGHT, towerData } from '../utils/constant';
 import { gameInfo } from './../../index';
 
 const GRID_WIDTH = 60;
@@ -11,9 +11,14 @@ const WIDTH = GAME_CONTROL_WIDTH;   // 230
 const HEIGHT = GAME_CONTROL_HEIGHT; // 640
 
 const FILL_COLOR = '#fafafa';
+const DISABLE_COLOR = '#aaa';
 
-const gameInfoCanvas = document.getElementById('game-info');
-const infoCtx = gameInfoCanvas.getContext('2d');
+// 每一个子数组代表一列
+const TOWER_TYPE = [
+    ['BASE', 'FIRE'],
+    ['LASER'],
+    ['SLOW']
+];
 
 class GameControl {
     constructor(opt) {
@@ -42,22 +47,31 @@ class GameControl {
             height: GRID_NUM_Y * GRID_HEIGHT
         };
 
-        this.pauseBtn = {
+        const commonBtnProp = {
             x: this.offsetX,
-            y: 400,
             width: 100,
             height: 40,
-            text: '暂停',
             status: ''
         };
 
+        this.pauseBtn = {
+            y: 350,
+            text: '暂停',
+            ...commonBtnProp
+        };
+
+        this.upgradeBtn = {
+            y: 410,
+            text: '升级',
+            disable: true,
+            ...commonBtnProp
+        };
+
         this.sellBtn = {
-            x: this.offsetX,
             y: 470,
-            width: 100,
-            height: 40,
             text: '出售',
-            status: ''
+            disable: true,
+            ...commonBtnProp
         };
 
         this.towerArea = new TowerArea({
@@ -74,6 +88,7 @@ class GameControl {
         if (this.game.status === '') { 
             return; 
         }
+    
         const ctx = this.ctx;
         // ctx.fillStyle = '#eee';
         ctx.fillStyle = '#010c12';
@@ -86,6 +101,7 @@ class GameControl {
         this.towerArea.draw();
         this.drawText();
         this.drawButton();
+        this.drawSelectedTowerInfo();
 
         requestAnimationFrame(() => this.draw(), 1000);
     }
@@ -109,16 +125,22 @@ class GameControl {
         ctx.fillStyle = FILL_COLOR;
         ctx.font = '20px Arial';
         ctx.fillText(`第 ${game.wave + 1} 波`, this.offsetX, 200);
-        ctx.fillText(`生命: ${game.life}`, this.offsetX, 250);
-        ctx.fillText('得分: ' + game.score, this.offsetX, 300);
-        ctx.fillText('金钱: ' + game.money, this.offsetX, 350);
+        ctx.fillText(`生命: ${game.life}`, this.offsetX, 240);
+        ctx.fillText('得分: ' + game.score, this.offsetX, 280);
+        ctx.fillText('金钱: ' + game.money, this.offsetX, 320);
     }
 
     drawButton() {
         const ctx = this.ctx;
 
-        [this.pauseBtn, this.sellBtn].forEach(btn => {
-            if (btn.status === 'hover') {
+        [this.sellBtn, this.upgradeBtn].forEach(b => b.disable = !this.game.towerSelect);
+
+        [this.pauseBtn, this.sellBtn, this.upgradeBtn].forEach(btn => {
+            if (btn.disable) {
+                /* 按钮当前处于不可用状态 */
+                ctx.strokeStyle = DISABLE_COLOR;
+                ctx.fillStyle = DISABLE_COLOR;
+            } else if (btn.status === 'hover') {
                 ctx.strokeStyle = 'red';
                 ctx.fillStyle = 'red';
             } else {
@@ -130,8 +152,21 @@ class GameControl {
         });
     }
 
+    drawSelectedTowerInfo() {
+        const game = this.game;
+        if (!game.towerSelect) {
+            return;
+        }
+        const ctx = this.ctx;
+        const tower = game.towers[game.towerSelectIndex];
+
+        ctx.fillStyle = FILL_COLOR;
+        ctx.font = '18px Arial';
+        ctx.fillText(`当前等级: ${tower.level}`, this.offsetX, 560);
+        ctx.fillText(`攻击: ${tower.damage.toFixed(2)}`, this.offsetX, 585);
+    }
+
     // 在游戏的控制区域绑定事件
-    // TODO: 简化判断事件对应元素的逻辑
     bindEvent() {
         const $element = $(this.option.element);
         const game = this.game;
@@ -140,7 +175,6 @@ class GameControl {
 
         $element.click(e => {
             const $canvas = $(e.target);
-            const game = this.game;
             const offset = $canvas.offset();
             x = e.clientX - offset.left;
             y = e.clientY - offset.top;
@@ -150,58 +184,21 @@ class GameControl {
                 const xIdx = Math.floor((x - this.offsetX) / GRID_WIDTH);
                 const yIdx = Math.floor((y - this.offsetY) / GRID_HEIGHT);
 
-                // 点击了 BaseTower
-                if (xIdx === 0 && yIdx === 0) {
-                    if (game.mode === 'ADD_TOWER') {
-                        if (game.addTowerType !== 'BASE') {
-                            game.addTowerType = 'BASE';
-                            this.towerArea.selected = [0, 0];
-                        } else {
-                            game.mode = '';
-                            game.addTowerType = '';
-                        }
-                    } else {
-                        game.mode = 'ADD_TOWER';
-                        game.addTowerType = 'BASE';
-                        this.towerArea.selected = [0, 0]; // 突出显示
-                    }
-                } else if (xIdx === 1 && yIdx === 0) {
-                    // 点击了 LaserTower
-                    if (game.mode === 'ADD_TOWER' && game.addTowerType === 'LASER') {
+                if (TOWER_TYPE[xIdx][yIdx]) {
+                    if (game.mode === 'ADD_TOWER' && game.addTowerType === TOWER_TYPE[xIdx][yIdx]) {
+                        /* 添加塔模式下，点击同一种类的塔，则取消添加状态 */
                         game.mode = '';
                         game.addTowerType = '';
                     } else {
+                        /* 进入添加塔模式，或切换塔的种类 */
                         game.mode = 'ADD_TOWER';
-                        game.addTowerType = 'LASER';
-                        this.towerArea.selected = [1, 0];
+                        game.addTowerType = TOWER_TYPE[xIdx][yIdx];
+                        this.towerArea.selected = [xIdx, yIdx];
                     }
-                } else if (xIdx === 2 && yIdx === 0) {
-                    // 点击了 SlowTower
-                    if (game.mode === 'ADD_TOWER' && game.addTowerType === 'SLOW') {
-                        game.mode = '';
-                        game.addTowerType = '';
-                    } else {
-                        game.mode = 'ADD_TOWER';
-                        game.addTowerType = 'SLOW';
-                        this.towerArea.selected = [2, 0];
-                    }
-                } else if (xIdx === 0 && yIdx === 1) {
-                    // 点击了火焰塔
-                    if (game.mode === 'ADD_TOWER' && game.addTowerType === 'FIRE') {
-                        game.mode = '';
-                        game.addTowerType = '';
-                    } else {
-                        game.mode = 'ADD_TOWER';
-                        game.addTowerType = 'FIRE';
-                        this.towerArea.selected = [0, 1];
-                    }
-                } else {
-                    this.towerArea.selected = -1;
                 }
-            } 
-            // else {
-            //     console.log('out');
-            // }
+            } else {
+                this.towerArea.selected = -1;
+            }
 
             if (isInside({ x, y }, this.pauseBtn)) {
                 this.pauseBtn.text = game.status === 'running' ? '继续' : '暂停';
@@ -219,13 +216,20 @@ class GameControl {
                     // console.log('do nothing');
                 }
             }
+
+            if (isInside({ x, y }, this.upgradeBtn)) {
+                if (game.towerSelect === true) {
+                    game.upgradeTower();
+                } else {
+                    // 
+                }
+            }
         });
 
         $element.mousemove(e => {
             // e.stopPropagation()
             const pauseBtn = this.pauseBtn;
             const sellBtn = this.sellBtn;
-            const game = this.game;
 
             const $canvas = $(e.target);
             const offset = $canvas.offset();
@@ -252,17 +256,20 @@ class GameControl {
                 const col = Math.floor((x - this.offsetX) / GRID_WIDTH);
                 const row = Math.floor((y - this.offsetY) / GRID_HEIGHT);
 
-                let text = '';
                 let infoX = this.offsetX + col * GRID_WIDTH - 100;
-                if (row === 0 && col === 0) {
-                    text = '子弹塔：沙包大的子弹见过没有？';
-                } else if (row === 0 && col === 1) {
-                    text = '激光塔：哎哟，不错！';
-                } else if (row === 0 && col === 2) {
-                    text = '减速塔：Yo, Yo, Yo, 留下来！';
+
+                const towerType = TOWER_TYPE[col][row];
+                const text = [];
+                if (towerType) {
+                    const data = towerData[towerType];
+                    const tower = this.towerArea.towers[towerType];
+                    text.push(data.info);
+                    text.push(`造价: ${data.cost}`);
+                    text.push(`攻击: ${tower.damage}`);
+                }
+                if (row === 0 && col === 2) {
                     infoX -= 120;
                 } else if (row === 1 && col === 0) {
-                    text = '火焰塔：啊哈，你想被烤成几分熟？';
                     infoX -= 50;
                 }
 
@@ -320,7 +327,12 @@ class TowerArea {
             radius: 10
         });
 
-        this.towers = [this.baseTower, this.laserTower, this.slowTower, this.fireTower];
+        this.towers = {
+            BASE: this.baseTower,
+            LASER: this.laserTower,
+            SLOW: this.slowTower,
+            FIRE: this.fireTower
+        };
     }
 
     draw() {
@@ -346,50 +358,17 @@ class TowerArea {
         if (this.selected !== -1) {
             this.highlightTower(this.selected[0], this.selected[1]);
         }
-        
-        this.towers.forEach(t => t.draw(ctx));
+
+        Object.keys(this.towers).forEach(key => {
+            this.towers[key].draw(ctx);
+        });
     }
 
-    // 选中的tower突出显示
-    highlightTower(x, y) {
-        const ctx = this.ctx;
-        ctx.strokeStyle = 'pink';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(x * GRID_WIDTH + this.offsetX + 3, y * GRID_HEIGHT + this.offsetY + 3);
-        ctx.lineTo((x + 0.35) * GRID_WIDTH + this.offsetX + 3, y * GRID_HEIGHT + this.offsetY + 3);
 
-        ctx.moveTo((x + 0.65) * GRID_WIDTH + this.offsetX, y * GRID_HEIGHT + this.offsetY + 3);
-        ctx.lineTo((x + 1) * GRID_WIDTH + this.offsetX - 3, y * GRID_HEIGHT + this.offsetY + 3);
-        ctx.lineTo(
-            (x + 1) * GRID_WIDTH + this.offsetX - 3,
-            (y + 0.35) * GRID_HEIGHT + this.offsetY
-        );
-
-        ctx.moveTo(
-            (x + 1) * GRID_WIDTH + this.offsetX - 3,
-            (y + 0.65) * GRID_HEIGHT + this.offsetY - 3
-        );
-        ctx.lineTo(
-            (x + 1) * GRID_WIDTH + this.offsetX - 3,
-            (y + 1) * GRID_HEIGHT + this.offsetY - 3
-        );
-        ctx.lineTo(
-            (x + 0.65) * GRID_WIDTH + this.offsetX,
-            (y + 1) * GRID_HEIGHT + this.offsetY - 3
-        );
-
-        ctx.moveTo(
-            (x + 0.35) * GRID_WIDTH + this.offsetX,
-            (y + 1) * GRID_HEIGHT + this.offsetY - 3
-        );
-        ctx.lineTo(x * GRID_WIDTH + this.offsetX + 3, (y + 1) * GRID_HEIGHT + this.offsetY - 3);
-        ctx.lineTo(x * GRID_WIDTH + this.offsetX + 3, (y + 0.65) * GRID_HEIGHT + this.offsetY - 3);
-
-        ctx.moveTo(x * GRID_WIDTH + this.offsetX + 3, (y + 0.35) * GRID_HEIGHT + this.offsetY);
-        ctx.lineTo(x * GRID_WIDTH + this.offsetX + 3, y * GRID_HEIGHT + this.offsetY + 3);
-
-        ctx.closePath();
-        ctx.stroke();
+    highlightTower(col, row) {
+        const x = col * GRID_WIDTH + this.offsetX;
+        const y = row * GRID_HEIGHT + this.offsetY;
+        highlightGrid(this.ctx, x, y, GRID_WIDTH, GRID_HEIGHT);
     }
+
 }

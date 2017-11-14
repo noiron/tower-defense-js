@@ -26,26 +26,28 @@ class GameInfo {
         ctx.clearRect(0, 0, this.element.width, this.element.height);
 
         infos.forEach(info => {
-            const rect = [info.x, info.y, info.width, info.height];
+            // const rect = [info.x, info.y, info.width, info.height];
             ctx.font = '20px Arial';
 
-            if (info.text) {
+            if (info.text && info.text.length > 0) {
                 ctx.save();
-                ctx.fillStyle = 'rgba(0, 255, 0, 0.1)';
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.2)';
                 // 确定信息显示的位置
                 const textStartX = info.x + WIDTH;
                 // 确定信息的宽度
                 const textWidth = ctx.measureText(info.text).width;
                 // 画出信息显示时的背景
-                ctx.fillRect(textStartX - 20, info.y - 50, textWidth + 40, 60);
+                ctx.fillRect(textStartX - 20, info.y - 25, textWidth + 40, 30 * info.text.length);
                 
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-                ctx.fillText(info.text, textStartX, info.y);
+                ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+                info.text.forEach((t, idx) => {
+                    const y = info.y + idx * 25;
+                    ctx.fillText(t, textStartX, y);
+                });
 
                 ctx.restore();
             }
         });
-        // console.log(this.count++);
         // requestAnimationFrame(() => this.draw());
         setTimeout(() => this.draw(), 300);
     }

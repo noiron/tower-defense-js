@@ -1,19 +1,19 @@
 import BaseTower from './BaseTower';
 import Bullet from './../bullet/Bullet';
 import { vec2 } from 'gl-matrix';
-import { toRadians, calcuteDistance } from './../../utils/utils';
+import { toRadians } from './../../utils/utils';
 import { config } from './../../utils/config';
-import { towerCost, gridWidth, gridHeight } from './../../utils/constant';
+import { gridWidth, towerData } from './../../utils/constant';
 
 
 export default class BulletTower extends BaseTower {
     constructor(opt) {
-        const { ctx, x, y, bullets, selected, damage } = opt;
+        // const { ctx, x, y, bullets, selected, damage } = opt;
         super(opt);
 
         this.type = 'BULLET';
         this.hue = 100;
-        this.cost = towerCost.bulletTower;
+        this.cost = towerData[this.type].cost;
         this.range = 3 * gridWidth;
 
         this.direction = opt.direction || 0;     // 用度数表示的tower指向

@@ -4,17 +4,17 @@
 
 import BaseTower from './BaseTower';
 import FireZone from '../bullet/FireZone';
-import { towerCost, gridWidth, gridHeight } from './../../utils/constant';
+import { towerData, gridWidth } from './../../utils/constant';
 import globalId from './../../id';
 
 export default class FireTower extends BaseTower {
     constructor(opt) {
         super(opt);
-        const { ctx, x, y, selected, damage } = opt;    
+        // const { ctx, x, y, selected, damage } = opt;    
 
         this.type = 'FIRE';
         this.hue = 0;
-        this.cost = towerCost.slowTower;
+        this.cost = towerData[this.type].cost;
 
         this.range = 3 * gridWidth;
 

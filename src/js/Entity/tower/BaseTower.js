@@ -6,7 +6,7 @@ import Bullet from './../bullet/CircleBullet';
 import { vec2 } from 'gl-matrix';
 import { toRadians, calcuteDistance } from './../../utils/utils';
 import { config } from './../../utils/config';
-import { towerCost, gridWidth, gridHeight } from './../../utils/constant';
+import { gridWidth, gridHeight, towerData } from './../../utils/constant';
 import globalId from './../../id';
 
 
@@ -17,12 +17,13 @@ export default class BaseTower {
         this.y = y;
         this.ctx = ctx;
         this.type = 'BASE';
+        this.level = 1;
         this.col = Math.floor((x - gridWidth / 2) / gridWidth);
         this.row = Math.floor((y - gridHeight / 2) / gridHeight);
         this.radius = radius || 12;
         this.hue = 200;
         this.bullets = bullets;
-        this.cost = towerCost.base;
+        this.cost = towerData[this.type].cost;
         this.lastShootTime = new Date();
         this.shootInterval = 500;   // 发射间隔，单位ms
         this.direction = 180;     // 用度数表示的tower指向
@@ -34,6 +35,8 @@ export default class BaseTower {
         this.range = 4 * gridWidth;
         this.selected = selected || false;
         this.damage = damage || 5;
+        this.upgradeGain = damage * 0.4;  // 升级后的伤害增益
+        this.upgradeCost = this.cost * 0.6;   
     }
 
     step() {

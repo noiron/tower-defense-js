@@ -1,5 +1,4 @@
 import { vec2 } from 'gl-matrix';
-import Path from './Entity/Path.js';
 import { gameControl } from './../index';
 import TowerFactory from './Entity/tower';
 import Enemy from './Entity/Enemy';
@@ -11,10 +10,10 @@ import {
     gridHeight,
     gridNumX,
     gridNumY,
-    towerCost,
     WIDTH,
     HEIGHT,
-    GAME_CONTROL_WIDTH
+    GAME_CONTROL_WIDTH,
+    towerData
 } from './utils/constant';
 import globalId from './id';
 
@@ -22,8 +21,6 @@ const BORDER_WIDTH = 6;
 
 const canvas = document.getElementById('drawing');
 const ctx = canvas.getContext('2d');
-
-const gameOverEle = document.getElementById('game-over');
 
 const backgroundCanvas = document.getElementById('background');
 const bgCtx = backgroundCanvas.getContext('2d');
@@ -177,7 +174,6 @@ export default class Game {
 
         // 游戏结束
         if (this.status === 'gameOver') {
-            gameOverEle.style.display = 'block';
             return;
         }
 
@@ -245,12 +241,12 @@ export default class Game {
             tower.draw(ctx);
         });
 
-        // 确定游戏是否结束
-        if (this.enemyCreatedCount > 0 && this.enemies.length === 0) {
-            setTimeout(() => {
-                this.status = 'gameOver';
-            }, 1000);
-        }
+        // // 确定游戏是否结束
+        // if (this.enemyCreatedCount > 0 && this.enemies.length === 0) {
+        //     setTimeout(() => {
+        //         this.status = 'gameOver';
+        //     }, 1000);
+        // }
 
         // 确定 tower 的目标
         this.towers.forEach(tower => {
@@ -422,7 +418,7 @@ export default class Game {
             console.log('You can not place tower here!');
             return -1;
         }
-        const cost = towerCost[towerType];
+        const cost = towerData[towerType].cost;
         // 检查是否有足够金钱
         if (this.money - cost < 0) {
             // TODO: 将提示信息显示在画面中
@@ -451,9 +447,20 @@ export default class Game {
         this.map.coord[col][row] = '';
 
         // 出售价格改为购买价格的 50%
-        this.money += (towerCost[towerType] * 0.5);
+        this.money += (towerData[towerType].cost * 0.5);
         this.towerSelect = false;
         this.towerSelectIndex = -1;
+    }
+
+    upgradeTower(index = this.towerSelectIndex) {
+        const tower = this.towers[index];
+        // TODO: 已升级至最大值后，需提示玩家
+        if (tower.level < 4) {
+            // TODO: 对塔的升级应该按预设数值，或按比例
+            tower.range *= 1.5;
+            tower.damage *= 1.5;
+            tower.level++;
+        }
     }
 
     // 准备放置塔时，在鼠标所在位置画一个虚拟的塔
@@ -473,7 +480,7 @@ export default class Game {
     }
 
     bindEvent() {
-        const element = this.element;
+        // const element = this.element;
     }
 
     shouldGenerateEnemy() {
