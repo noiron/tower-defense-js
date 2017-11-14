@@ -55,21 +55,21 @@ class GameControl {
         };
 
         this.pauseBtn = {
-            y: 400,
+            y: 350,
             text: '暂停',
+            ...commonBtnProp
+        };
+
+        this.upgradeBtn = {
+            y: 410,
+            text: '升级',
+            disable: true,
             ...commonBtnProp
         };
 
         this.sellBtn = {
             y: 470,
             text: '出售',
-            disable: true,
-            ...commonBtnProp
-        };
-
-        this.upgradeBtn = {
-            y: 540,
-            text: '升级',
             disable: true,
             ...commonBtnProp
         };
@@ -101,6 +101,7 @@ class GameControl {
         this.towerArea.draw();
         this.drawText();
         this.drawButton();
+        this.drawSelectedTowerInfo();
 
         requestAnimationFrame(() => this.draw(), 1000);
     }
@@ -124,9 +125,9 @@ class GameControl {
         ctx.fillStyle = FILL_COLOR;
         ctx.font = '20px Arial';
         ctx.fillText(`第 ${game.wave + 1} 波`, this.offsetX, 200);
-        ctx.fillText(`生命: ${game.life}`, this.offsetX, 250);
-        ctx.fillText('得分: ' + game.score, this.offsetX, 300);
-        ctx.fillText('金钱: ' + game.money, this.offsetX, 350);
+        ctx.fillText(`生命: ${game.life}`, this.offsetX, 240);
+        ctx.fillText('得分: ' + game.score, this.offsetX, 280);
+        ctx.fillText('金钱: ' + game.money, this.offsetX, 320);
     }
 
     drawButton() {
@@ -149,6 +150,20 @@ class GameControl {
             ctx.strokeRect(btn.x, btn.y, btn.width, btn.height);
             ctx.fillText(btn.text, btn.x + btn.width / 3.5, btn.y + btn.height / 1.6);
         });
+    }
+
+    drawSelectedTowerInfo() {
+        const game = this.game;
+        if (!game.towerSelect) {
+            return;
+        }
+        const ctx = this.ctx;
+        const tower = game.towers[game.towerSelectIndex];
+
+        ctx.fillStyle = FILL_COLOR;
+        ctx.font = '18px Arial';
+        ctx.fillText(`当前等级: ${tower.level}`, this.offsetX, 560);
+        ctx.fillText(`攻击: ${tower.damage.toFixed(2)}`, this.offsetX, 585);
     }
 
     // 在游戏的控制区域绑定事件
@@ -244,7 +259,14 @@ class GameControl {
                 let infoX = this.offsetX + col * GRID_WIDTH - 100;
 
                 const towerType = TOWER_TYPE[col][row];
-                let text = towerType ? towerData[towerType].info : '';
+                const text = [];
+                if (towerType) {
+                    const data = towerData[towerType];
+                    const tower = this.towerArea.towers[towerType];
+                    text.push(data.info);
+                    text.push(`造价: ${data.cost}`);
+                    text.push(`攻击: ${tower.damage}`);
+                }
                 if (row === 0 && col === 2) {
                     infoX -= 120;
                 } else if (row === 1 && col === 0) {
@@ -305,7 +327,12 @@ class TowerArea {
             radius: 10
         });
 
-        this.towers = [this.baseTower, this.laserTower, this.slowTower, this.fireTower];
+        this.towers = {
+            BASE: this.baseTower,
+            LASER: this.laserTower,
+            SLOW: this.slowTower,
+            FIRE: this.fireTower
+        };
     }
 
     draw() {
@@ -331,8 +358,10 @@ class TowerArea {
         if (this.selected !== -1) {
             this.highlightTower(this.selected[0], this.selected[1]);
         }
-        
-        this.towers.forEach(t => t.draw(ctx));
+
+        Object.keys(this.towers).forEach(key => {
+            this.towers[key].draw(ctx);
+        });
     }
 
 
