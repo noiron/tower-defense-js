@@ -34,6 +34,7 @@ class GameControl {
 
         element.width = WIDTH;
         element.height = HEIGHT;
+        this.element = element;
 
         this.ctx = element.getContext('2d');
         this.offsetX = this.option.offsetX;
@@ -102,7 +103,14 @@ class GameControl {
         this.drawButton();
         this.drawSelectedTowerInfo();
 
-        requestAnimationFrame(() => this.draw(), 1000);
+        this.animId = requestAnimationFrame(() => this.draw());
+    }
+
+    stopAnim() {
+        cancelAnimationFrame(this.animId);
+        const ctx = this.ctx;
+        ctx.fillStyle = '#010c12';
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
     }
 
     drawGrid() {

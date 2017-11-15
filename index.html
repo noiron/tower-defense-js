@@ -10,6 +10,12 @@
 
 <body>
   <main>
+    <div id="choose-stage">
+      <a href="#" data-stage="1" class="choose-stage-button">STAGE 1</a>
+      <a href="#" data-stage="2" class="choose-stage-button">STAGE 2</a>
+      <a href="#" data-stage="3" class="choose-stage-button">STAGE 3</a>
+    </div>
+
     <canvas id="background"></canvas>
     <canvas id="drawing"></canvas>
     <canvas id="game-control"></canvas>
@@ -24,14 +30,13 @@
           <li>3. Many fun.</li>
         </ul>
         <a href="#" id="start-button">Start</a>
+        <a href="#" id="back-button">Back</a>
       </div>
     </div>
 
     <div id="game-over" style="display: none">Game Over</div>
 
   </main>
-
-  <p id="enemyCount">Enemy Count: </p>
 
   <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
     crossorigin="anonymous"></script>

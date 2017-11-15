@@ -18,6 +18,7 @@ import globalId from './id';
 import GameControl from './Entity/GameControl';
 import GameInfo from './Entity/GameInfo';
 import { pathCoord } from './utils/config';
+import { world } from '../index';
 
 const BORDER_WIDTH = 6;
 
@@ -32,6 +33,8 @@ backgroundCanvas.height = HEIGHT;
 const gameControlCanvas = document.getElementById('game-control');
 const panels = document.getElementById('panels');
 const startButton = document.getElementById('start-button');
+const backButton = document.getElementById('back-button');
+const $chooseStage = document.getElementById('choose-stage');
 
 const gameInfoCanvas = document.getElementById('game-info');
 
@@ -45,17 +48,15 @@ export default class Game {
         this.stage = opt.stage;
 
         this.init();
-        this.draw();
         this.bindEvent();
     }
 
     init() {
         this.initData();
 
-        window.addEventListener('resize', this.windowResizeHandler, false);
         startButton.addEventListener('click', this.startButtonClickHandler.bind(this), false);
+        backButton.addEventListener('click', this.backButtonClickHandler.bind(this), false);
 
-        this.windowResizeHandler();
         this.renderBackground();
 
         panels.style.display = 'block';
@@ -110,7 +111,7 @@ export default class Game {
         this.addTowerType = 'BASE';
         this.status = '';
         this.score = 0;
-        this.life = 100;
+        this.life = 10;
 
         // 当前是否选中塔
         this.towerSelect = false;
@@ -119,6 +120,8 @@ export default class Game {
 
         this.wave = -1; // 当前第几波
         this.waves = [];
+
+        this.destory = false;
     }
 
     windowResizeHandler() {
@@ -178,14 +181,38 @@ export default class Game {
         }
     }
 
+    backButtonClickHandler(e) {
+        e.stopPropagation();
+
+        this.gameControl.stopAnim();
+        $chooseStage.style.display = 'block';
+        const panels = document.getElementById('panels');
+        panels.style.display = 'none';
+        this.ctx.clearRect(0, 0, this.element.width, this.element.height);
+        const gameControl = this.gameControl;
+        gameControl.ctx.clearRect(0, 0, gameControl.element.width, gameControl.element.height);
+
+        this.destory = true;
+        cancelAnimationFrame(this.animId);
+        this.status = '';
+
+        // location.reload();
+    }
+
     draw() {
         // 游戏尚未开始的状态
         if (this.status === '') {
             return;
         }
 
+        // FIXME: 选择不同的 stage 之后，之前的游戏画面会出现干扰
+        if (this.stage !== world.stage || this.destory) {
+            return;
+        }
+        
         // 游戏结束
         if (this.status === 'gameOver') {
+            cancelAnimationFrame(this.animId);  // NOT work !?
             return;
         }
 
@@ -221,7 +248,7 @@ export default class Game {
                 color: cfg.color,
                 radius: cfg.radius,
                 speed: cfg.speed,
-                health: cfg.health * (1 + this.wave / 40)
+                health: cfg.health * (1 + this.wave / 10)
             });
 
             this.enemies.push(enemy);
@@ -339,7 +366,7 @@ export default class Game {
 
         this.displayInfo();
 
-        requestAnimationFrame(() => this.draw(), 100);
+        this.animId = requestAnimationFrame(() => this.draw());
     }
 
     // 循环检测bullet是否和vehicle碰撞
@@ -574,6 +601,7 @@ export default class Game {
         title.innerHTML = `得分：${this.score}`;
         panels.style.display = 'block';
         this.status = 'gameOver';
+        cancelAnimationFrame(this.animId);
     }
 }
 
