@@ -85,7 +85,6 @@ export default class Enemy {
             this.y = (wp[1] + 0.5) * gridSize;
             if (this.wp + 1 >= path.length) {
                 // 到达终点
-                console.log('reach destination');
                 this.dead = true;
                 this.reachDest = true;
             } else {

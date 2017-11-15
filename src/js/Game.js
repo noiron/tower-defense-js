@@ -1,5 +1,4 @@
 import { vec2 } from 'gl-matrix';
-import { gameControl } from './../index';
 import TowerFactory from './Entity/tower';
 import Enemy from './Entity/Enemy';
 import Map from './Entity/Map';
@@ -16,6 +15,9 @@ import {
     towerData
 } from './utils/constant';
 import globalId from './id';
+import GameControl from './Entity/GameControl';
+import GameInfo from './Entity/GameInfo';
+import { pathCoord } from './utils/config';
 
 const BORDER_WIDTH = 6;
 
@@ -40,6 +42,7 @@ export default class Game {
         canvas.height = HEIGHT;
         this.element = opt.element;
         this.ctx = ctx;
+        this.stage = opt.stage;
 
         this.init();
         this.draw();
@@ -54,6 +57,24 @@ export default class Game {
 
         this.windowResizeHandler();
         this.renderBackground();
+
+        panels.style.display = 'block';
+
+        const gameControlEle = document.getElementById('game-control');
+        const gameControl = new GameControl({
+            element: gameControlEle,
+            game: this
+        });
+        this.gameControl = gameControl;
+        gameControl.draw();
+        
+        const $gameInfo = document.getElementById('game-info');
+        const gameInfo = new GameInfo({
+            element: $gameInfo,
+            game: this
+        });
+        this.gameInfo = gameInfo;
+        gameInfo.draw();  
     }
 
     initData() {
@@ -70,16 +91,7 @@ export default class Game {
         this.enemyCreatedCount = 0; // 目前已经创建的enemy的总数
         this.lastCreatedEnemyTime = new Date();
 
-        this.pathCoord = [
-            [0, 0],
-            [18, 0],
-            [18, 4],
-            [8, 4],
-            [8, 10],
-            [16, 10],
-            [16, 14],
-            [-1, 14]
-        ];
+        this.pathCoord = pathCoord[this.stage];
 
         const newTowerCoord = [8, 3];
         this.map = new Map({ ctx, WIDTH, HEIGHT, newTowerCoord, pathCoord: this.pathCoord });
@@ -98,7 +110,7 @@ export default class Game {
         this.addTowerType = 'BASE';
         this.status = '';
         this.score = 0;
-        this.life = 1000000;
+        this.life = 100;
 
         // 当前是否选中塔
         this.towerSelect = false;
@@ -162,7 +174,7 @@ export default class Game {
             this.initData();
             this.status = 'running';
             this.draw();
-            gameControl.draw();
+            this.gameControl.draw();
         }
     }
 
@@ -200,11 +212,12 @@ export default class Game {
         // 总数小于50，且间隔 x ms以上
         if (this.shouldGenerateEnemy()) {
             const cfg = this.waves[this.wave].generateEnemy();
+            const basePos = this.pathCoord[0];
             const enemy = new Enemy({
                 id: globalId.genId(),
                 ctx: ctx,
-                x: gridWidth / 2 + (Math.random() - 0.5) * 10,
-                y: gridHeight / 2 + (Math.random() - 0.5) * 10,
+                x: gridWidth / 2 + (Math.random() - 0.5) * 10 + basePos[0] * gridWidth,
+                y: gridHeight / 2 + (Math.random() - 0.5) * 10 + basePos[1] * gridHeight,
                 color: cfg.color,
                 radius: cfg.radius,
                 speed: cfg.speed,
@@ -457,7 +470,7 @@ export default class Game {
         // TODO: 已升级至最大值后，需提示玩家
         if (tower.level < 4) {
             // TODO: 对塔的升级应该按预设数值，或按比例
-            tower.range *= 1.5;
+            tower.range *= 1.25;
             tower.damage *= 1.5;
             tower.level++;
         }
@@ -480,7 +493,67 @@ export default class Game {
     }
 
     bindEvent() {
-        // const element = this.element;
+        const canvas = this.element;
+        const game = this;
+
+        // 在canvas上进行右键操作
+        canvas.oncontextmenu = function(e) {
+            game.mode = '';
+            e.preventDefault();
+        };
+
+        canvas.onclick = function(e) {
+            const rect = canvas.getBoundingClientRect();
+        
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+        
+            const col = Math.floor(x / gridWidth);
+            const row = Math.floor(y / gridHeight);
+        
+            /* 只在地图范围内进行操作 */
+            if (0 <= col && col < gridNumX && 0 <= row && row < gridNumY) {
+                if (game.map.coord[col][row] === 'T') {
+                    // 点击的格子内为塔
+                    game.towers.map((tower, index) => {
+                        if (tower.col === col && tower.row === row) {
+                            console.log(`You select ${index}th tower, its id is ${tower.id}`);
+        
+                            // 已经选中的塔再次点击则取消
+                            if (game.towerSelectIndex === index) {
+                                game.towerSelectIndex = -1;
+                                game.towerSelectId = -1;
+                                game.towerSelect = false;
+                            } else {
+                                game.towerSelectIndex = index;
+                                game.towerSelectId = tower.id;
+                                game.towerSelect = true;
+                            }
+                        }
+                    });
+                } else {
+                    game.towerSelect = false;
+                    game.towerSelectId = -1;
+                    game.towerSelectIndex = -1;
+                }
+        
+                if (game.mode === 'ADD_TOWER') {
+                    game.createNewTower(col, row, game.addTowerType);
+                }
+            }
+        };
+
+        canvas.onmousemove = function(e) {
+            if (game.mode === 'ADD_TOWER') {
+                game.cursorX = e.pageX;
+                game.cursorY = e.pageY;
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                game.col = Math.floor(x / gridWidth);
+                game.row = Math.floor(y / gridHeight);
+            }
+        };
     }
 
     shouldGenerateEnemy() {

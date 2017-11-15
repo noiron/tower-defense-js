@@ -1,7 +1,6 @@
 import { BaseTower, LaserTower, SlowTower, FireTower } from './tower';
 import { isInside, highlightGrid } from './../utils/utils';
 import { GAME_CONTROL_WIDTH, GAME_CONTROL_HEIGHT, towerData } from '../utils/constant';
-import { gameInfo } from './../../index';
 
 const GRID_WIDTH = 60;
 const GRID_HEIGHT = 60;
@@ -228,6 +227,7 @@ class GameControl {
 
         $element.mousemove(e => {
             // e.stopPropagation()
+            const gameInfo = this.game.gameInfo;
             const pauseBtn = this.pauseBtn;
             const sellBtn = this.sellBtn;
 

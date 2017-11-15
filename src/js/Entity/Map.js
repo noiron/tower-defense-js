@@ -66,7 +66,6 @@ export default class Map {
         ctx.stroke();
 
         // 当前选中的格子突出显示
-        // TODO: 这一部分移入game.js中
         if (towerSelect) {
             const col = towers[towerSelectIndex].col;
             const row = towers[towerSelectIndex].row;
