@@ -101,8 +101,6 @@ function renderBackground() {
     ctx.fillStyle = gradient;
 
     bgCtx.fillRect(0, 0, WIDTH + GAME_CONTROL_WIDTH, HEIGHT);
-
-    $chooseStage.style.backgroundColor = 'rgba(0, 0, 0, 0)'; 
 }
 
 windowResizeHandler();

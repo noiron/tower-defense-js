@@ -102,6 +102,8 @@ canvas#game-info {
     z-index: 10;
     color: #fff;
     text-align: center;
+    background: rgba(0, 8, 14, 1);
+    background: radial-gradient(rgba(0, 70, 70, 1), rgba(0, 8, 14, 1));
 }
 
 .choose-stage-button {
@@ -113,6 +115,10 @@ canvas#game-info {
     transition: all .18s linear;
     margin: 20px 0;
     padding: 10px 0;
+}
+
+.choose-stage-button:first-of-type {
+    margin-top: 80px;
 }
 
 .choose-stage-button:hover {

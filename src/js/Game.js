@@ -17,7 +17,7 @@ import {
 import globalId from './id';
 import GameControl from './Entity/GameControl';
 import GameInfo from './Entity/GameInfo';
-import { pathCoord } from './utils/config';
+import { orbit } from './utils/config';
 import { world } from '../index';
 
 const BORDER_WIDTH = 6;
@@ -92,10 +92,10 @@ export default class Game {
         this.enemyCreatedCount = 0; // 目前已经创建的enemy的总数
         this.lastCreatedEnemyTime = new Date();
 
-        this.pathCoord = pathCoord[this.stage];
+        this.orbit = orbit[this.stage];
 
         const newTowerCoord = [8, 3];
-        this.map = new Map({ ctx, WIDTH, HEIGHT, newTowerCoord, pathCoord: this.pathCoord });
+        this.map = new Map({ ctx, WIDTH, HEIGHT, newTowerCoord, orbit: this.orbit });
 
         // 放置一个初始状态下的塔
         const tower = new TowerFactory['BASE']({
@@ -195,8 +195,6 @@ export default class Game {
         this.destory = true;
         cancelAnimationFrame(this.animId);
         this.status = '';
-
-        // location.reload();
     }
 
     draw() {
@@ -227,6 +225,7 @@ export default class Game {
             towerSelectIndex: this.towerSelectIndex
         });
 
+        // TODO: 完成设定波数后，游戏也会结束
         if (this.life <= 0) {
             this.gameOver();
         }
@@ -239,7 +238,7 @@ export default class Game {
         // 总数小于50，且间隔 x ms以上
         if (this.shouldGenerateEnemy()) {
             const cfg = this.waves[this.wave].generateEnemy();
-            const basePos = this.pathCoord[0];
+            const basePos = this.orbit[0];
             const enemy = new Enemy({
                 id: globalId.genId(),
                 ctx: ctx,
@@ -258,7 +257,7 @@ export default class Game {
 
         // 对每一个enemy进行step操作，并绘制
         this.enemies.forEach((enemy, index) => {
-            enemy.step({ path: this.pathCoord });
+            enemy.step({ path: this.orbit });
             enemy.draw();
 
             if (enemy.dead) {
@@ -280,13 +279,6 @@ export default class Game {
             }
             tower.draw(ctx);
         });
-
-        // // 确定游戏是否结束
-        // if (this.enemyCreatedCount > 0 && this.enemies.length === 0) {
-        //     setTimeout(() => {
-        //         this.status = 'gameOver';
-        //     }, 1000);
-        // }
 
         // 确定 tower 的目标
         this.towers.forEach(tower => {
@@ -453,8 +445,8 @@ export default class Game {
      * @param {Number} row y轴的坐标
      */
     createNewTower(col, row, towerType) {
-        // 检查当前位置是否已有物体
-        if (this.map.coord[col][row] === 'T') {
+        // 检查当前位置是否已有物体，或当前位置是否在路径上
+        if (this.map.coord[col][row] === 'T' || this.map.coord[col][row] === 'P') {
             console.log('You can not place tower here!');
             return -1;
         }
