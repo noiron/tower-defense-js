@@ -17,7 +17,8 @@ import {
 import globalId from './id';
 import GameControl from './Entity/GameControl';
 import GameInfo from './Entity/GameInfo';
-import { pathCoord } from './utils/config';
+import { orbit } from './utils/config';
+import { world } from '../index';
 
 const BORDER_WIDTH = 6;
 
@@ -32,6 +33,8 @@ backgroundCanvas.height = HEIGHT;
 const gameControlCanvas = document.getElementById('game-control');
 const panels = document.getElementById('panels');
 const startButton = document.getElementById('start-button');
+const backButton = document.getElementById('back-button');
+const $chooseStage = document.getElementById('choose-stage');
 
 const gameInfoCanvas = document.getElementById('game-info');
 
@@ -45,17 +48,15 @@ export default class Game {
         this.stage = opt.stage;
 
         this.init();
-        this.draw();
         this.bindEvent();
     }
 
     init() {
         this.initData();
 
-        window.addEventListener('resize', this.windowResizeHandler, false);
         startButton.addEventListener('click', this.startButtonClickHandler.bind(this), false);
+        backButton.addEventListener('click', this.backButtonClickHandler.bind(this), false);
 
-        this.windowResizeHandler();
         this.renderBackground();
 
         panels.style.display = 'block';
@@ -91,10 +92,10 @@ export default class Game {
         this.enemyCreatedCount = 0; // 目前已经创建的enemy的总数
         this.lastCreatedEnemyTime = new Date();
 
-        this.pathCoord = pathCoord[this.stage];
+        this.orbit = orbit[this.stage];
 
         const newTowerCoord = [8, 3];
-        this.map = new Map({ ctx, WIDTH, HEIGHT, newTowerCoord, pathCoord: this.pathCoord });
+        this.map = new Map({ ctx, WIDTH, HEIGHT, newTowerCoord, orbit: this.orbit });
 
         // 放置一个初始状态下的塔
         const tower = new TowerFactory['BASE']({
@@ -110,7 +111,7 @@ export default class Game {
         this.addTowerType = 'BASE';
         this.status = '';
         this.score = 0;
-        this.life = 100;
+        this.life = 10;
 
         // 当前是否选中塔
         this.towerSelect = false;
@@ -119,6 +120,8 @@ export default class Game {
 
         this.wave = -1; // 当前第几波
         this.waves = [];
+
+        this.destory = false;
     }
 
     windowResizeHandler() {
@@ -178,14 +181,36 @@ export default class Game {
         }
     }
 
+    backButtonClickHandler(e) {
+        e.stopPropagation();
+
+        this.gameControl.stopAnim();
+        $chooseStage.style.display = 'block';
+        const panels = document.getElementById('panels');
+        panels.style.display = 'none';
+        this.ctx.clearRect(0, 0, this.element.width, this.element.height);
+        const gameControl = this.gameControl;
+        gameControl.ctx.clearRect(0, 0, gameControl.element.width, gameControl.element.height);
+
+        this.destory = true;
+        cancelAnimationFrame(this.animId);
+        this.status = '';
+    }
+
     draw() {
         // 游戏尚未开始的状态
         if (this.status === '') {
             return;
         }
 
+        // FIXME: 选择不同的 stage 之后，之前的游戏画面会出现干扰
+        if (this.stage !== world.stage || this.destory) {
+            return;
+        }
+        
         // 游戏结束
         if (this.status === 'gameOver') {
+            cancelAnimationFrame(this.animId);  // NOT work !?
             return;
         }
 
@@ -200,6 +225,7 @@ export default class Game {
             towerSelectIndex: this.towerSelectIndex
         });
 
+        // TODO: 完成设定波数后，游戏也会结束
         if (this.life <= 0) {
             this.gameOver();
         }
@@ -212,7 +238,7 @@ export default class Game {
         // 总数小于50，且间隔 x ms以上
         if (this.shouldGenerateEnemy()) {
             const cfg = this.waves[this.wave].generateEnemy();
-            const basePos = this.pathCoord[0];
+            const basePos = this.orbit[0];
             const enemy = new Enemy({
                 id: globalId.genId(),
                 ctx: ctx,
@@ -221,7 +247,7 @@ export default class Game {
                 color: cfg.color,
                 radius: cfg.radius,
                 speed: cfg.speed,
-                health: cfg.health * (1 + this.wave / 40)
+                health: cfg.health * (1 + this.wave / 10)
             });
 
             this.enemies.push(enemy);
@@ -231,7 +257,7 @@ export default class Game {
 
         // 对每一个enemy进行step操作，并绘制
         this.enemies.forEach((enemy, index) => {
-            enemy.step({ path: this.pathCoord });
+            enemy.step({ path: this.orbit });
             enemy.draw();
 
             if (enemy.dead) {
@@ -253,13 +279,6 @@ export default class Game {
             }
             tower.draw(ctx);
         });
-
-        // // 确定游戏是否结束
-        // if (this.enemyCreatedCount > 0 && this.enemies.length === 0) {
-        //     setTimeout(() => {
-        //         this.status = 'gameOver';
-        //     }, 1000);
-        // }
 
         // 确定 tower 的目标
         this.towers.forEach(tower => {
@@ -339,7 +358,7 @@ export default class Game {
 
         this.displayInfo();
 
-        requestAnimationFrame(() => this.draw(), 100);
+        this.animId = requestAnimationFrame(() => this.draw());
     }
 
     // 循环检测bullet是否和vehicle碰撞
@@ -426,8 +445,8 @@ export default class Game {
      * @param {Number} row y轴的坐标
      */
     createNewTower(col, row, towerType) {
-        // 检查当前位置是否已有物体
-        if (this.map.coord[col][row] === 'T') {
+        // 检查当前位置是否已有物体，或当前位置是否在路径上
+        if (this.map.coord[col][row] === 'T' || this.map.coord[col][row] === 'P') {
             console.log('You can not place tower here!');
             return -1;
         }
@@ -524,10 +543,12 @@ export default class Game {
                                 game.towerSelectIndex = -1;
                                 game.towerSelectId = -1;
                                 game.towerSelect = false;
+                                // game.map.selectCoord = null;                                
                             } else {
                                 game.towerSelectIndex = index;
                                 game.towerSelectId = tower.id;
                                 game.towerSelect = true;
+                                // game.map.selectCoord = { col, row };
                             }
                         }
                     });
@@ -535,6 +556,7 @@ export default class Game {
                     game.towerSelect = false;
                     game.towerSelectId = -1;
                     game.towerSelectIndex = -1;
+                    // game.map.selectCoord = { col, row };
                 }
         
                 if (game.mode === 'ADD_TOWER') {
@@ -574,6 +596,7 @@ export default class Game {
         title.innerHTML = `得分：${this.score}`;
         panels.style.display = 'block';
         this.status = 'gameOver';
+        cancelAnimationFrame(this.animId);
     }
 }
 

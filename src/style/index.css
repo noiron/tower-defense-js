@@ -30,21 +30,6 @@ canvas#game-info {
     pointer-events: none;
 }
 
-#game-over {
-    border: 2px solid #000;
-    border-radius: 20px;
-    width: 400px;
-    height: 100px;
-    position: absolute;
-    color: red;
-    font-size: 40px;
-    background: #fff;
-    text-align: center;
-    line-height: 92px;
-    left: 200px;
-    top: 250px;
-    box-shadow: 4px 4px 5px red;
-}
 
 #add-tower {
     display: flex;
@@ -59,25 +44,20 @@ canvas#game-info {
     border: 1px solid #000;
 }
 
-button {
-    width: 80px;
-    height: 40px;
-    margin: 10px;
-}
-
 .ui {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 10px;
     color: #999;
     text-align: left;
     padding: 8px;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.6);
 }
 
 #panels {
     width: 100%;
     position: absolute;
     z-index: 3;
+    display: none;
 }
 
 #message {
@@ -112,6 +92,36 @@ button {
 
 .ui a:hover {
     color: #fff;
+    background-color: #000;
+    transition: all .18s linear;
+}
+
+#choose-stage {
+    width: 1030px;
+    height: 640px;
+    z-index: 10;
+    color: #fff;
+    text-align: center;
+    background: rgba(0, 8, 14, 1);
+    background: radial-gradient(rgba(0, 70, 70, 1), rgba(0, 8, 14, 1));
+}
+
+.choose-stage-button {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 38px;
+    color: #bbb;
+    text-decoration: none;
+    display: block;
+    transition: all .18s linear;
+    margin: 20px 0;
+    padding: 10px 0;
+}
+
+.choose-stage-button:first-of-type {
+    margin-top: 80px;
+}
+
+.choose-stage-button:hover {
     background-color: #000;
     transition: all .18s linear;
 }
