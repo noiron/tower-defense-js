@@ -3,7 +3,7 @@ import TowerFactory from './Entity/tower';
 import Enemy from './Entity/Enemy';
 import Map from './Entity/Map';
 import Wave from './Wave';
-import { calcuteDistance } from './utils/utils';
+import { calculateDistance } from './utils/utils';
 import {
     gridWidth,
     gridHeight,
@@ -12,7 +12,8 @@ import {
     WIDTH,
     HEIGHT,
     GAME_CONTROL_WIDTH,
-    towerData
+    towerData,
+    FRAMERATE
 } from './utils/constant';
 import globalId from './id';
 import GameControl from './Entity/GameControl';
@@ -37,6 +38,7 @@ const backButton = document.getElementById('back-button');
 const $chooseStage = document.getElementById('choose-stage');
 
 const gameInfoCanvas = document.getElementById('game-info');
+const status = document.getElementById('status');
 
 export default class Game {
     constructor(opt) {
@@ -121,6 +123,13 @@ export default class Game {
         this.wave = -1; // 当前第几波
         this.waves = [];
 
+        // FPS 相关数据
+        this.frames = 0;
+        this.timeLastSecond = new Date().getTime();
+        this.fps = 0;
+        this.fpsRate = 0;
+        this.time = 0;
+
         this.destory = false;
     }
 
@@ -174,11 +183,15 @@ export default class Game {
 
         if (this.status === '' || this.status === 'gameOver') {
             panels.style.display = 'none';
+            status.style.display = 'block';
             this.initData();
             this.status = 'running';
             this.draw();
             this.gameControl.draw();
         }
+
+        // 游戏开始时间
+        this.time = new Date().getTime();
     }
 
     backButtonClickHandler(e) {
@@ -218,6 +231,8 @@ export default class Game {
         if (this.status === 'pause') {
             return;
         }
+
+        this.calculateFPS();
 
         this.map.draw({
             towers: this.towers,
@@ -386,9 +401,9 @@ export default class Game {
                     vec2.scale(bVec, bVec, aDotB);
                     vec2.add(normal, bullet.start, bVec);
 
-                    distance = calcuteDistance(normal[0], normal[1], enemy.x, enemy.y);
+                    distance = calculateDistance(normal[0], normal[1], enemy.x, enemy.y);
                 } else if (bullet.type === 'circle' || bullet.type === 'slow' || bullet.type === 'fire') {
-                    distance = calcuteDistance(bullet.x, bullet.y, enemy.x, enemy.y);
+                    distance = calculateDistance(bullet.x, bullet.y, enemy.x, enemy.y);
                 }
                 if (bullet.type === 'laser') {
                     if (bullet.target.id === enemy.id) {
@@ -597,6 +612,32 @@ export default class Game {
         panels.style.display = 'block';
         this.status = 'gameOver';
         cancelAnimationFrame(this.animId);
+    }
+
+    calculateFPS() {
+        // 当前帧的时间
+        const frameTime = new Date().getTime();
+        this.frames++;
+        
+        // 距离上次更新 FPS 已经过去了一秒
+        if (frameTime > this.timeLastSecond + 1000) {
+            this.fps = Math.min(
+                Math.round(this.frames * 1000 / (frameTime - this.timeLastSecond)),
+                FRAMERATE
+            );
+
+            this.timeLastSecond = frameTime;
+            this.frames = 0;
+        }
+        
+        const fps = Math.round(this.fps);
+        const time = Math.round((new Date().getTime() - this.time) / 1000 * 100) / 100; // 显示时间保留两位小数
+        const fpsRate = Math.round(Math.min(this.fps / FRAMERATE, 1) * 100);
+        
+        let statusText = `Time: <span>${time}</span>`;
+        statusText += `<p class="fps">FPS: <span>${fps} (${fpsRate}%)</span></p>`;
+        
+        status.innerHTML = statusText;
     }
 }
 

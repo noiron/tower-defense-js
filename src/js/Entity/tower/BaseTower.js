@@ -4,7 +4,7 @@
 
 import Bullet from './../bullet/CircleBullet';
 import { vec2 } from 'gl-matrix';
-import { toRadians, calcuteDistance } from './../../utils/utils';
+import { toRadians, calculateDistance } from './../../utils/utils';
 import { config } from './../../utils/config';
 import { gridWidth, gridHeight, towerData } from './../../utils/constant';
 import globalId from './../../id';
@@ -116,7 +116,7 @@ export default class BaseTower {
         if (this.target !== null) {
             const prevTgt = enemies.getEle(this.target);
             if (prevTgt) {
-                if (calcuteDistance(prevTgt.x, prevTgt.y, this.x, this.y) < this.range) {
+                if (calculateDistance(prevTgt.x, prevTgt.y, this.x, this.y) < this.range) {
                     return;
                 }
             }
@@ -133,7 +133,7 @@ export default class BaseTower {
                 // 简化计算
                 continue;
             } else {
-                if (calcuteDistance(enemy.x, enemy.y, this.x, this.y) < this.range) {
+                if (calculateDistance(enemy.x, enemy.y, this.x, this.y) < this.range) {
                     if (this.target) { 
                         this.target.color = 0; 
                     }

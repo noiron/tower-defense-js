@@ -1,5 +1,5 @@
 import { vec2 } from 'gl-matrix';
-import { toRadians, calcuteDistance } from './../../utils/utils';
+import { toRadians, calculateDistance } from './../../utils/utils';
 
 export default class CircleBullet {
     constructor({ ctx, x, y, target, range, damage }) {
@@ -24,7 +24,7 @@ export default class CircleBullet {
         if (this.target) {
             const target = enemies.getEleById(this.target.id);
             if (target) {
-                const curDis = calcuteDistance(target.x, target.y, this.x, this.y);
+                const curDis = calculateDistance(target.x, target.y, this.x, this.y);
                 if (curDis < this.range) {
                     const dx = target.x - this.x;
                     const dy = target.y - this.y;

@@ -125,3 +125,26 @@ canvas#game-info {
     background-color: #000;
     transition: all .18s linear;
 }
+
+/* 游戏顶部状态信息 */
+#status {
+    width: 780px;
+    height: 15px;
+    padding: 8px;
+    display: none;
+    position: absolute;
+    z-index: 2;
+}
+
+#status span {
+    color: #bbb;
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+#status .fps {
+    float: right;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+

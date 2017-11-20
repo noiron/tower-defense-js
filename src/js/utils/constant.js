@@ -11,6 +11,8 @@ export const gridHeight = gridSize;
 export const gridNumX = Math.floor(WIDTH / gridWidth);  // x轴方向上的格子数目
 export const gridNumY = Math.floor(HEIGHT / gridHeight);  // y轴方向上的格子数目
 
+export const FRAMERATE = 60;
+
 export const towerData = {
     BASE: {
         cost: 200,

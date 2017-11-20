@@ -39,16 +39,18 @@ const panels = document.getElementById('panels');
 
 const gameInfoCanvas = document.getElementById('game-info');
 
-const $chooseStage = document.getElementById('choose-stage');
-const $chooseStageButtons = document.getElementsByClassName('choose-stage-button');
-// 点击按钮选择不同的
-Array.prototype.forEach.call($chooseStageButtons, b => {
+const chooseStage = document.getElementById('choose-stage');
+const chooseStageButtons = document.getElementsByClassName('choose-stage-button');
+// 点击按钮选择不同的 stage
+Array.prototype.forEach.call(chooseStageButtons, b => {
     b.addEventListener('click', chooseStageHandler, false);
 });
 
+const status = document.getElementById('status');
+
 function chooseStageHandler(e) {
     stage = e.target.dataset.stage;
-    $chooseStage.style.display = 'none';
+    chooseStage.style.display = 'none';
     beginGame(stage);
 }
 
@@ -65,6 +67,10 @@ function windowResizeHandler() {
     backgroundCanvas.style.left = cvx + BORDER_WIDTH + 'px';
     backgroundCanvas.style.top = cvy + BORDER_WIDTH + 'px';
 
+    status.style.position = 'absolute';
+    status.style.left = cvx + BORDER_WIDTH + 'px';
+    status.style.top = cvy + BORDER_WIDTH + 'px';
+
     gameControlCanvas.style.position = 'absolute';
     gameControlCanvas.style.left = cvx + WIDTH + BORDER_WIDTH + 'px';
     gameControlCanvas.style.top = cvy + 'px';
@@ -77,9 +83,9 @@ function windowResizeHandler() {
     gameInfoCanvas.style.left = cvx + BORDER_WIDTH + 'px';
     gameInfoCanvas.style.top = cvy + BORDER_WIDTH + 'px';
 
-    $chooseStage.style.position = 'absolute';
-    $chooseStage.style.left = cvx + BORDER_WIDTH + 'px';
-    $chooseStage.style.top = cvy + BORDER_WIDTH + 'px';
+    chooseStage.style.position = 'absolute';
+    chooseStage.style.left = cvx + BORDER_WIDTH + 'px';
+    chooseStage.style.top = cvy + BORDER_WIDTH + 'px';
 }
 
 window.addEventListener('resize', windowResizeHandler, false);
