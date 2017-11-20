@@ -1,10 +1,15 @@
+import { gridNumX, gridNumY } from './constant';
+
 export const config = {
     renderShadow: false
 };
 
+const cols = gridNumX;  // 16
+const rows = gridNumY;  // 12
+
 // 地图路径坐标
 export const orbit = {
-    1: [[9, 0], [9, 16]],
-    2: [[0, 0], [18, 0], [18, 4], [8, 4], [8, 10], [16, 10], [16, 14], [-1, 14]],
-    3: [[6, 0], [6, 5], [8, 5], [8, 16]],
+    1: [[9, 0], [9, rows]],
+    2: [[0, 0], [cols - 4, 0], [cols - 4, 4], [6, 4], [6, 8], [cols - 2, 8], [cols - 2, rows - 1], [-1, rows - 1]],
+    3: [[6, 0], [6, 5], [8, 5], [8, rows]],
 };

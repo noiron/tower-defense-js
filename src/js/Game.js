@@ -543,10 +543,12 @@ export default class Game {
                                 game.towerSelectIndex = -1;
                                 game.towerSelectId = -1;
                                 game.towerSelect = false;
+                                // game.map.selectCoord = null;                                
                             } else {
                                 game.towerSelectIndex = index;
                                 game.towerSelectId = tower.id;
                                 game.towerSelect = true;
+                                // game.map.selectCoord = { col, row };
                             }
                         }
                     });
@@ -554,6 +556,7 @@ export default class Game {
                     game.towerSelect = false;
                     game.towerSelectId = -1;
                     game.towerSelectIndex = -1;
+                    // game.map.selectCoord = { col, row };
                 }
         
                 if (game.mode === 'ADD_TOWER') {

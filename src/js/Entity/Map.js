@@ -104,6 +104,13 @@ export default class Map {
             const { col, row } = towers[towerSelectIndex];
             highlightGrid(ctx, col * gridWidth, row * gridHeight, gridWidth, gridHeight);
         }
+        // // 空白格子也突出显示
+        // else if (this.selectCoord) {
+        //     const { col, row } = this.selectCoord;
+        //     if (this.coord[col][row] !== 'P') {
+        //         highlightGrid(ctx, col * gridWidth, row * gridHeight, gridWidth, gridHeight);            
+        //     }
+        // }
 
         ctx.restore();
 
