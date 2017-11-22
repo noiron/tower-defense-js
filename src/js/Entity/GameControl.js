@@ -1,4 +1,4 @@
-import { BaseTower, LaserTower, SlowTower, FireTower } from './tower';
+import { BaseTower, LaserTower, SlowTower, FireTower, Block } from './tower';
 import { isInside, highlightGrid } from './../utils/utils';
 import { GAME_CONTROL_WIDTH, GAME_CONTROL_HEIGHT, towerData } from '../utils/constant';
 
@@ -16,7 +16,7 @@ const DISABLE_COLOR = '#aaa';
 const TOWER_TYPE = [
     ['BASE', 'FIRE'],
     ['LASER'],
-    ['SLOW']
+    ['SLOW', 'BLOCK']
 ];
 
 class GameControl {
@@ -335,11 +335,19 @@ class TowerArea {
             radius: 10
         });
 
+        this.block = new Block({
+            x: this.offsetX + GRID_WIDTH * 2.5,
+            y: this.offsetY + GRID_HEIGHT * 1.5,
+            ctx: this.ctx,
+            radius: 0
+        });
+
         this.towers = {
             BASE: this.baseTower,
             LASER: this.laserTower,
             SLOW: this.slowTower,
-            FIRE: this.fireTower
+            FIRE: this.fireTower,
+            BLOCK: this.block
         };
     }
 

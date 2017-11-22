@@ -3,7 +3,7 @@ import { gridWidth, gridHeight } from '../utils/constant';
 class Path {
     constructor(opt) {
         this.ctx = opt.ctx;
-        this.radius = opt.radius;
+        this.radius = opt.radius || gridWidth / 2;
         this.orbit = opt.orbit;
         this.points = [];
 

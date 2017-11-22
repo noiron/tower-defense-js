@@ -1,4 +1,4 @@
-class Graph {
+export class Graph {
     constructor(w, h) {
         this.width = w;
         this.height = h;

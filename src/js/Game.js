@@ -97,7 +97,7 @@ export default class Game {
         this.orbit = orbit[this.stage];
 
         const newTowerCoord = [8, 3];
-        this.map = new Map({ ctx, WIDTH, HEIGHT, newTowerCoord, orbit: this.orbit });
+        this.map = new Map({ ctx, WIDTH, HEIGHT, newTowerCoord, orbit: this.orbit, game: this });
 
         // 放置一个初始状态下的塔
         const tower = new TowerFactory['BASE']({
@@ -113,7 +113,7 @@ export default class Game {
         this.addTowerType = 'BASE';
         this.status = '';
         this.score = 0;
-        this.life = 10;
+        this.life = 1000;
 
         // 当前是否选中塔
         this.towerSelect = false;
@@ -272,7 +272,7 @@ export default class Game {
 
         // 对每一个enemy进行step操作，并绘制
         this.enemies.forEach((enemy, index) => {
-            enemy.step({ path: this.orbit });
+            enemy.step({ path: this.map.orbit });
             enemy.draw();
 
             if (enemy.dead) {
@@ -461,7 +461,8 @@ export default class Game {
      */
     createNewTower(col, row, towerType) {
         // 检查当前位置是否已有物体，或当前位置是否在路径上
-        if (this.map.coord[col][row] === 'T' || this.map.coord[col][row] === 'P') {
+        // TODO: 不同种类的判断
+        if (this.map.coord[col][row] === 'T' || this.map.coord[col][row] === 'P' && towerType !== 'BLOCK') {
             console.log('You can not place tower here!');
             return -1;
         }
@@ -481,7 +482,13 @@ export default class Game {
 
         let tower = new TowerFactory[towerType](config);
 
-        this.map.coord[col][row] = 'T';
+        if (towerType === 'BLOCK') {
+            this.map.coord[col][row] = 'B';
+            this.map.findPath();
+        } else {
+            this.map.coord[col][row] = 'B';
+        }
+
         this.money -= cost;
         this.towers.push(tower);
     }
@@ -544,7 +551,7 @@ export default class Game {
         
             const col = Math.floor(x / gridWidth);
             const row = Math.floor(y / gridHeight);
-        
+                 
             /* 只在地图范围内进行操作 */
             if (0 <= col && col < gridNumX && 0 <= row && row < gridNumY) {
                 if (game.map.coord[col][row] === 'T') {

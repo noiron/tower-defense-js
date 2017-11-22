@@ -30,4 +30,8 @@ export const towerData = {
         cost: 400,
         info: '火焰塔：啊哈，你想被烤成几分熟？'
     },
+    BLOCK: {
+        cost: 50,
+        info: ''
+    }
 };

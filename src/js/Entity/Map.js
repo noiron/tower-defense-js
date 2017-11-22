@@ -1,6 +1,10 @@
 import { gridWidth, gridHeight, gridNumX, gridNumY } from './../utils/constant';
 import Path from './Path';
 import { highlightGrid } from '../utils/utils';
+import { Graph, BreadthFirstSearch } from '../utils/BreadthFirstSearch';
+import globalId from './../id';
+import TowerFactory from './tower/index';
+import { MAP_SETTING } from '../utils/config';
 
 export default class Map {
     constructor(opt) {
@@ -16,12 +20,6 @@ export default class Map {
             this.coord[i] = [];
         }
 
-        // 初始状态下的塔
-        if (this.newTowerCoord) {
-            const [col, row] = this.newTowerCoord;
-            this.coord[col][row] = 'T';
-        }
-
         // Create an instance of Path object
         this.path = new Path({
             ctx: this.ctx,
@@ -29,9 +27,30 @@ export default class Map {
             orbit: this.orbit
         });
 
-        // Add points to the path
-        this.path.setPoints();
-        this.setMap();
+
+        // 初始化坐标
+        const game = opt.game;
+
+        const mapSetting = MAP_SETTING[game.stage];
+        if (mapSetting) {
+            /* 默认情况下路径以给出的 orbit 为准，如果存在 mapSetting，则重新寻找路径 */
+            const blockArray = MAP_SETTING[game.stage].BLOCK;
+            blockArray.forEach(block => {
+                const [col, row] = block;
+                this.coord[col][row] = 'B';
+                const x = col * gridWidth + gridWidth / 2;
+                const y = row * gridWidth + gridWidth / 2;
+                const id = globalId.genId();
+                const config = { id, ctx: this.ctx, x, y };
+                const tower = new TowerFactory['BLOCK'](config);
+                game.towers.push(tower);
+            });
+            
+            this.findPath();
+        } else {
+            this.path.setPoints();
+            this.setMap();
+        }
     }
 
     // 设置地图数组
@@ -116,5 +135,37 @@ export default class Map {
 
         this.path.draw();
     }
+
+
+    // 寻找路径
+    findPath() {
+        const graph = new Graph(gridNumX, gridNumY);
+        this.graph = graph;
+        for (let j = 0; j < gridNumY; j++) {
+            for (let i = 0; i < gridNumX; i++) {
+                // 标记地图中的障碍物
+                if (this.coord[i][j] === 'B' || this.coord[i][j] === 'T') {
+                    graph.walls.push([i, j]);
+                }
+            }
+        }
+
+        const startPoint = this.orbit[0];
+        const endPoint = this.orbit[this.orbit.length - 1];
+        const bfs = new BreadthFirstSearch(graph, startPoint);
+        const pathArr = bfs.findPath(endPoint);
+        this.orbit = [];
+        pathArr.forEach(p => this.orbit.push(p));
+                
+        this.path = new Path({
+            ctx: this.ctx,
+            orbit: this.orbit.reverse()
+        });
+        
+        // Add points to the path
+        this.path.setPoints();
+        this.setMap();
+    }
+
 }
 
