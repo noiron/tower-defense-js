@@ -70,6 +70,7 @@ class Queue {
 }
 
 export class BreadthFirstSearch {
+    // 寻找graph上任一点到start的路径
     constructor(graph, start) {
         this.graph = graph;
         this.width = graph.width;
@@ -141,7 +142,9 @@ export class BreadthFirstSearch {
         console.log(info);
     }
 
-
+    /**
+     * 最后生成的路径数组中，node为第一个元素，this.start为最后一个元素
+     */ 
     findPath(node) {
         const path = [];
         let [curX, curY] = node;
