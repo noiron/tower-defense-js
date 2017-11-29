@@ -3,6 +3,7 @@ import BulletTower from './BulletTower';
 import LaserTower from './LaserTower';
 import SlowTower from './SlowTower';
 import FireTower from './FireTower';
+import Block from './Block';
 
 const TowerFactory = {
     BASE: BaseTower,
@@ -10,6 +11,7 @@ const TowerFactory = {
     LASER: LaserTower,
     SLOW: SlowTower,
     FIRE: FireTower,
+    BLOCK: Block
 };
 
 export {
@@ -17,7 +19,8 @@ export {
     BulletTower,
     LaserTower,
     SlowTower,
-    FireTower
+    FireTower,
+    Block
 };
 
 export default TowerFactory;

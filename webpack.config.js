@@ -5,7 +5,7 @@ var PorgressBarPlugin = require('progress-bar-webpack-plugin');
 
 module.exports = {
     entry: ['./src/index'],
-    devtool: 'cheap-source-map',
+    devtool: 'source-map',
     output: {
         path: path.join(__dirname, 'static'),
         filename: 'bundle.js',
