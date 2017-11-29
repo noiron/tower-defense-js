@@ -262,7 +262,8 @@ export default class Game {
                 color: cfg.color,
                 radius: cfg.radius,
                 speed: cfg.speed,
-                health: cfg.health * (1 + this.wave / 10)
+                health: cfg.health * (1 + this.wave / 10),
+                path: this.map.orbit
             });
 
             this.enemies.push(enemy);
@@ -483,10 +484,30 @@ export default class Game {
         let tower = new TowerFactory[towerType](config);
 
         if (towerType === 'BLOCK') {
+            if (!this.map.checkPath(col, row)) {
+                // TODO: 增加一个错误的显示函数
+                console.log('存在不能到达的区域，不能放置在这里');
+                return;
+            };
             this.map.coord[col][row] = 'B';
             this.map.findPath();
+            // 重新计算当前 enemy 的路径
+            this.enemies.forEach(enemy => {
+                const col = Math.floor(enemy.x / gridWidth);
+                const row = Math.floor(enemy.y / gridHeight);
+                enemy.path = this.map.findPointPath([col, row]);
+                enemy.wp = 1;
+        
+                // 当前位置到目标点的距离
+                enemy.dx = 0;
+                enemy.dy = 0;
+                enemy.dist = 0;
+        
+                // 标记是否需要转弯
+                enemy.angleFlag = 1;
+            });
         } else {
-            this.map.coord[col][row] = 'B';
+            this.map.coord[col][row] = 'T';
         }
 
         this.money -= cost;
@@ -601,7 +622,7 @@ export default class Game {
     }
 
     shouldGenerateEnemy() {
-        return this.wave < 999 && new Date() - this.lastCreatedEnemyTime > 500;
+        return this.wave < 999 && new Date() - this.lastCreatedEnemyTime > 1000;
     }
 
     shouldGenerateWave() {
