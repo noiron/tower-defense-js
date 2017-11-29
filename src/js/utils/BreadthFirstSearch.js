@@ -148,6 +148,10 @@ export class BreadthFirstSearch {
     findPath(node) {
         const path = [];
         let [curX, curY] = node;
+        // 如果需要查询的 node 恰等于 start，则将 start 返回
+        if (curX === this.start[0] && curY === this.start[1]) {
+            return [[curX, curY]];
+        }
         if (this.cameFrom[curX][curY] === null) { 
             return []; 
         } 

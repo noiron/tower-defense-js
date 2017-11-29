@@ -2,7 +2,7 @@
  * 障碍物
  */
 import BaseTower from './BaseTower';
-import { gridSize } from '../../utils/constant';
+import { GRID_SIZE } from '../../utils/constant';
 
 export default class Block extends BaseTower {
     constructor(opt) {
@@ -14,9 +14,10 @@ export default class Block extends BaseTower {
         
         ctx.save();
 
-        ctx.strokeStyle = '#fff';
+        ctx.strokeStyle = 'greenyellow';
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        const halfSize = gridSize / 2;
+        const halfSize = GRID_SIZE / 2;
         ctx.moveTo(this.x - halfSize, this.y - halfSize);
         ctx.lineTo(this.x + halfSize, this.y + halfSize);
         ctx.moveTo(this.x + halfSize, this.y - halfSize);
