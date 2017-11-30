@@ -1,4 +1,5 @@
 import { vec2 } from 'gl-matrix';
+import { GRID_SIZE, OFFSET_X, OFFSET_Y } from './constant';
 
 export function toRadians(angle) {
     return angle * (Math.PI / 180);
@@ -111,4 +112,62 @@ export function highlightGrid(ctx, x, y, WIDTH, HEIGHT) {
     ctx.closePath();
     ctx.stroke();
     ctx.restore();
+}
+
+/**
+ * 根据一个格子的行和列，计算出其中心在坐标系中用像素表示的坐标
+ * @param {number} col 处于第几列，对应于x坐标
+ * @param {number} row 处于第几行，对应于y坐标
+ */
+export function index2Px(col, row, gridSize = GRID_SIZE) {
+    const offsetX = OFFSET_X;
+    const offsetY = OFFSET_Y;
+
+    const x = col * gridSize + gridSize * 0.5 + offsetX;
+    const y = row * gridSize + gridSize * 0.5 + offsetY;
+
+    return {x, y};
+}
+
+/**
+ * 根据一个点在canvas上的像素坐标，计算出其所在格子的行和列
+ * @param {number} x x坐标
+ * @param {number} y y坐标
+ */
+export function px2Index(x, y, gridSize = GRID_SIZE) {
+    const offsetX = OFFSET_X;
+    const offsetY = OFFSET_Y;
+
+    const col = Math.floor((x - offsetX) / gridSize);
+    const row = Math.floor((y - offsetY) / gridSize);
+
+    return {col, row};
+}
+
+console.log(px2Index(108, 219));
+console.log(index2Px(px2Index(108, 219).col, px2Index(108, 219).row));
+
+
+export function drawGrid(ctx, cols, rows, gridSize = GRID_SIZE, strokeStyle = '#aaa', offsetX = 0, offsetY = 0) {
+    ctx.strokeStyle = strokeStyle;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    
+    // Draw vertical lines
+    ctx.moveTo(offsetX - 0.5, offsetY);
+    ctx.lineTo(offsetX - 0.5, rows * gridSize + offsetY);
+    for (let i = 0; i < cols + 1; i++) {
+        ctx.moveTo(i * gridSize - 0.5 + offsetX, offsetY);
+        ctx.lineTo(i * gridSize - 0.5 + offsetX, rows * gridSize + offsetY);
+    }
+    ctx.stroke();
+    
+    // Draw horizontal lines
+    ctx.moveTo(offsetX, offsetY - 0.5);
+    ctx.lineTo(cols * gridSize + offsetX, offsetY - 0.5);
+    for (let i = 0; i < rows + 1; i++) {
+        ctx.moveTo(offsetX, i * gridSize - 0.5 + offsetY);
+        ctx.lineTo(cols * gridSize + offsetX, i * gridSize - 0.5 + offsetY);
+    }
+    ctx.stroke();
 }

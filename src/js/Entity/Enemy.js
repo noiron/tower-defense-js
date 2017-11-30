@@ -1,4 +1,4 @@
-import { GRID_SIZE } from './../utils/constant';
+import { GRID_SIZE, OFFSET_X, OFFSET_Y } from './../utils/constant';
 import { index2Px } from '../utils/utils';
 
 export default class Enemy {
@@ -75,8 +75,9 @@ export default class Enemy {
         // 当即将达到终点时，path 长度为1，而 this.wp 为1，超出数组范围
         const wp = path[Math.min(this.wp, path.length - 1)];
 
-        this.dx = wp[0] * GRID_SIZE + GRID_SIZE * 0.5 - this.x;
-        this.dy = wp[1] * GRID_SIZE + GRID_SIZE * 0.5 - this.y;
+        const { x: wpX, y: wpY } = index2Px(...wp);
+        this.dx = wpX - this.x;
+        this.dy = wpY - this.y;
         this.dist = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
 
         if (this.angleFlag) {
@@ -90,8 +91,9 @@ export default class Enemy {
             this.x += this.vx;
             this.y += this.vy;
         } else {
-            this.x = (wp[0] + 0.5) * GRID_SIZE;
-            this.y = (wp[1] + 0.5) * GRID_SIZE;
+            const { x, y } = index2Px(...wp);
+            this.x = x;
+            this.y = y;
             if (this.wp + 1 >= path.length) {
                 // 到达终点
                 this.dead = true;

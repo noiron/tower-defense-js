@@ -6,9 +6,9 @@
  * PATH: enemy 通行的道路，不能放置 tower
  */
 
-import { GRID_SIZE, gridNumX, gridNumY } from './../utils/constant';
+import { GRID_SIZE, gridNumX, gridNumY, OFFSET_X, OFFSET_Y } from './../utils/constant';
 import Path from './Path';
-import { highlightGrid } from '../utils/utils';
+import { highlightGrid, drawGrid, index2Px, px2Index } from '../utils/utils';
 import { Graph, BreadthFirstSearch } from '../utils/BreadthFirstSearch';
 import globalId from './../id';
 import TowerFactory from './tower/index';
@@ -52,8 +52,7 @@ export default class Map {
             blockArray.forEach(block => {
                 const [col, row] = block;
                 this.coord[col][row] = 'B';
-                const x = col * GRID_SIZE + GRID_SIZE / 2;
-                const y = row * GRID_SIZE + GRID_SIZE / 2;
+                const { x, y } = index2Px(col, row);
                 const id = globalId.genId();
                 const config = { id, ctx: this.ctx, x, y };
                 const tower = new TowerFactory['BLOCK'](config);
@@ -113,24 +112,8 @@ export default class Map {
         ctx.strokeStyle = '#eee';
         ctx.fillStyle = '#fff';
         ctx.lineWidth = 1;
-        // ctx.fillRect(0, 0, WIDTH, HEIGHT);
-        // 横纵数目相等
-        const size = 20;
 
-        ctx.beginPath();
-        // Draw vertical lines
-        for (var i = 0; i < size + 1; i++) {
-            ctx.moveTo(i * GRID_SIZE - 0.5, 0);
-            ctx.lineTo(i * GRID_SIZE - 0.5, size * GRID_SIZE);
-        }
-        ctx.stroke();
-
-        // Draw horizontal lines
-        for (i = 0; i < size + 1; i++) {
-            ctx.moveTo(0, i * GRID_SIZE - 0.5);
-            ctx.lineTo(size * GRID_SIZE, i * GRID_SIZE - 0.5);
-        }
-        ctx.stroke();
+        drawGrid(ctx, gridNumX, gridNumY, GRID_SIZE, '#eee', OFFSET_X, OFFSET_Y);
 
         // 当前选中的格子突出显示
         if (towerSelect) {
@@ -216,8 +199,7 @@ export default class Map {
         }
 
         return this.game.enemies.every(enemy => {
-            const col = Math.floor(enemy.x / GRID_SIZE);
-            const row = Math.floor(enemy.y / GRID_SIZE);
+            const { col, row } = px2Index(enemy.x, enemy.y);
             if (col === endPoint[0] && row === endPoint[1]) {
                 return true;
             }

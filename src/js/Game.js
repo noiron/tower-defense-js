@@ -3,7 +3,7 @@ import TowerFactory from './Entity/tower';
 import Enemy from './Entity/Enemy';
 import Map from './Entity/Map';
 import Wave from './Wave';
-import { calculateDistance } from './utils/utils';
+import { calculateDistance, index2Px, px2Index } from './utils/utils';
 import {
     gridWidth,
     gridHeight,
@@ -13,7 +13,10 @@ import {
     HEIGHT,
     GAME_CONTROL_WIDTH,
     towerData,
-    FRAMERATE
+    FRAMERATE,
+    OFFSET_X,
+    OFFSET_Y,
+    GRID_SIZE
 } from './utils/constant';
 import globalId from './id';
 import GameControl from './Entity/GameControl';
@@ -103,8 +106,8 @@ export default class Game {
         const tower = new TowerFactory['BASE']({
             id: globalId.genId(),
             ctx,
-            x: gridWidth / 2 + newTowerCoord[0] * gridWidth,
-            y: gridHeight / 2 + newTowerCoord[1] * gridHeight,
+            x: gridWidth / 2 + newTowerCoord[0] * gridWidth + OFFSET_X,
+            y: gridHeight / 2 + newTowerCoord[1] * gridHeight + OFFSET_Y,
             bullets: this.bullets
         });
         this.towers.push(tower);
@@ -257,8 +260,8 @@ export default class Game {
             const enemy = new Enemy({
                 id: globalId.genId(),
                 ctx: ctx,
-                x: gridWidth / 2 + (Math.random() - 0.5) * 10 + basePos[0] * gridWidth,
-                y: gridHeight / 2 + (Math.random() - 0.5) * 10 + basePos[1] * gridHeight,
+                x: GRID_SIZE / 2 + (Math.random() - 0.5) * 10 + basePos[0] * GRID_SIZE + OFFSET_X,
+                y: GRID_SIZE / 2 + (Math.random() - 0.5) * 10 + basePos[1] * GRID_SIZE + OFFSET_Y,
                 color: cfg.color,
                 radius: cfg.radius,
                 speed: cfg.speed,
@@ -364,8 +367,8 @@ export default class Game {
                     // 该位置没有塔
                     this.drawGhostTower(
                         ctx,
-                        this.col * gridWidth + gridWidth / 2,
-                        this.row * gridHeight + gridHeight / 2,
+                        index2Px(this.col, this.row).x,
+                        index2Px(this.col, this.row).y,
                         this.addTowerType
                     );
                 }
@@ -475,8 +478,7 @@ export default class Game {
             return -1;
         }
 
-        const x = col * gridWidth + gridWidth / 2;
-        const y = row * gridWidth + gridWidth / 2;
+        const {x, y} = index2Px(col, row);
         const id = globalId.genId();
 
         const config = { id, ctx, x, y, bullets: this.bullets };
@@ -493,8 +495,7 @@ export default class Game {
             this.map.findPath();
             // 重新计算当前 enemy 的路径
             this.enemies.forEach(enemy => {
-                const col = Math.floor(enemy.x / gridWidth);
-                const row = Math.floor(enemy.y / gridHeight);
+                const { col, row } = px2Index(enemy.x, enemy.y);
                 enemy.path = this.map.findPointPath([col, row]);
                 enemy.wp = 1;
         
@@ -570,8 +571,8 @@ export default class Game {
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
         
-            const col = Math.floor(x / gridWidth);
-            const row = Math.floor(y / gridHeight);
+            const { col, row } = px2Index(x, y);
+            // console.log(col, row);
                  
             /* 只在地图范围内进行操作 */
             if (0 <= col && col < gridNumX && 0 <= row && row < gridNumY) {
@@ -615,8 +616,9 @@ export default class Game {
                 const rect = canvas.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
-                game.col = Math.floor(x / gridWidth);
-                game.row = Math.floor(y / gridHeight);
+                const { col, row } = px2Index(x, y);
+                game.col = col;
+                game.row = row;
             }
         };
     }
