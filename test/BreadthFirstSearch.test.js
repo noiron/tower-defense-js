@@ -21,5 +21,10 @@ describe('Breadth first search', function() {
         expect(path1[path1.length - 1]).deep.equal(start);
         expect(path1.length).equal(11);
     });
+    it('Path from start point itself', function() {
+        const pathStart = bfs.findPath([start[0], start[1]]);
+        expect(pathStart[0]).deep.equal(start);
+        expect(pathStart.length).eq(1);
+    });
 
 });

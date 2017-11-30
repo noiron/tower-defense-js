@@ -144,10 +144,6 @@ export function px2Index(x, y, gridSize = GRID_SIZE) {
     return {col, row};
 }
 
-console.log(px2Index(108, 219));
-console.log(index2Px(px2Index(108, 219).col, px2Index(108, 219).row));
-
-
 export function drawGrid(ctx, cols, rows, gridSize = GRID_SIZE, strokeStyle = '#aaa', offsetX = 0, offsetY = 0) {
     ctx.strokeStyle = strokeStyle;
     ctx.lineWidth = 1;

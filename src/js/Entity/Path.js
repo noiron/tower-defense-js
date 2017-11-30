@@ -70,6 +70,21 @@ class Path {
         });
         ctx.stroke();
 
+        // 标记终点
+        ctx.beginPath();
+        ctx.fillStyle = 'tomato';
+        const endPoint = this.points[this.points.length - 1];
+        ctx.arc(
+            endPoint[0],
+            endPoint[1],
+            this.radius * 0.6,
+            0 * Math.PI,
+            2 * Math.PI,
+            false
+        );
+        ctx.fill();
+        
+
         ctx.restore();
     }
 }

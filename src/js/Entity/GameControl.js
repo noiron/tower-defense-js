@@ -1,5 +1,5 @@
 import { BaseTower, LaserTower, SlowTower, FireTower, Block } from './tower';
-import { isInside, highlightGrid } from './../utils/utils';
+import { isInside, highlightGrid, drawGrid } from './../utils/utils';
 import { GAME_CONTROL_WIDTH, GAME_CONTROL_HEIGHT, towerData } from '../utils/constant';
 
 const GRID_WIDTH = 60;
@@ -355,21 +355,8 @@ class TowerArea {
         const ctx = this.ctx;
         ctx.strokeStyle = FILL_COLOR;
         ctx.lineWidth = 1;
-        // 横线
-        ctx.beginPath();
-        for (let i = 0; i < GRID_NUM_Y + 1; i++) {
-            ctx.moveTo(this.offsetX, i * GRID_WIDTH + this.offsetY);
-            ctx.lineTo(this.offsetX + GRID_NUM_X * GRID_WIDTH, i * GRID_WIDTH + this.offsetY);
-        }
-        ctx.stroke();
 
-        // 纵线
-        ctx.beginPath();
-        for (let i = 0; i < GRID_NUM_X + 1; i++) {
-            ctx.moveTo(i * GRID_WIDTH + this.offsetX, this.offsetY);
-            ctx.lineTo(i * GRID_WIDTH + this.offsetX, this.offsetY + GRID_NUM_Y * GRID_HEIGHT);
-        }
-        ctx.stroke();
+        drawGrid(ctx, GRID_NUM_X, GRID_NUM_Y, GRID_WIDTH, FILL_COLOR, this.offsetX, this.offsetY);
 
         if (this.selected !== -1) {
             this.highlightTower(this.selected[0], this.selected[1]);
