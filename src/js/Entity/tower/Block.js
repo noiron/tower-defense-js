@@ -7,6 +7,8 @@ import { GRID_SIZE } from '../../utils/constant';
 export default class Block extends BaseTower {
     constructor(opt) {
         super(opt);
+
+        this.type = 'BLOCK';
     }
 
     draw() {

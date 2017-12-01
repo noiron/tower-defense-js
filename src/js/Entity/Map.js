@@ -69,6 +69,15 @@ export default class Map {
     // 设置地图数组
     // 路径所在位置标识为 'P'
     setMap() {
+        for (let i = 0; i < gridNumX; i++) {
+            for (let j = 0; j < gridNumY; j++) {
+                // 清除之前的路径标记，0 表示空白方块
+                if (this.coord[i][j] === 'P') {
+                    this.coord[i][j] = 0;
+                }
+            }
+        }
+
         const path = this.path.orbit;
         for (let i = 0; i < path.length - 1; i++) {
             const current = path[i];
@@ -118,7 +127,8 @@ export default class Map {
         // 当前选中的格子突出显示
         if (towerSelect) {
             const { col, row } = towers[towerSelectIndex];
-            highlightGrid(ctx, col * GRID_SIZE, row * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+            const { x, y } = index2Px(col, row);
+            highlightGrid(ctx, x - GRID_SIZE / 2, y - GRID_SIZE / 2, GRID_SIZE, GRID_SIZE);
         }
         // // 空白格子也突出显示
         // else if (this.selectCoord) {

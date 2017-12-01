@@ -99,7 +99,7 @@ export default class Game {
 
         this.orbit = orbit[this.stage];
 
-        const newTowerCoord = [8, 3];
+        const newTowerCoord = [5, 3];
         this.map = new Map({ ctx, WIDTH, HEIGHT, newTowerCoord, orbit: this.orbit, game: this });
 
         // 放置一个初始状态下的塔
@@ -265,7 +265,7 @@ export default class Game {
                 color: cfg.color,
                 radius: cfg.radius,
                 speed: cfg.speed,
-                health: cfg.health * (1 + this.wave / 10),
+                health: cfg.health * (1 + this.wave / 5),
                 path: this.map.orbit
             });
 
@@ -464,9 +464,8 @@ export default class Game {
      * @param {Number} row y轴的坐标
      */
     createNewTower(col, row, towerType) {
-        // 检查当前位置是否已有物体，或当前位置是否在路径上
-        // TODO: 不同种类的判断
-        if (this.map.coord[col][row] === 'T' || this.map.coord[col][row] === 'P' && towerType !== 'BLOCK') {
+        // 检查当前位置是否已有物体
+        if (this.map.coord[col][row] === 'T') {
             console.log('You can not place tower here!');
             return -1;
         }
@@ -485,31 +484,32 @@ export default class Game {
 
         let tower = new TowerFactory[towerType](config);
 
-        if (towerType === 'BLOCK') {
-            if (!this.map.checkPath(col, row)) {
-                // TODO: 增加一个错误的显示函数
-                console.log('存在不能到达的区域，不能放置在这里');
-                return;
-            };
+        if (!this.map.checkPath(col, row)) {
+            // TODO: 增加一个错误的显示函数
+            console.log('存在不能到达的区域，不能放置在这里');
+            return;
+        };
+
+        if (tower.type === 'BLOCK') {
             this.map.coord[col][row] = 'B';
-            this.map.findPath();
-            // 重新计算当前 enemy 的路径
-            this.enemies.forEach(enemy => {
-                const { col, row } = px2Index(enemy.x, enemy.y);
-                enemy.path = this.map.findPointPath([col, row]);
-                enemy.wp = 1;
-        
-                // 当前位置到目标点的距离
-                enemy.dx = 0;
-                enemy.dy = 0;
-                enemy.dist = 0;
-        
-                // 标记是否需要转弯
-                enemy.angleFlag = 1;
-            });
         } else {
             this.map.coord[col][row] = 'T';
         }
+        this.map.findPath();
+        // 重新计算当前 enemy 的路径
+        this.enemies.forEach(enemy => {
+            const { col, row } = px2Index(enemy.x, enemy.y);
+            enemy.path = this.map.findPointPath([col, row]);
+            enemy.wp = 1;
+        
+            // 当前位置到目标点的距离
+            enemy.dx = 0;
+            enemy.dy = 0;
+            enemy.dist = 0;
+        
+            // 标记是否需要转弯
+            enemy.angleFlag = 1;
+        });
 
         this.money -= cost;
         this.towers.push(tower);
