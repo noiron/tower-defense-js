@@ -3,7 +3,7 @@ import TowerFactory from './Entity/tower';
 import Enemy from './Entity/Enemy';
 import Map from './Entity/Map';
 import Wave from './Wave';
-import { calculateDistance, index2Px, px2Index } from './utils/utils';
+import { calculateDistance, index2Px, px2Index, showError } from './utils/utils';
 import {
     gridWidth,
     gridHeight,
@@ -106,8 +106,8 @@ export default class Game {
         const tower = new TowerFactory['BASE']({
             id: globalId.genId(),
             ctx,
-            x: gridWidth / 2 + newTowerCoord[0] * gridWidth + OFFSET_X,
-            y: gridHeight / 2 + newTowerCoord[1] * gridHeight + OFFSET_Y,
+            x: GRID_SIZE / 2 + newTowerCoord[0] * GRID_SIZE + OFFSET_X,
+            y: GRID_SIZE / 2 + newTowerCoord[1] * GRID_SIZE + OFFSET_Y,
             bullets: this.bullets
         });
         this.towers.push(tower);
@@ -472,8 +472,7 @@ export default class Game {
         const cost = towerData[towerType].cost;
         // 检查是否有足够金钱
         if (this.money - cost < 0) {
-            // TODO: 将提示信息显示在画面中
-            console.log('You do not have enough money.');
+            showError('You do not have enough money.');
             return -1;
         }
 
@@ -485,8 +484,8 @@ export default class Game {
         let tower = new TowerFactory[towerType](config);
 
         if (!this.map.checkPath(col, row)) {
-            // TODO: 增加一个错误的显示函数
-            console.log('存在不能到达的区域，不能放置在这里');
+            const info = '存在不能到达的区域，不能放置在这里';
+            showError(info);
             return;
         };
 
@@ -530,12 +529,13 @@ export default class Game {
 
     upgradeTower(index = this.towerSelectIndex) {
         const tower = this.towers[index];
-        // TODO: 已升级至最大值后，需提示玩家
         if (tower.level < 4) {
             // TODO: 对塔的升级应该按预设数值，或按比例
             tower.range *= 1.25;
             tower.damage *= 1.5;
             tower.level++;
+        } else {
+            showError('已升级至最大值');
         }
     }
 

@@ -4,9 +4,9 @@
 
 import Bullet from './../bullet/CircleBullet';
 import { vec2 } from 'gl-matrix';
-import { toRadians, calculateDistance } from './../../utils/utils';
+import { toRadians, calculateDistance, px2Index } from './../../utils/utils';
 import { config } from './../../utils/config';
-import { gridWidth, gridHeight, towerData } from './../../utils/constant';
+import { GRID_SIZE, towerData } from './../../utils/constant';
 import globalId from './../../id';
 
 
@@ -18,8 +18,9 @@ export default class BaseTower {
         this.ctx = ctx;
         this.type = 'BASE';
         this.level = 1;
-        this.col = Math.floor((x - gridWidth / 2) / gridWidth);
-        this.row = Math.floor((y - gridHeight / 2) / gridHeight);
+        const { col, row } = px2Index(x, y);
+        this.col = col;
+        this.row = row;
         this.radius = radius || 12;
         this.hue = 200;
         this.bullets = bullets;
@@ -32,7 +33,7 @@ export default class BaseTower {
         this.targetIndex = -1;
         this.target = null;
         this.targetId = -1;
-        this.range = 4 * gridWidth;
+        this.range = 4 * GRID_SIZE;
         this.selected = selected || false;
         this.damage = damage || 5;
         this.upgradeGain = damage * 0.4;  // 升级后的伤害增益

@@ -39,6 +39,7 @@ gameControlCanvas.height = GAME_CONTROL_HEIGHT;
 const panels = document.getElementById('panels');
 
 const gameInfoCanvas = document.getElementById('game-info');
+const errorMsgCanvas = document.getElementById('error-message');
 
 const chooseStage = document.getElementById('choose-stage');
 const chooseStageButtons = document.getElementsByClassName('choose-stage-button');
@@ -83,6 +84,10 @@ function windowResizeHandler() {
     gameInfoCanvas.style.position = 'absolute';
     gameInfoCanvas.style.left = cvx + BORDER_WIDTH + 'px';
     gameInfoCanvas.style.top = cvy + BORDER_WIDTH + 'px';
+
+    errorMsgCanvas.style.position = 'absolute';
+    errorMsgCanvas.style.left = cvx + BORDER_WIDTH + 'px';
+    errorMsgCanvas.style.top = cvy + BORDER_WIDTH + 'px';
 
     chooseStage.style.position = 'absolute';
     chooseStage.style.left = cvx + BORDER_WIDTH + 'px';

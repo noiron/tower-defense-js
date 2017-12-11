@@ -9,12 +9,12 @@ export const gridWidth = GRID_SIZE;
 export const gridHeight = GRID_SIZE;
 
 export const gridNumX = 15;  // x轴方向上的格子数目
-export const gridNumY = 12;  // y轴方向上的格子数目
+export const gridNumY = 11;  // y轴方向上的格子数目
 
 export const FRAMERATE = 60;
 
 export const OFFSET_X = 25;
-export const OFFSET_Y = 30;
+export const OFFSET_Y = 50;
 
 export const towerData = {
     BASE: {

@@ -1,10 +1,10 @@
-import { gridWidth, gridHeight, OFFSET_X, OFFSET_Y } from '../utils/constant';
+import { GRID_SIZE } from '../utils/constant';
 import { index2Px } from '../utils/utils';
 
 class Path {
     constructor(opt) {
         this.ctx = opt.ctx;
-        this.radius = opt.radius || gridWidth / 2;
+        this.radius = opt.radius || GRID_SIZE / 2;
         this.orbit = opt.orbit;
         this.points = [];
 
@@ -37,6 +37,7 @@ class Path {
 
         ctx.beginPath();
         ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
         ctx.strokeStyle = PATH_COLOR;
         ctx.lineWidth = (this.radius - 1) * 2;
         ctx.shadowBlur = 0;
