@@ -1,4 +1,5 @@
-import { gridSize } from './../utils/constant';
+import { GRID_SIZE, OFFSET_X, OFFSET_Y } from './../utils/constant';
+import { index2Px } from '../utils/utils';
 
 export default class Enemy {
     constructor(opt) {
@@ -10,7 +11,7 @@ export default class Enemy {
         this.y = opt.y;
 
         // 当前目标点waypoint的index
-        this.wp = 1;
+        this.wp = 0;
 
         // 速度在两个方向上的分量
         this.vx = 0;
@@ -36,6 +37,8 @@ export default class Enemy {
         this.value = opt.value || 50;
         this.damage = opt.damage || 5;
 
+        this.path = opt.path;
+
         /**
          * {
          *   type: 'deceleration',
@@ -47,7 +50,12 @@ export default class Enemy {
         this.buff = [];
     }
 
-    step({ path }) {
+    step() {
+        const path = this.path;
+        if (path.length === 0) {
+            return;
+        }
+
         // 对 this.buff 中的数据进行依次处理
         let speed = this.speed;
         if (this.buff.length > 0) {
@@ -64,10 +72,12 @@ export default class Enemy {
             });
         }
 
-        // const speed = this.speed;
-        const wp = path[this.wp];
-        this.dx = wp[0] * gridSize + gridSize * 0.5 - this.x;
-        this.dy = wp[1] * gridSize + gridSize * 0.5 - this.y;
+        // 当即将达到终点时，path 长度为1，而 this.wp 为1，超出数组范围
+        const wp = path[Math.min(this.wp, path.length - 1)];
+
+        const { x: wpX, y: wpY } = index2Px(...wp);
+        this.dx = wpX - this.x;
+        this.dy = wpY - this.y;
         this.dist = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
 
         if (this.angleFlag) {
@@ -81,11 +91,11 @@ export default class Enemy {
             this.x += this.vx;
             this.y += this.vy;
         } else {
-            this.x = (wp[0] + 0.5) * gridSize;
-            this.y = (wp[1] + 0.5) * gridSize;
+            const { x, y } = index2Px(...wp);
+            this.x = x;
+            this.y = y;
             if (this.wp + 1 >= path.length) {
                 // 到达终点
-                console.log('reach destination');
                 this.dead = true;
                 this.reachDest = true;
             } else {
@@ -105,6 +115,7 @@ export default class Enemy {
         ctx.stroke();
 
         this.drawHealth();
+        // this.drawItsPath();
     }
 
     drawHealth() {
@@ -112,6 +123,24 @@ export default class Enemy {
         ctx.beginPath();
         ctx.moveTo(this.x - this.radius, this.y);
         ctx.lineTo(this.x - this.radius + this.health / this.maxHealth * this.radius * 2, this.y);
+        ctx.stroke();
+    }
+
+    /**
+     * 画出它的前进路径
+     */
+    drawItsPath() {
+        const ctx = this.ctx;
+        const path = this.path;
+        ctx.strokeStyle = 'greenyellow';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let i = 0; i < path.length - 1; i++) {
+            ctx.moveTo((path[i][0] + 0.5) * GRID_SIZE, (path[i][1] + 0.5) * GRID_SIZE);
+            if (path[i + 1]) {
+                ctx.lineTo((path[i + 1][0] + 0.5) * GRID_SIZE, (path[i + 1][1] + 0.5) * GRID_SIZE);
+            }
+        }
         ctx.stroke();
     }
 }

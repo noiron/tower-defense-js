@@ -1,5 +1,5 @@
 import { vec2 } from 'gl-matrix';
-import { toRadians, calcuteDistance } from './../../utils/utils';
+import { toRadians, calculateDistance } from './../../utils/utils';
 
 export default class Laser {
     constructor({ ctx, x, y, parent, target, range, damage }) {

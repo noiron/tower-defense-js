@@ -1,15 +1,20 @@
 export const WIDTH = 800;
-export const HEIGHT = 640;
+export const HEIGHT = 650;
 
 export const GAME_CONTROL_WIDTH = 230;
-export const GAME_CONTROL_HEIGHT = 640;
+export const GAME_CONTROL_HEIGHT = 650;
 
-export const gridSize = 40;
-export const gridWidth = gridSize;
-export const gridHeight = gridSize;
+export const GRID_SIZE = 50;
+export const gridWidth = GRID_SIZE;
+export const gridHeight = GRID_SIZE;
 
-export const gridNumX = 20;  // x轴方向上的格子数目
-export const gridNumY = 16;  // y轴方向上的格子数目
+export const gridNumX = 15;  // x轴方向上的格子数目
+export const gridNumY = 11;  // y轴方向上的格子数目
+
+export const FRAMERATE = 60;
+
+export const OFFSET_X = 25;
+export const OFFSET_Y = 50;
 
 export const towerData = {
     BASE: {
@@ -28,4 +33,8 @@ export const towerData = {
         cost: 400,
         info: '火焰塔：啊哈，你想被烤成几分熟？'
     },
+    BLOCK: {
+        cost: 50,
+        info: ''
+    }
 };

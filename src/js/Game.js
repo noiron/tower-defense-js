@@ -1,21 +1,28 @@
 import { vec2 } from 'gl-matrix';
-import { gameControl } from './../index';
 import TowerFactory from './Entity/tower';
 import Enemy from './Entity/Enemy';
 import Map from './Entity/Map';
 import Wave from './Wave';
-import { calcuteDistance } from './utils/utils';
+import Message from './Entity/Message';
+import { calculateDistance, index2Px, px2Index, showError } from './utils/utils';
 import {
-    gridWidth,
-    gridHeight,
     gridNumX,
     gridNumY,
     WIDTH,
     HEIGHT,
     GAME_CONTROL_WIDTH,
-    towerData
+    towerData,
+    FRAMERATE,
+    OFFSET_X,
+    OFFSET_Y,
+    GRID_SIZE
 } from './utils/constant';
 import globalId from './id';
+import GameControl from './Entity/GameControl';
+import GameInfo from './Entity/GameInfo';
+import GameError from './Entity/GameError';
+import { orbit } from './utils/config';
+import { world } from '../index';
 
 const BORDER_WIDTH = 6;
 
@@ -30,8 +37,11 @@ backgroundCanvas.height = HEIGHT;
 const gameControlCanvas = document.getElementById('game-control');
 const panels = document.getElementById('panels');
 const startButton = document.getElementById('start-button');
+const backButton = document.getElementById('back-button');
+const $chooseStage = document.getElementById('choose-stage');
 
 const gameInfoCanvas = document.getElementById('game-info');
+const status = document.getElementById('status');
 
 export default class Game {
     constructor(opt) {
@@ -40,20 +50,45 @@ export default class Game {
         canvas.height = HEIGHT;
         this.element = opt.element;
         this.ctx = ctx;
+        this.stage = opt.stage;
 
         this.init();
-        this.draw();
         this.bindEvent();
     }
 
     init() {
         this.initData();
 
-        window.addEventListener('resize', this.windowResizeHandler, false);
         startButton.addEventListener('click', this.startButtonClickHandler.bind(this), false);
+        backButton.addEventListener('click', this.backButtonClickHandler.bind(this), false);
 
-        this.windowResizeHandler();
         this.renderBackground();
+
+        panels.style.display = 'block';
+
+        const gameControlEle = document.getElementById('game-control');
+        const gameControl = new GameControl({
+            element: gameControlEle,
+            game: this
+        });
+        this.gameControl = gameControl;
+        gameControl.draw();
+        
+        const $gameInfo = document.getElementById('game-info');
+        const gameInfo = new GameInfo({
+            element: $gameInfo,
+            game: this
+        });
+        this.gameInfo = gameInfo;
+        gameInfo.draw();
+
+        const $gameError = document.getElementById('error-message');
+        const gameError = new GameError({
+            element: $gameError,
+            game: this
+        });
+        this.gameError = gameError;
+        gameError.draw();
     }
 
     initData() {
@@ -70,26 +105,17 @@ export default class Game {
         this.enemyCreatedCount = 0; // 目前已经创建的enemy的总数
         this.lastCreatedEnemyTime = new Date();
 
-        this.pathCoord = [
-            [0, 0],
-            [18, 0],
-            [18, 4],
-            [8, 4],
-            [8, 10],
-            [16, 10],
-            [16, 14],
-            [-1, 14]
-        ];
+        this.orbit = orbit[this.stage];
 
-        const newTowerCoord = [8, 3];
-        this.map = new Map({ ctx, WIDTH, HEIGHT, newTowerCoord, pathCoord: this.pathCoord });
+        const newTowerCoord = [5, 3];
+        this.map = new Map({ ctx, WIDTH, HEIGHT, newTowerCoord, orbit: this.orbit, game: this });
 
         // 放置一个初始状态下的塔
         const tower = new TowerFactory['BASE']({
             id: globalId.genId(),
             ctx,
-            x: gridWidth / 2 + newTowerCoord[0] * gridWidth,
-            y: gridHeight / 2 + newTowerCoord[1] * gridHeight,
+            x: GRID_SIZE / 2 + newTowerCoord[0] * GRID_SIZE + OFFSET_X,
+            y: GRID_SIZE / 2 + newTowerCoord[1] * GRID_SIZE + OFFSET_Y,
             bullets: this.bullets
         });
         this.towers.push(tower);
@@ -98,7 +124,7 @@ export default class Game {
         this.addTowerType = 'BASE';
         this.status = '';
         this.score = 0;
-        this.life = 1000000;
+        this.life = 1000;
 
         // 当前是否选中塔
         this.towerSelect = false;
@@ -107,6 +133,15 @@ export default class Game {
 
         this.wave = -1; // 当前第几波
         this.waves = [];
+
+        // FPS 相关数据
+        this.frames = 0;
+        this.timeLastSecond = new Date().getTime();
+        this.fps = 0;
+        this.fpsRate = 0;
+        this.time = 0;
+
+        this.destory = false;
     }
 
     windowResizeHandler() {
@@ -159,11 +194,31 @@ export default class Game {
 
         if (this.status === '' || this.status === 'gameOver') {
             panels.style.display = 'none';
+            status.style.display = 'block';
             this.initData();
             this.status = 'running';
             this.draw();
-            gameControl.draw();
+            this.gameControl.draw();
         }
+
+        // 游戏开始时间
+        this.time = new Date().getTime();
+    }
+
+    backButtonClickHandler(e) {
+        e.stopPropagation();
+
+        this.gameControl.stopAnim();
+        $chooseStage.style.display = 'block';
+        const panels = document.getElementById('panels');
+        panels.style.display = 'none';
+        this.ctx.clearRect(0, 0, this.element.width, this.element.height);
+        const gameControl = this.gameControl;
+        gameControl.ctx.clearRect(0, 0, gameControl.element.width, gameControl.element.height);
+
+        this.destory = true;
+        cancelAnimationFrame(this.animId);
+        this.status = '';
     }
 
     draw() {
@@ -172,8 +227,14 @@ export default class Game {
             return;
         }
 
+        // FIXME: 选择不同的 stage 之后，之前的游戏画面会出现干扰
+        if (this.stage !== world.stage || this.destory) {
+            return;
+        }
+        
         // 游戏结束
         if (this.status === 'gameOver') {
+            cancelAnimationFrame(this.animId);  // NOT work !?
             return;
         }
 
@@ -182,12 +243,15 @@ export default class Game {
             return;
         }
 
+        this.calculateFPS();
+
         this.map.draw({
             towers: this.towers,
             towerSelect: this.towerSelect,
             towerSelectIndex: this.towerSelectIndex
         });
 
+        // TODO: 完成设定波数后，游戏也会结束
         if (this.life <= 0) {
             this.gameOver();
         }
@@ -200,15 +264,17 @@ export default class Game {
         // 总数小于50，且间隔 x ms以上
         if (this.shouldGenerateEnemy()) {
             const cfg = this.waves[this.wave].generateEnemy();
+            const basePos = this.orbit[0];
             const enemy = new Enemy({
                 id: globalId.genId(),
                 ctx: ctx,
-                x: gridWidth / 2 + (Math.random() - 0.5) * 10,
-                y: gridHeight / 2 + (Math.random() - 0.5) * 10,
+                x: GRID_SIZE / 2 + (Math.random() - 0.5) * 10 + basePos[0] * GRID_SIZE + OFFSET_X,
+                y: GRID_SIZE / 2 + (Math.random() - 0.5) * 10 + basePos[1] * GRID_SIZE + OFFSET_Y,
                 color: cfg.color,
                 radius: cfg.radius,
                 speed: cfg.speed,
-                health: cfg.health * (1 + this.wave / 40)
+                health: cfg.health * (1 + this.wave / 5),
+                path: this.map.orbit
             });
 
             this.enemies.push(enemy);
@@ -218,7 +284,7 @@ export default class Game {
 
         // 对每一个enemy进行step操作，并绘制
         this.enemies.forEach((enemy, index) => {
-            enemy.step({ path: this.pathCoord });
+            enemy.step({ path: this.map.orbit });
             enemy.draw();
 
             if (enemy.dead) {
@@ -240,13 +306,6 @@ export default class Game {
             }
             tower.draw(ctx);
         });
-
-        // // 确定游戏是否结束
-        // if (this.enemyCreatedCount > 0 && this.enemies.length === 0) {
-        //     setTimeout(() => {
-        //         this.status = 'gameOver';
-        //     }, 1000);
-        // }
 
         // 确定 tower 的目标
         this.towers.forEach(tower => {
@@ -316,8 +375,8 @@ export default class Game {
                     // 该位置没有塔
                     this.drawGhostTower(
                         ctx,
-                        this.col * gridWidth + gridWidth / 2,
-                        this.row * gridHeight + gridHeight / 2,
+                        index2Px(this.col, this.row).x,
+                        index2Px(this.col, this.row).y,
                         this.addTowerType
                     );
                 }
@@ -326,7 +385,7 @@ export default class Game {
 
         this.displayInfo();
 
-        requestAnimationFrame(() => this.draw(), 100);
+        this.animId = requestAnimationFrame(() => this.draw());
     }
 
     // 循环检测bullet是否和vehicle碰撞
@@ -354,9 +413,9 @@ export default class Game {
                     vec2.scale(bVec, bVec, aDotB);
                     vec2.add(normal, bullet.start, bVec);
 
-                    distance = calcuteDistance(normal[0], normal[1], enemy.x, enemy.y);
+                    distance = calculateDistance(normal[0], normal[1], enemy.x, enemy.y);
                 } else if (bullet.type === 'circle' || bullet.type === 'slow' || bullet.type === 'fire') {
-                    distance = calcuteDistance(bullet.x, bullet.y, enemy.x, enemy.y);
+                    distance = calculateDistance(bullet.x, bullet.y, enemy.x, enemy.y);
                 }
                 if (bullet.type === 'laser') {
                     if (bullet.target.id === enemy.id) {
@@ -421,20 +480,44 @@ export default class Game {
         const cost = towerData[towerType].cost;
         // 检查是否有足够金钱
         if (this.money - cost < 0) {
-            // TODO: 将提示信息显示在画面中
-            console.log('You do not have enough money.');
+            this.showError('You do not have enough money.');
             return -1;
         }
 
-        const x = col * gridWidth + gridWidth / 2;
-        const y = row * gridWidth + gridWidth / 2;
+        const {x, y} = index2Px(col, row);
         const id = globalId.genId();
 
         const config = { id, ctx, x, y, bullets: this.bullets };
 
         let tower = new TowerFactory[towerType](config);
 
-        this.map.coord[col][row] = 'T';
+        if (!this.map.checkPath(col, row)) {
+            const info = '存在不能到达的区域，不能放置在这里';
+            this.showError(info);
+            return;
+        };
+
+        if (tower.type === 'BLOCK') {
+            this.map.coord[col][row] = 'B';
+        } else {
+            this.map.coord[col][row] = 'T';
+        }
+        this.map.findPath();
+        // 重新计算当前 enemy 的路径
+        this.enemies.forEach(enemy => {
+            const { col, row } = px2Index(enemy.x, enemy.y);
+            enemy.path = this.map.findPointPath([col, row]);
+            enemy.wp = 1;
+        
+            // 当前位置到目标点的距离
+            enemy.dx = 0;
+            enemy.dy = 0;
+            enemy.dist = 0;
+        
+            // 标记是否需要转弯
+            enemy.angleFlag = 1;
+        });
+
         this.money -= cost;
         this.towers.push(tower);
     }
@@ -454,12 +537,13 @@ export default class Game {
 
     upgradeTower(index = this.towerSelectIndex) {
         const tower = this.towers[index];
-        // TODO: 已升级至最大值后，需提示玩家
         if (tower.level < 4) {
             // TODO: 对塔的升级应该按预设数值，或按比例
-            tower.range *= 1.5;
+            tower.range *= 1.25;
             tower.damage *= 1.5;
             tower.level++;
+        } else {
+            this.showError('已升级至最大值');
         }
     }
 
@@ -480,11 +564,75 @@ export default class Game {
     }
 
     bindEvent() {
-        // const element = this.element;
+        const canvas = this.element;
+        const game = this;
+
+        // 在canvas上进行右键操作
+        canvas.oncontextmenu = function(e) {
+            game.mode = '';
+            e.preventDefault();
+        };
+
+        canvas.onclick = function(e) {
+            const rect = canvas.getBoundingClientRect();
+        
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+        
+            const { col, row } = px2Index(x, y);
+            // console.log(col, row);
+                 
+            /* 只在地图范围内进行操作 */
+            if (0 <= col && col < gridNumX && 0 <= row && row < gridNumY) {
+                if (game.map.coord[col][row] === 'T') {
+                    // 点击的格子内为塔
+                    game.towers.map((tower, index) => {
+                        if (tower.col === col && tower.row === row) {
+                            console.log(`You select ${index}th tower, its id is ${tower.id}`);
+        
+                            // 已经选中的塔再次点击则取消
+                            if (game.towerSelectIndex === index) {
+                                game.towerSelectIndex = -1;
+                                game.towerSelectId = -1;
+                                game.towerSelect = false;
+                                // game.map.selectCoord = null;                                
+                            } else {
+                                game.towerSelectIndex = index;
+                                game.towerSelectId = tower.id;
+                                game.towerSelect = true;
+                                // game.map.selectCoord = { col, row };
+                            }
+                        }
+                    });
+                } else {
+                    game.towerSelect = false;
+                    game.towerSelectId = -1;
+                    game.towerSelectIndex = -1;
+                    // game.map.selectCoord = { col, row };
+                }
+        
+                if (game.mode === 'ADD_TOWER') {
+                    game.createNewTower(col, row, game.addTowerType);
+                }
+            }
+        };
+
+        canvas.onmousemove = function(e) {
+            if (game.mode === 'ADD_TOWER') {
+                game.cursorX = e.pageX;
+                game.cursorY = e.pageY;
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const { col, row } = px2Index(x, y);
+                game.col = col;
+                game.row = row;
+            }
+        };
     }
 
     shouldGenerateEnemy() {
-        return this.wave < 999 && new Date() - this.lastCreatedEnemyTime > 500;
+        return this.wave < 999 && new Date() - this.lastCreatedEnemyTime > 1000;
     }
 
     shouldGenerateWave() {
@@ -501,6 +649,39 @@ export default class Game {
         title.innerHTML = `得分：${this.score}`;
         panels.style.display = 'block';
         this.status = 'gameOver';
+        cancelAnimationFrame(this.animId);
+    }
+
+    calculateFPS() {
+        // 当前帧的时间
+        const frameTime = new Date().getTime();
+        this.frames++;
+        
+        // 距离上次更新 FPS 已经过去了一秒
+        if (frameTime > this.timeLastSecond + 1000) {
+            this.fps = Math.min(
+                Math.round(this.frames * 1000 / (frameTime - this.timeLastSecond)),
+                FRAMERATE
+            );
+
+            this.timeLastSecond = frameTime;
+            this.frames = 0;
+        }
+        
+        const fps = Math.round(this.fps);
+        const time = Math.round((new Date().getTime() - this.time) / 1000 * 100) / 100; // 显示时间保留两位小数
+        const fpsRate = Math.round(Math.min(this.fps / FRAMERATE, 1) * 100);
+        
+        let statusText = `Time: <span>${time}</span>`;
+        statusText += `<p class="fps">FPS: <span>${fps} (${fpsRate}%)</span></p>`;
+        
+        status.innerHTML = statusText;
+    }
+
+    showError(info) {
+        const message = new Message({ text: info });
+        console.log(info);
+        this.gameError.messages.push(message);
     }
 }
 

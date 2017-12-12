@@ -5,7 +5,7 @@ var PorgressBarPlugin = require('progress-bar-webpack-plugin');
 
 module.exports = {
     entry: ['./src/index'],
-    devtool: 'cheap-source-map',
+    devtool: 'source-map',
     output: {
         path: path.join(__dirname, 'static'),
         filename: 'bundle.js',
@@ -17,6 +17,16 @@ module.exports = {
                 test: /\.js$/,
                 use: ['babel-loader'],
                 include: path.join(__dirname, 'src')
+            },
+            {
+                test: /\.less$/,
+                use: [{
+                    loader: 'style-loader'
+                }, {
+                    loader: 'css-loader'
+                }, {
+                    loader: 'less-loader'
+                }]
             }
         ]
     },

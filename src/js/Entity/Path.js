@@ -1,23 +1,26 @@
+import { GRID_SIZE } from '../utils/constant';
+import { index2Px } from '../utils/utils';
+
 class Path {
     constructor(opt) {
         this.ctx = opt.ctx;
-        this.radius = opt.radius;
-        this.pathCoord = opt.pathCoord;
+        this.radius = opt.radius || GRID_SIZE / 2;
+        this.orbit = opt.orbit;
         this.points = [];
 
         /**
          * Add a point to path
          */
-        this.addPoint = function (x, y) {
+        this.addPoint = function(x, y) {
             this.points.push([x, y]);
         };
 
         // Define path points
-        this.setPoints = function () {
-            for (let i = 0, len = this.pathCoord.length; i < len; i++) {
-                const coord = this.pathCoord[i];
-                this.addPoint(40 * coord[0] + 20, 40 * coord[1] + 20);
-            }
+        this.setPoints = function() {
+            this.orbit.forEach(coord => {
+                const {x, y} = index2Px(...coord);
+                this.addPoint(x, y);
+            });
         };
     }
 
@@ -25,38 +28,66 @@ class Path {
      * Render path
      */
     draw() {
+        if (this.points.length === 0) {
+            return;
+        }
         const ctx = this.ctx;
+        const PATH_COLOR = '#333';
         ctx.save();
 
         ctx.beginPath();
         ctx.lineJoin = 'round';
-        ctx.strokeStyle = '#333';
-        ctx.lineWidth = this.radius * 2;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = PATH_COLOR;
+        ctx.lineWidth = (this.radius - 1) * 2;
         ctx.shadowBlur = 0;
 
-        for (var i = 0; i < this.points.length; i++) {
-            ctx.lineTo(this.points[i][0], this.points[i][1]);
-        }
+        this.points.forEach(point => {
+            ctx.lineTo(point[0], point[1]);
+        });
+
         ctx.stroke();
 
         ctx.beginPath();
         ctx.lineWidth = 1;
-        ctx.fillStyle = '#555';
-        ctx.arc(this.points[0][0], this.points[0][1], this.radius, 0.5 * Math.PI, 1.5 * Math.PI, false);
+        ctx.fillStyle = PATH_COLOR;
+        const startPoint = this.points[0];
+        ctx.arc(
+            startPoint[0],
+            startPoint[1],
+            this.radius,
+            0 * Math.PI,
+            2 * Math.PI,
+            false
+        );
         ctx.fill();
 
         // Draw a line in the middle of the path
         ctx.strokeStyle = '#111';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        for (let i = 0; i < this.points.length; i++) {
-            ctx.lineTo(this.points[i][0], this.points[i][1]);
-        }
-        // ctx.closePath();
+        this.points.forEach(point => {
+            ctx.lineTo(point[0], point[1]);
+        });
         ctx.stroke();
+
+        // 标记终点
+        ctx.beginPath();
+        ctx.fillStyle = 'tomato';
+        const endPoint = this.points[this.points.length - 1];
+        ctx.arc(
+            endPoint[0],
+            endPoint[1],
+            this.radius * 0.6,
+            0 * Math.PI,
+            2 * Math.PI,
+            false
+        );
+        ctx.fill();
+        
 
         ctx.restore();
     }
-};
+}
 
 export default Path;

@@ -1,93 +1,119 @@
 import Game from './js/Game';
-import GameControl from './js/Entity/GameControl';
-import GameInfo from './js/Entity/GameInfo';
-import {
-    gridWidth,
-    gridHeight,
-    gridNumX,
-    gridNumY,
-    towerDataURL
-} from './js/utils/constant';
-import BaseTower from './js/Entity/tower/BaseTower';
-import BulletTower from './js/Entity/tower/BulletTower';
+import { WIDTH, HEIGHT, GAME_CONTROL_WIDTH, GAME_CONTROL_HEIGHT } from './js/utils/constant';
+import './style/index.less';
+let stage = 1;
+let game = {};
 
-const game = new Game({
-    element: document.getElementById('drawing')
-});
-// FIXME: JUST FOR DEBUG
-window.game = game;
+function beginGame() {
+    game = new Game({
+        element: document.getElementById('drawing'),
+        stage
+    });
+    world.game = game;
+    world.stage = stage;
 
-const gameControlEle = document.getElementById('game-control');
-export const gameControl = new GameControl({
-    element: gameControlEle,
-    game
-});
-gameControl.draw();
+    // FIXME: JUST FOR DEBUG
+    window.game = game;
+}
 
-const $gameInfo = document.getElementById('game-info');
-export const gameInfo = new GameInfo({
-    element: $gameInfo,
-    game
-});
-gameInfo.draw();
+// 游戏的全部状态保存在该对象中
+export const world = {};
+window.world = world;
+
+const BORDER_WIDTH = 6;
 
 const canvas = document.getElementById('drawing');
+const ctx = canvas.getContext('2d');
+canvas.width = WIDTH;
+canvas.height = HEIGHT;
 
-// 在canvas上进行右键操作
-canvas.oncontextmenu = function(e) {
-    game.mode = '';
-    e.preventDefault();
-};
+const backgroundCanvas = document.getElementById('background');
+const bgCtx = backgroundCanvas.getContext('2d');
+backgroundCanvas.width = WIDTH + GAME_CONTROL_WIDTH;
+backgroundCanvas.height = HEIGHT;
 
-document.onmousemove = function(e) {
-    if (game.mode === 'ADD_TOWER') {
-        game.cursorX = e.pageX;
-        game.cursorY = e.pageY;
-        var rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        game.col = Math.floor(x / gridWidth);
-        game.row = Math.floor(y / gridHeight);
-    }
-};
+const gameControlCanvas = document.getElementById('game-control');
+gameControlCanvas.width = GAME_CONTROL_WIDTH;
+gameControlCanvas.height = GAME_CONTROL_HEIGHT;
 
-document.onclick = function(e) {
-    const rect = canvas.getBoundingClientRect();
+const panels = document.getElementById('panels');
 
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+const gameInfoCanvas = document.getElementById('game-info');
+const errorMsgCanvas = document.getElementById('error-message');
 
-    const col = Math.floor(x / gridWidth);
-    const row = Math.floor(y / gridHeight);
+const chooseStage = document.getElementById('choose-stage');
+const chooseStageButtons = document.getElementsByClassName('choose-stage-button');
+// 点击按钮选择不同的 stage
+Array.prototype.forEach.call(chooseStageButtons, b => {
+    b.addEventListener('click', chooseStageHandler, false);
+});
 
-    /* 只在地图范围内进行操作 */
-    if (0 <= col && col < gridNumX && 0 <= row && row < gridNumY) {
-        if (game.map.coord[col][row] === 'T') {
-            // 点击的格子内为塔
-            game.towers.map((tower, index) => {
-                if (tower.col === col && tower.row === row) {
-                    console.log(`You select ${index}th tower, its id is ${tower.id}`);
+const status = document.getElementById('status');
 
-                    // 已经选中的塔再次点击则取消
-                    if (game.towerSelectIndex === index) {
-                        game.towerSelectIndex = -1;
-                        game.towerSelectId = -1;
-                        game.towerSelect = false;
-                    } else {
-                        game.towerSelectIndex = index;
-                        game.towerSelectId = tower.id;
-                        game.towerSelect = true;
-                    }
-                }
-            });
-        } else {
-            game.towerSelect = false;
-            game.towerSelectId = -1;
-            game.towerSelectIndex = -1;
-        }
+function chooseStageHandler(e) {
+    stage = e.target.dataset.stage;
+    chooseStage.style.display = 'none';
+    beginGame(stage);
+}
 
-        if (game.mode === 'ADD_TOWER') {
-            game.createNewTower(col, row, game.addTowerType);
-        }
-    }
-};
+function windowResizeHandler() {
+    // 确定canvas的位置
+    const cvx = (window.innerWidth - WIDTH - GAME_CONTROL_WIDTH) * 0.5;
+    const cvy = (window.innerHeight - HEIGHT) * 0.5;
+
+    canvas.style.position = 'absolute';
+    canvas.style.left = cvx + 'px';
+    canvas.style.top = cvy + 'px';
+
+    backgroundCanvas.style.position = 'absolute';
+    backgroundCanvas.style.left = cvx + BORDER_WIDTH + 'px';
+    backgroundCanvas.style.top = cvy + BORDER_WIDTH + 'px';
+
+    status.style.position = 'absolute';
+    status.style.left = cvx + BORDER_WIDTH + 'px';
+    status.style.top = cvy + BORDER_WIDTH + 'px';
+
+    gameControlCanvas.style.position = 'absolute';
+    gameControlCanvas.style.left = cvx + WIDTH + BORDER_WIDTH + 'px';
+    gameControlCanvas.style.top = cvy + 'px';
+
+    panels.style.position = 'absolute';
+    panels.style.left = cvx + BORDER_WIDTH + 'px';
+    panels.style.top = cvy + 200 + 'px';
+
+    gameInfoCanvas.style.position = 'absolute';
+    gameInfoCanvas.style.left = cvx + BORDER_WIDTH + 'px';
+    gameInfoCanvas.style.top = cvy + BORDER_WIDTH + 'px';
+
+    errorMsgCanvas.style.position = 'absolute';
+    errorMsgCanvas.style.left = cvx + BORDER_WIDTH + 'px';
+    errorMsgCanvas.style.top = cvy + BORDER_WIDTH + 'px';
+
+    chooseStage.style.position = 'absolute';
+    chooseStage.style.left = cvx + BORDER_WIDTH + 'px';
+    chooseStage.style.top = cvy + BORDER_WIDTH + 'px';
+}
+
+window.addEventListener('resize', windowResizeHandler, false);
+
+function renderBackground() {
+    const gradient = bgCtx.createRadialGradient(
+        (WIDTH + GAME_CONTROL_WIDTH) * 0.5,
+        HEIGHT * 0.5,
+        0,
+        (WIDTH + GAME_CONTROL_WIDTH) * 0.5,
+        HEIGHT * 0.5,
+        500
+    );
+
+    gradient.addColorStop(0, 'rgba(0, 70, 70, 1)');
+    gradient.addColorStop(1, 'rgba(0, 8, 14, 1');
+
+    bgCtx.fillStyle = gradient;
+    ctx.fillStyle = gradient;
+
+    bgCtx.fillRect(0, 0, WIDTH + GAME_CONTROL_WIDTH, HEIGHT);
+}
+
+windowResizeHandler();
+renderBackground();

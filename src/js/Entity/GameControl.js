@@ -1,7 +1,6 @@
-import { BaseTower, LaserTower, SlowTower, FireTower } from './tower';
-import { isInside, highlightGrid } from './../utils/utils';
+import { BaseTower, LaserTower, SlowTower, FireTower, Block } from './tower';
+import { isInside, highlightGrid, drawGrid } from './../utils/utils';
 import { GAME_CONTROL_WIDTH, GAME_CONTROL_HEIGHT, towerData } from '../utils/constant';
-import { gameInfo } from './../../index';
 
 const GRID_WIDTH = 60;
 const GRID_HEIGHT = 60;
@@ -17,7 +16,7 @@ const DISABLE_COLOR = '#aaa';
 const TOWER_TYPE = [
     ['BASE', 'FIRE'],
     ['LASER'],
-    ['SLOW']
+    ['SLOW', 'BLOCK']
 ];
 
 class GameControl {
@@ -35,6 +34,7 @@ class GameControl {
 
         element.width = WIDTH;
         element.height = HEIGHT;
+        this.element = element;
 
         this.ctx = element.getContext('2d');
         this.offsetX = this.option.offsetX;
@@ -103,7 +103,14 @@ class GameControl {
         this.drawButton();
         this.drawSelectedTowerInfo();
 
-        requestAnimationFrame(() => this.draw(), 1000);
+        this.animId = requestAnimationFrame(() => this.draw());
+    }
+
+    stopAnim() {
+        cancelAnimationFrame(this.animId);
+        const ctx = this.ctx;
+        ctx.fillStyle = '#010c12';
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
     }
 
     drawGrid() {
@@ -228,6 +235,7 @@ class GameControl {
 
         $element.mousemove(e => {
             // e.stopPropagation()
+            const gameInfo = this.game.gameInfo;
             const pauseBtn = this.pauseBtn;
             const sellBtn = this.sellBtn;
 
@@ -327,11 +335,19 @@ class TowerArea {
             radius: 10
         });
 
+        this.block = new Block({
+            x: this.offsetX + GRID_WIDTH * 2.5,
+            y: this.offsetY + GRID_HEIGHT * 1.5,
+            ctx: this.ctx,
+            radius: 0
+        });
+
         this.towers = {
             BASE: this.baseTower,
             LASER: this.laserTower,
             SLOW: this.slowTower,
-            FIRE: this.fireTower
+            FIRE: this.fireTower,
+            BLOCK: this.block
         };
     }
 
@@ -339,21 +355,8 @@ class TowerArea {
         const ctx = this.ctx;
         ctx.strokeStyle = FILL_COLOR;
         ctx.lineWidth = 1;
-        // 横线
-        ctx.beginPath();
-        for (let i = 0; i < GRID_NUM_Y + 1; i++) {
-            ctx.moveTo(this.offsetX, i * GRID_WIDTH + this.offsetY);
-            ctx.lineTo(this.offsetX + GRID_NUM_X * GRID_WIDTH, i * GRID_WIDTH + this.offsetY);
-        }
-        ctx.stroke();
 
-        // 纵线
-        ctx.beginPath();
-        for (let i = 0; i < GRID_NUM_X + 1; i++) {
-            ctx.moveTo(i * GRID_WIDTH + this.offsetX, this.offsetY);
-            ctx.lineTo(i * GRID_WIDTH + this.offsetX, this.offsetY + GRID_NUM_Y * GRID_HEIGHT);
-        }
-        ctx.stroke();
+        drawGrid(ctx, GRID_NUM_X, GRID_NUM_Y, GRID_WIDTH, FILL_COLOR, this.offsetX, this.offsetY);
 
         if (this.selected !== -1) {
             this.highlightTower(this.selected[0], this.selected[1]);
