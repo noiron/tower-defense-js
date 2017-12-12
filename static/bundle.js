@@ -74,17 +74,22 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 var WIDTH = exports.WIDTH = 800;
-var HEIGHT = exports.HEIGHT = 640;
+var HEIGHT = exports.HEIGHT = 650;
 
 var GAME_CONTROL_WIDTH = exports.GAME_CONTROL_WIDTH = 230;
-var GAME_CONTROL_HEIGHT = exports.GAME_CONTROL_HEIGHT = 640;
+var GAME_CONTROL_HEIGHT = exports.GAME_CONTROL_HEIGHT = 650;
 
-var gridSize = exports.gridSize = 40;
-var gridWidth = exports.gridWidth = gridSize;
-var gridHeight = exports.gridHeight = gridSize;
+var GRID_SIZE = exports.GRID_SIZE = 50;
+var gridWidth = exports.gridWidth = GRID_SIZE;
+var gridHeight = exports.gridHeight = GRID_SIZE;
 
-var gridNumX = exports.gridNumX = 20; // x轴方向上的格子数目
-var gridNumY = exports.gridNumY = 16; // y轴方向上的格子数目
+var gridNumX = exports.gridNumX = 15; // x轴方向上的格子数目
+var gridNumY = exports.gridNumY = 11; // y轴方向上的格子数目
+
+var FRAMERATE = exports.FRAMERATE = 60;
+
+var OFFSET_X = exports.OFFSET_X = 25;
+var OFFSET_Y = exports.OFFSET_Y = 50;
 
 var towerData = exports.towerData = {
     BASE: {
@@ -102,11 +107,212 @@ var towerData = exports.towerData = {
     FIRE: {
         cost: 400,
         info: '火焰塔：啊哈，你想被烤成几分熟？'
+    },
+    BLOCK: {
+        cost: 50,
+        info: ''
     }
 };
 
 /***/ }),
 /* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.toRadians = toRadians;
+exports.calculateDistance = calculateDistance;
+exports.isInside = isInside;
+exports.highlightGrid = highlightGrid;
+exports.index2Px = index2Px;
+exports.px2Index = px2Index;
+exports.drawGrid = drawGrid;
+
+var _glMatrix = __webpack_require__(3);
+
+var _constant = __webpack_require__(0);
+
+var _Message = __webpack_require__(12);
+
+var _Message2 = _interopRequireDefault(_Message);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function toRadians(angle) {
+    return angle * (Math.PI / 180);
+}
+
+// Array Remove - By John Resig (MIT Licensed)
+Array.prototype.remove = function (from, to) {
+    var rest = this.slice((to || from) + 1 || this.length);
+    this.length = from < 0 ? this.length + from : from;
+    return this.push.apply(this, rest);
+};
+
+// 根据id删除元素
+Array.prototype.removeById = function (id) {};
+
+Array.prototype.getEleById = function (id) {
+    var result = null;
+    this.forEach(function (ele, i) {
+        if (ele.id === id) {
+            result = ele;
+        }
+    });
+    return result;
+};
+
+Array.prototype.getEle = function (ele) {
+    for (var i = 0; i < this.length; i++) {
+        if (this[i] === ele) {
+            return ele;
+        }
+    }
+    return null;
+};
+
+function calculateDistance(x1, y1, x2, y2) {
+    var result = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+    return result;
+}
+
+// Make sure v is smaller than high
+_glMatrix.vec2.limit = function (out, v, high) {
+    'use strict';
+
+    var x = v[0],
+        y = v[1];
+
+    var len = x * x + y * y;
+
+    if (len > high * high && len > 0) {
+        out[0] = x;
+        out[1] = y;
+        _glMatrix.vec2.normalize(out, out);
+        _glMatrix.vec2.scale(out, out, high);
+    }
+    return out;
+};
+
+function isInside(pos, rect) {
+    return pos.x > rect.x && pos.x < rect.x + rect.width && pos.y < rect.y + rect.height && pos.y > rect.y;
+}
+
+/**
+ * 
+ * @param {*} ctx 
+ * @param {*} x  top left x coordinate
+ * @param {*} y  top left y coordinate
+ * @param {*} WIDTH grid's width
+ * @param {*} HEIGHT grid's height
+ *       ____
+ *      |    |
+ *      |____|
+ */
+function highlightGrid(ctx, x, y, WIDTH, HEIGHT) {
+    var LW = 3; // lineWidth
+    var innerWidth = WIDTH - LW;
+    var innerHeight = HEIGHT - LW;
+    var lowRatio = 0.35;
+    var upRatio = 1 - lowRatio;
+
+    ctx.save();
+    ctx.strokeStyle = 'pink';
+    ctx.lineWidth = LW;
+
+    ctx.beginPath();
+    ctx.moveTo(x + LW, y + LW);
+    ctx.lineTo(x + lowRatio * WIDTH + LW, y + LW);
+
+    ctx.moveTo(x + upRatio * WIDTH, y + LW);
+    ctx.lineTo(x + innerWidth, y + LW);
+    ctx.lineTo(x + innerWidth, y + lowRatio * HEIGHT);
+
+    ctx.moveTo(x + innerWidth, y + upRatio * HEIGHT - LW);
+    ctx.lineTo(x + innerWidth, y + innerHeight);
+    ctx.lineTo(x + upRatio * WIDTH, y + innerHeight);
+
+    ctx.moveTo(x + lowRatio * WIDTH, y + innerHeight);
+    ctx.lineTo(x + LW, y + innerHeight);
+    ctx.lineTo(x + LW, y + upRatio * HEIGHT - LW);
+
+    ctx.moveTo(x + LW, y + lowRatio * HEIGHT);
+    ctx.lineTo(x + LW, y + LW);
+
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+}
+
+/**
+ * 根据一个格子的行和列，计算出其中心在坐标系中用像素表示的坐标
+ * @param {number} col 处于第几列，对应于x坐标
+ * @param {number} row 处于第几行，对应于y坐标
+ */
+function index2Px(col, row) {
+    var gridSize = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : _constant.GRID_SIZE;
+
+    var offsetX = _constant.OFFSET_X;
+    var offsetY = _constant.OFFSET_Y;
+
+    var x = col * gridSize + gridSize * 0.5 + offsetX;
+    var y = row * gridSize + gridSize * 0.5 + offsetY;
+
+    return { x: x, y: y };
+}
+
+/**
+ * 根据一个点在canvas上的像素坐标，计算出其所在格子的行和列
+ * @param {number} x x坐标
+ * @param {number} y y坐标
+ */
+function px2Index(x, y) {
+    var gridSize = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : _constant.GRID_SIZE;
+
+    var offsetX = _constant.OFFSET_X;
+    var offsetY = _constant.OFFSET_Y;
+
+    var col = Math.floor((x - offsetX) / gridSize);
+    var row = Math.floor((y - offsetY) / gridSize);
+
+    return { col: col, row: row };
+}
+
+function drawGrid(ctx, cols, rows) {
+    var gridSize = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : _constant.GRID_SIZE;
+    var strokeStyle = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : '#aaa';
+    var offsetX = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0;
+    var offsetY = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : 0;
+
+    ctx.strokeStyle = strokeStyle;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+
+    // Draw vertical lines
+    ctx.moveTo(offsetX - 0.5, offsetY);
+    ctx.lineTo(offsetX - 0.5, rows * gridSize + offsetY);
+    for (var i = 0; i < cols + 1; i++) {
+        ctx.moveTo(i * gridSize - 0.5 + offsetX, offsetY);
+        ctx.lineTo(i * gridSize - 0.5 + offsetX, rows * gridSize + offsetY);
+    }
+    ctx.stroke();
+
+    // Draw horizontal lines
+    ctx.moveTo(offsetX, offsetY - 0.5);
+    ctx.lineTo(cols * gridSize + offsetX, offsetY - 0.5);
+    for (var _i = 0; _i < rows + 1; _i++) {
+        ctx.moveTo(offsetX, _i * gridSize - 0.5 + offsetY);
+        ctx.lineTo(cols * gridSize + offsetX, _i * gridSize - 0.5 + offsetY);
+    }
+    ctx.stroke();
+}
+
+/***/ }),
+/* 2 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -184,20 +390,20 @@ function equals(a, b) {
 
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__gl_matrix_common__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__gl_matrix_common__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__gl_matrix_mat2__ = __webpack_require__(15);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__gl_matrix_mat2d__ = __webpack_require__(16);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__gl_matrix_mat3__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__gl_matrix_mat3__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__gl_matrix_mat4__ = __webpack_require__(17);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__gl_matrix_quat__ = __webpack_require__(18);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__gl_matrix_vec2__ = __webpack_require__(19);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__gl_matrix_vec3__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__gl_matrix_vec4__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__gl_matrix_vec3__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__gl_matrix_vec4__ = __webpack_require__(11);
 /* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "glMatrix", function() { return __WEBPACK_IMPORTED_MODULE_0__gl_matrix_common__; });
 /* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "mat2", function() { return __WEBPACK_IMPORTED_MODULE_1__gl_matrix_mat2__; });
 /* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "mat2d", function() { return __WEBPACK_IMPORTED_MODULE_2__gl_matrix_mat2d__; });
@@ -248,129 +454,6 @@ THE SOFTWARE. */
 
 
 /***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.toRadians = toRadians;
-exports.calcuteDistance = calcuteDistance;
-exports.isInside = isInside;
-exports.highlightGrid = highlightGrid;
-
-var _glMatrix = __webpack_require__(2);
-
-function toRadians(angle) {
-    return angle * (Math.PI / 180);
-}
-
-// Array Remove - By John Resig (MIT Licensed)
-Array.prototype.remove = function (from, to) {
-    var rest = this.slice((to || from) + 1 || this.length);
-    this.length = from < 0 ? this.length + from : from;
-    return this.push.apply(this, rest);
-};
-
-// 根据id删除元素
-Array.prototype.removeById = function (id) {};
-
-Array.prototype.getEleById = function (id) {
-    var result = null;
-    this.forEach(function (ele, i) {
-        if (ele.id === id) {
-            result = ele;
-        }
-    });
-    return result;
-};
-
-Array.prototype.getEle = function (ele) {
-    for (var i = 0; i < this.length; i++) {
-        if (this[i] === ele) {
-            return ele;
-        }
-    }
-    return null;
-};
-
-function calcuteDistance(x1, y1, x2, y2) {
-    var result = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-    return result;
-}
-
-// Make sure v is smaller than high
-_glMatrix.vec2.limit = function (out, v, high) {
-    'use strict';
-
-    var x = v[0],
-        y = v[1];
-
-    var len = x * x + y * y;
-
-    if (len > high * high && len > 0) {
-        out[0] = x;
-        out[1] = y;
-        _glMatrix.vec2.normalize(out, out);
-        _glMatrix.vec2.scale(out, out, high);
-    }
-    return out;
-};
-
-function isInside(pos, rect) {
-    return pos.x > rect.x && pos.x < rect.x + rect.width && pos.y < rect.y + rect.height && pos.y > rect.y;
-}
-
-/**
- * 
- * @param {*} ctx 
- * @param {*} x  top left x coordinate
- * @param {*} y  top left y coordinate
- * @param {*} WIDTH grid's width
- * @param {*} HEIGHT grid's height
- *       ____
- *      |    |
- *      |____|
- */
-function highlightGrid(ctx, x, y, WIDTH, HEIGHT) {
-    var LW = 3; // lineWidth
-    var innerWidth = WIDTH - LW;
-    var innerHeight = HEIGHT - LW;
-    var lowRatio = 0.35;
-    var upRatio = 1 - lowRatio;
-
-    ctx.save();
-    ctx.strokeStyle = 'pink';
-    ctx.lineWidth = LW;
-
-    ctx.beginPath();
-    ctx.moveTo(x + LW, y + LW);
-    ctx.lineTo(x + lowRatio * WIDTH + LW, y + LW);
-
-    ctx.moveTo(x + upRatio * WIDTH, y + LW);
-    ctx.lineTo(x + innerWidth, y + LW);
-    ctx.lineTo(x + innerWidth, y + lowRatio * HEIGHT);
-
-    ctx.moveTo(x + innerWidth, y + upRatio * HEIGHT - LW);
-    ctx.lineTo(x + innerWidth, y + innerHeight);
-    ctx.lineTo(x + upRatio * WIDTH, y + innerHeight);
-
-    ctx.moveTo(x + lowRatio * WIDTH, y + innerHeight);
-    ctx.lineTo(x + LW, y + innerHeight);
-    ctx.lineTo(x + LW, y + upRatio * HEIGHT - LW);
-
-    ctx.moveTo(x + LW, y + lowRatio * HEIGHT);
-    ctx.lineTo(x + LW, y + LW);
-
-    ctx.closePath();
-    ctx.stroke();
-    ctx.restore();
-}
-
-/***/ }),
 /* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -389,11 +472,11 @@ var _CircleBullet = __webpack_require__(20);
 
 var _CircleBullet2 = _interopRequireDefault(_CircleBullet);
 
-var _glMatrix = __webpack_require__(2);
+var _glMatrix = __webpack_require__(3);
 
-var _utils = __webpack_require__(3);
+var _utils = __webpack_require__(1);
 
-var _config = __webpack_require__(7);
+var _config = __webpack_require__(6);
 
 var _constant = __webpack_require__(0);
 
@@ -424,8 +507,13 @@ var BaseTower = function () {
         this.ctx = ctx;
         this.type = 'BASE';
         this.level = 1;
-        this.col = Math.floor((x - _constant.gridWidth / 2) / _constant.gridWidth);
-        this.row = Math.floor((y - _constant.gridHeight / 2) / _constant.gridHeight);
+
+        var _px2Index = (0, _utils.px2Index)(x, y),
+            col = _px2Index.col,
+            row = _px2Index.row;
+
+        this.col = col;
+        this.row = row;
         this.radius = radius || 12;
         this.hue = 200;
         this.bullets = bullets;
@@ -438,7 +526,7 @@ var BaseTower = function () {
         this.targetIndex = -1;
         this.target = null;
         this.targetId = -1;
-        this.range = 4 * _constant.gridWidth;
+        this.range = 4 * _constant.GRID_SIZE;
         this.selected = selected || false;
         this.damage = damage || 5;
         this.upgradeGain = damage * 0.4; // 升级后的伤害增益
@@ -525,7 +613,7 @@ var BaseTower = function () {
             if (this.target !== null) {
                 var prevTgt = enemies.getEle(this.target);
                 if (prevTgt) {
-                    if ((0, _utils.calcuteDistance)(prevTgt.x, prevTgt.y, this.x, this.y) < this.range) {
+                    if ((0, _utils.calculateDistance)(prevTgt.x, prevTgt.y, this.x, this.y) < this.range) {
                         return;
                     }
                 }
@@ -542,7 +630,7 @@ var BaseTower = function () {
                     // 简化计算
                     continue;
                 } else {
-                    if ((0, _utils.calcuteDistance)(enemy.x, enemy.y, this.x, this.y) < this.range) {
+                    if ((0, _utils.calculateDistance)(enemy.x, enemy.y, this.x, this.y) < this.range) {
                         if (this.target) {
                             this.target.color = 0;
                         }
@@ -633,110 +721,27 @@ exports.default = new globalId();
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.gameInfo = exports.gameControl = undefined;
-
-var _Game = __webpack_require__(14);
-
-var _Game2 = _interopRequireDefault(_Game);
-
-var _GameControl = __webpack_require__(32);
-
-var _GameControl2 = _interopRequireDefault(_GameControl);
-
-var _GameInfo = __webpack_require__(33);
-
-var _GameInfo2 = _interopRequireDefault(_GameInfo);
+exports.MAP_SETTING = exports.orbit = exports.config = undefined;
 
 var _constant = __webpack_require__(0);
 
-var _BaseTower = __webpack_require__(4);
-
-var _BaseTower2 = _interopRequireDefault(_BaseTower);
-
-var _BulletTower = __webpack_require__(12);
-
-var _BulletTower2 = _interopRequireDefault(_BulletTower);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var game = new _Game2.default({
-    element: document.getElementById('drawing')
-});
-// FIXME: JUST FOR DEBUG
-window.game = game;
-
-var gameControlEle = document.getElementById('game-control');
-var gameControl = exports.gameControl = new _GameControl2.default({
-    element: gameControlEle,
-    game: game
-});
-gameControl.draw();
-
-var $gameInfo = document.getElementById('game-info');
-var gameInfo = exports.gameInfo = new _GameInfo2.default({
-    element: $gameInfo,
-    game: game
-});
-gameInfo.draw();
-
-var canvas = document.getElementById('drawing');
-
-// 在canvas上进行右键操作
-canvas.oncontextmenu = function (e) {
-    game.mode = '';
-    e.preventDefault();
+var config = exports.config = {
+    renderShadow: false
 };
 
-document.onmousemove = function (e) {
-    if (game.mode === 'ADD_TOWER') {
-        game.cursorX = e.pageX;
-        game.cursorY = e.pageY;
-        var rect = canvas.getBoundingClientRect();
-        var x = e.clientX - rect.left;
-        var y = e.clientY - rect.top;
-        game.col = Math.floor(x / _constant.gridWidth);
-        game.row = Math.floor(y / _constant.gridHeight);
-    }
+var cols = _constant.gridNumX; // 16
+var rows = _constant.gridNumY; // 12
+
+// 地图路径坐标
+var orbit = exports.orbit = {
+    1: [[1, 0], [1, rows - 1]],
+    2: [[0, 1], [cols - 4, 1], [cols - 4, 4], [6, 4], [6, 8], [cols - 2, 8], [cols - 2, rows - 1], [0, rows - 1]],
+    3: [[6, 0], [6, 5], [8, 5], [8, rows - 1]]
 };
 
-document.onclick = function (e) {
-    var rect = canvas.getBoundingClientRect();
-
-    var x = e.clientX - rect.left;
-    var y = e.clientY - rect.top;
-
-    var col = Math.floor(x / _constant.gridWidth);
-    var row = Math.floor(y / _constant.gridHeight);
-
-    /* 只在地图范围内进行操作 */
-    if (0 <= col && col < _constant.gridNumX && 0 <= row && row < _constant.gridNumY) {
-        if (game.map.coord[col][row] === 'T') {
-            // 点击的格子内为塔
-            game.towers.map(function (tower, index) {
-                if (tower.col === col && tower.row === row) {
-                    console.log('You select ' + index + 'th tower, its id is ' + tower.id);
-
-                    // 已经选中的塔再次点击则取消
-                    if (game.towerSelectIndex === index) {
-                        game.towerSelectIndex = -1;
-                        game.towerSelectId = -1;
-                        game.towerSelect = false;
-                    } else {
-                        game.towerSelectIndex = index;
-                        game.towerSelectId = tower.id;
-                        game.towerSelect = true;
-                    }
-                }
-            });
-        } else {
-            game.towerSelect = false;
-            game.towerSelectId = -1;
-            game.towerSelectIndex = -1;
-        }
-
-        if (game.mode === 'ADD_TOWER') {
-            game.createNewTower(col, row, game.addTowerType);
-        }
+var MAP_SETTING = exports.MAP_SETTING = {
+    3: {
+        BLOCK: [[5, 3], [5, 4], [6, 4], [7, 4], [8, 4], [7, 8], [8, 8], [9, 8]]
     }
 };
 
@@ -750,12 +755,185 @@ document.onclick = function (e) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-var config = exports.config = {
-    renderShadow: false
+exports.Block = exports.FireTower = exports.SlowTower = exports.LaserTower = exports.BulletTower = exports.BaseTower = undefined;
+
+var _BaseTower = __webpack_require__(4);
+
+var _BaseTower2 = _interopRequireDefault(_BaseTower);
+
+var _BulletTower = __webpack_require__(21);
+
+var _BulletTower2 = _interopRequireDefault(_BulletTower);
+
+var _LaserTower = __webpack_require__(23);
+
+var _LaserTower2 = _interopRequireDefault(_LaserTower);
+
+var _SlowTower = __webpack_require__(25);
+
+var _SlowTower2 = _interopRequireDefault(_SlowTower);
+
+var _FireTower = __webpack_require__(27);
+
+var _FireTower2 = _interopRequireDefault(_FireTower);
+
+var _Block = __webpack_require__(29);
+
+var _Block2 = _interopRequireDefault(_Block);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var TowerFactory = {
+    BASE: _BaseTower2.default,
+    BULLET: _BulletTower2.default,
+    LASER: _LaserTower2.default,
+    SLOW: _SlowTower2.default,
+    FIRE: _FireTower2.default,
+    BLOCK: _Block2.default
 };
+
+exports.BaseTower = _BaseTower2.default;
+exports.BulletTower = _BulletTower2.default;
+exports.LaserTower = _LaserTower2.default;
+exports.SlowTower = _SlowTower2.default;
+exports.FireTower = _FireTower2.default;
+exports.Block = _Block2.default;
+exports.default = TowerFactory;
 
 /***/ }),
 /* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.world = undefined;
+
+var _Game = __webpack_require__(14);
+
+var _Game2 = _interopRequireDefault(_Game);
+
+var _constant = __webpack_require__(0);
+
+__webpack_require__(39);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var stage = 1;
+var game = {};
+
+function beginGame() {
+    game = new _Game2.default({
+        element: document.getElementById('drawing'),
+        stage: stage
+    });
+    world.game = game;
+    world.stage = stage;
+
+    // FIXME: JUST FOR DEBUG
+    window.game = game;
+}
+
+// 游戏的全部状态保存在该对象中
+var world = exports.world = {};
+window.world = world;
+
+var BORDER_WIDTH = 6;
+
+var canvas = document.getElementById('drawing');
+var ctx = canvas.getContext('2d');
+canvas.width = _constant.WIDTH;
+canvas.height = _constant.HEIGHT;
+
+var backgroundCanvas = document.getElementById('background');
+var bgCtx = backgroundCanvas.getContext('2d');
+backgroundCanvas.width = _constant.WIDTH + _constant.GAME_CONTROL_WIDTH;
+backgroundCanvas.height = _constant.HEIGHT;
+
+var gameControlCanvas = document.getElementById('game-control');
+gameControlCanvas.width = _constant.GAME_CONTROL_WIDTH;
+gameControlCanvas.height = _constant.GAME_CONTROL_HEIGHT;
+
+var panels = document.getElementById('panels');
+
+var gameInfoCanvas = document.getElementById('game-info');
+var errorMsgCanvas = document.getElementById('error-message');
+
+var chooseStage = document.getElementById('choose-stage');
+var chooseStageButtons = document.getElementsByClassName('choose-stage-button');
+// 点击按钮选择不同的 stage
+Array.prototype.forEach.call(chooseStageButtons, function (b) {
+    b.addEventListener('click', chooseStageHandler, false);
+});
+
+var status = document.getElementById('status');
+
+function chooseStageHandler(e) {
+    stage = e.target.dataset.stage;
+    chooseStage.style.display = 'none';
+    beginGame(stage);
+}
+
+function windowResizeHandler() {
+    // 确定canvas的位置
+    var cvx = (window.innerWidth - _constant.WIDTH - _constant.GAME_CONTROL_WIDTH) * 0.5;
+    var cvy = (window.innerHeight - _constant.HEIGHT) * 0.5;
+
+    canvas.style.position = 'absolute';
+    canvas.style.left = cvx + 'px';
+    canvas.style.top = cvy + 'px';
+
+    backgroundCanvas.style.position = 'absolute';
+    backgroundCanvas.style.left = cvx + BORDER_WIDTH + 'px';
+    backgroundCanvas.style.top = cvy + BORDER_WIDTH + 'px';
+
+    status.style.position = 'absolute';
+    status.style.left = cvx + BORDER_WIDTH + 'px';
+    status.style.top = cvy + BORDER_WIDTH + 'px';
+
+    gameControlCanvas.style.position = 'absolute';
+    gameControlCanvas.style.left = cvx + _constant.WIDTH + BORDER_WIDTH + 'px';
+    gameControlCanvas.style.top = cvy + 'px';
+
+    panels.style.position = 'absolute';
+    panels.style.left = cvx + BORDER_WIDTH + 'px';
+    panels.style.top = cvy + 200 + 'px';
+
+    gameInfoCanvas.style.position = 'absolute';
+    gameInfoCanvas.style.left = cvx + BORDER_WIDTH + 'px';
+    gameInfoCanvas.style.top = cvy + BORDER_WIDTH + 'px';
+
+    errorMsgCanvas.style.position = 'absolute';
+    errorMsgCanvas.style.left = cvx + BORDER_WIDTH + 'px';
+    errorMsgCanvas.style.top = cvy + BORDER_WIDTH + 'px';
+
+    chooseStage.style.position = 'absolute';
+    chooseStage.style.left = cvx + BORDER_WIDTH + 'px';
+    chooseStage.style.top = cvy + BORDER_WIDTH + 'px';
+}
+
+window.addEventListener('resize', windowResizeHandler, false);
+
+function renderBackground() {
+    var gradient = bgCtx.createRadialGradient((_constant.WIDTH + _constant.GAME_CONTROL_WIDTH) * 0.5, _constant.HEIGHT * 0.5, 0, (_constant.WIDTH + _constant.GAME_CONTROL_WIDTH) * 0.5, _constant.HEIGHT * 0.5, 500);
+
+    gradient.addColorStop(0, 'rgba(0, 70, 70, 1)');
+    gradient.addColorStop(1, 'rgba(0, 8, 14, 1');
+
+    bgCtx.fillStyle = gradient;
+    ctx.fillStyle = gradient;
+
+    bgCtx.fillRect(0, 0, _constant.WIDTH + _constant.GAME_CONTROL_WIDTH, _constant.HEIGHT);
+}
+
+windowResizeHandler();
+renderBackground();
+
+/***/ }),
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -790,7 +968,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["multiplyScalarAndAdd"] = multiplyScalarAndAdd;
 /* harmony export (immutable) */ __webpack_exports__["exactEquals"] = exactEquals;
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(2);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -1563,7 +1741,7 @@ const sub = subtract;
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1607,7 +1785,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["str"] = str;
 /* harmony export (immutable) */ __webpack_exports__["exactEquals"] = exactEquals;
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(2);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -2403,7 +2581,7 @@ const forEach = (function() {
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2439,7 +2617,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["str"] = str;
 /* harmony export (immutable) */ __webpack_exports__["exactEquals"] = exactEquals;
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(2);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -3065,55 +3243,6 @@ const forEach = (function() {
 
 
 /***/ }),
-/* 11 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.FireTower = exports.SlowTower = exports.LaserTower = exports.BulletTower = exports.BaseTower = undefined;
-
-var _BaseTower = __webpack_require__(4);
-
-var _BaseTower2 = _interopRequireDefault(_BaseTower);
-
-var _BulletTower = __webpack_require__(12);
-
-var _BulletTower2 = _interopRequireDefault(_BulletTower);
-
-var _LaserTower = __webpack_require__(22);
-
-var _LaserTower2 = _interopRequireDefault(_LaserTower);
-
-var _SlowTower = __webpack_require__(24);
-
-var _SlowTower2 = _interopRequireDefault(_SlowTower);
-
-var _FireTower = __webpack_require__(26);
-
-var _FireTower2 = _interopRequireDefault(_FireTower);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var TowerFactory = {
-    BASE: _BaseTower2.default,
-    BULLET: _BulletTower2.default,
-    LASER: _LaserTower2.default,
-    SLOW: _SlowTower2.default,
-    FIRE: _FireTower2.default
-};
-
-exports.BaseTower = _BaseTower2.default;
-exports.BulletTower = _BulletTower2.default;
-exports.LaserTower = _LaserTower2.default;
-exports.SlowTower = _SlowTower2.default;
-exports.FireTower = _FireTower2.default;
-exports.default = TowerFactory;
-
-/***/ }),
 /* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -3126,133 +3255,65 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-var _BaseTower2 = __webpack_require__(4);
-
-var _BaseTower3 = _interopRequireDefault(_BaseTower2);
-
-var _Bullet = __webpack_require__(21);
-
-var _Bullet2 = _interopRequireDefault(_Bullet);
-
-var _glMatrix = __webpack_require__(2);
-
-var _utils = __webpack_require__(3);
-
-var _config = __webpack_require__(7);
-
-var _constant = __webpack_require__(0);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+// 在画面上显示信息
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+// 属性：
+// 文字内容
+// 位置，大小
+// 颜色
+// type: 提示信息和错误信息需要显示在不同的 canvas 层上 
 
-var BulletTower = function (_BaseTower) {
-    _inherits(BulletTower, _BaseTower);
+var canvas = document.getElementById('error-message');
+var ctx = canvas.getContext('2d');
 
-    function BulletTower(opt) {
-        _classCallCheck(this, BulletTower);
+var Message = function () {
+    function Message(opt) {
+        _classCallCheck(this, Message);
 
-        var _this = _possibleConstructorReturn(this, (BulletTower.__proto__ || Object.getPrototypeOf(BulletTower)).call(this, opt));
-        // const { ctx, x, y, bullets, selected, damage } = opt;
+        this.text = opt.text;
+        this.x = opt.x || 0;
+        this.y = opt.y || canvas.height - 15;
+        this.width = opt.width || 0;
+        this.height = opt.height || 0;
 
+        this.life = 2000; // 信息存在的时长
+        this.startTime = new Date().getTime(); // 信息开始显示的时间
 
-        _this.type = 'BULLET';
-        _this.hue = 100;
-        _this.cost = _constant.towerData[_this.type].cost;
-        _this.range = 3 * _constant.gridWidth;
-
-        _this.direction = opt.direction || 0; // 用度数表示的tower指向
-        _this.bulletStartPosVec = _glMatrix.vec2.fromValues(0, 0);
-        _this.directionVec = _glMatrix.vec2.create();
-        return _this;
+        this.vanish = false;
     }
 
-    _createClass(BulletTower, [{
+    _createClass(Message, [{
         key: 'draw',
         value: function draw() {
-            var ctx = this.ctx;
-
-            // 将方向向量归一化
-            this.directionVec = _glMatrix.vec2.fromValues(Math.cos((0, _utils.toRadians)(this.direction)), Math.sin((0, _utils.toRadians)(this.direction)));
-            _glMatrix.vec2.normalize(this.directionVec, this.directionVec);
-
-            // bullet 出射位置
-
-            _glMatrix.vec2.scale(this.bulletStartPosVec, this.directionVec, 30);
-
-            ctx.save();
-            if (_config.config.renderShadow) {
-                ctx.shadowBlur = this.radius;
-                ctx.shadowColor = 'hsl(' + this.hue + ',100%,60%)';
+            if (new Date().getTime() - this.startTime > this.life) {
+                this.vanish = true;
             }
 
-            // 在选中的情况下，画出其射程范围
-            if (this.selected) {
-                ctx.beginPath();
-                ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
-                ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
-                ctx.fill();
+            if (this.vanish) {
+                return;
             }
 
-            ctx.strokeStyle = 'hsl(' + this.hue + ',100%,80%';
-            ctx.fillStyle = 'hsl(' + this.hue + ',100%,80%';
-            ctx.lineWidth = Math.max(3, this.radius / 8);
+            ctx.fillStyle = 'red';
+            ctx.font = '20px Arial';
 
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-            ctx.closePath();
-            ctx.stroke();
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.moveTo(this.x, this.y);
-            ctx.lineTo(this.x + this.bulletStartPosVec[0], this.y + this.bulletStartPosVec[1]);
-            ctx.stroke();
-            ctx.closePath();
-
-            if (this.targetIndex !== -1 && new Date() - this.lastShootTime >= 500) {
-                this.shoot(ctx);
-                this.lastShootTime = new Date();
+            if (this.text) {
+                ctx.fillText(this.text, 50, this.y);
             }
-
-            ctx.restore();
-        }
-    }, {
-        key: 'shoot',
-
-
-        // 发射子弹
-        value: function shoot(ctx) {
-            this.bullets.push(new _Bullet2.default({
-                ctx: ctx,
-                x: this.x + this.bulletStartPosVec[0],
-                y: this.y + this.bulletStartPosVec[1],
-                directionVec: this.directionVec
-            }));
-        }
-    }, {
-        key: 'findTarget',
-        value: function findTarget(enemies) {
-            _get(BulletTower.prototype.__proto__ || Object.getPrototypeOf(BulletTower.prototype), 'findTarget', this).call(this, enemies);
         }
     }]);
 
-    return BulletTower;
-}(_BaseTower3.default);
+    return Message;
+}();
 
-exports.default = BulletTower;
+exports.default = Message;
 
 /***/ }),
 /* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(6);
+module.exports = __webpack_require__(8);
 
 
 /***/ }),
@@ -3268,33 +3329,51 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _glMatrix = __webpack_require__(2);
+var _glMatrix = __webpack_require__(3);
 
-var _index = __webpack_require__(6);
-
-var _tower = __webpack_require__(11);
+var _tower = __webpack_require__(7);
 
 var _tower2 = _interopRequireDefault(_tower);
 
-var _Enemy = __webpack_require__(28);
+var _Enemy = __webpack_require__(30);
 
 var _Enemy2 = _interopRequireDefault(_Enemy);
 
-var _Map = __webpack_require__(29);
+var _Map = __webpack_require__(31);
 
 var _Map2 = _interopRequireDefault(_Map);
 
-var _Wave = __webpack_require__(31);
+var _Wave = __webpack_require__(34);
 
 var _Wave2 = _interopRequireDefault(_Wave);
 
-var _utils = __webpack_require__(3);
+var _Message = __webpack_require__(12);
+
+var _Message2 = _interopRequireDefault(_Message);
+
+var _utils = __webpack_require__(1);
 
 var _constant = __webpack_require__(0);
 
 var _id = __webpack_require__(5);
 
 var _id2 = _interopRequireDefault(_id);
+
+var _GameControl = __webpack_require__(35);
+
+var _GameControl2 = _interopRequireDefault(_GameControl);
+
+var _GameInfo = __webpack_require__(36);
+
+var _GameInfo2 = _interopRequireDefault(_GameInfo);
+
+var _GameError = __webpack_require__(37);
+
+var _GameError2 = _interopRequireDefault(_GameError);
+
+var _config = __webpack_require__(6);
+
+var _index = __webpack_require__(8);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3313,8 +3392,11 @@ backgroundCanvas.height = _constant.HEIGHT;
 var gameControlCanvas = document.getElementById('game-control');
 var panels = document.getElementById('panels');
 var startButton = document.getElementById('start-button');
+var backButton = document.getElementById('back-button');
+var $chooseStage = document.getElementById('choose-stage');
 
 var gameInfoCanvas = document.getElementById('game-info');
+var status = document.getElementById('status');
 
 var Game = function () {
     function Game(opt) {
@@ -3325,9 +3407,9 @@ var Game = function () {
         canvas.height = _constant.HEIGHT;
         this.element = opt.element;
         this.ctx = ctx;
+        this.stage = opt.stage;
 
         this.init();
-        this.draw();
         this.bindEvent();
     }
 
@@ -3336,11 +3418,36 @@ var Game = function () {
         value: function init() {
             this.initData();
 
-            window.addEventListener('resize', this.windowResizeHandler, false);
             startButton.addEventListener('click', this.startButtonClickHandler.bind(this), false);
+            backButton.addEventListener('click', this.backButtonClickHandler.bind(this), false);
 
-            this.windowResizeHandler();
             this.renderBackground();
+
+            panels.style.display = 'block';
+
+            var gameControlEle = document.getElementById('game-control');
+            var gameControl = new _GameControl2.default({
+                element: gameControlEle,
+                game: this
+            });
+            this.gameControl = gameControl;
+            gameControl.draw();
+
+            var $gameInfo = document.getElementById('game-info');
+            var gameInfo = new _GameInfo2.default({
+                element: $gameInfo,
+                game: this
+            });
+            this.gameInfo = gameInfo;
+            gameInfo.draw();
+
+            var $gameError = document.getElementById('error-message');
+            var gameError = new _GameError2.default({
+                element: $gameError,
+                game: this
+            });
+            this.gameError = gameError;
+            gameError.draw();
         }
     }, {
         key: 'initData',
@@ -3358,17 +3465,17 @@ var Game = function () {
             this.enemyCreatedCount = 0; // 目前已经创建的enemy的总数
             this.lastCreatedEnemyTime = new Date();
 
-            this.pathCoord = [[0, 0], [18, 0], [18, 4], [8, 4], [8, 10], [16, 10], [16, 14], [-1, 14]];
+            this.orbit = _config.orbit[this.stage];
 
-            var newTowerCoord = [8, 3];
-            this.map = new _Map2.default({ ctx: ctx, WIDTH: _constant.WIDTH, HEIGHT: _constant.HEIGHT, newTowerCoord: newTowerCoord, pathCoord: this.pathCoord });
+            var newTowerCoord = [5, 3];
+            this.map = new _Map2.default({ ctx: ctx, WIDTH: _constant.WIDTH, HEIGHT: _constant.HEIGHT, newTowerCoord: newTowerCoord, orbit: this.orbit, game: this });
 
             // 放置一个初始状态下的塔
             var tower = new _tower2.default['BASE']({
                 id: _id2.default.genId(),
                 ctx: ctx,
-                x: _constant.gridWidth / 2 + newTowerCoord[0] * _constant.gridWidth,
-                y: _constant.gridHeight / 2 + newTowerCoord[1] * _constant.gridHeight,
+                x: _constant.GRID_SIZE / 2 + newTowerCoord[0] * _constant.GRID_SIZE + _constant.OFFSET_X,
+                y: _constant.GRID_SIZE / 2 + newTowerCoord[1] * _constant.GRID_SIZE + _constant.OFFSET_Y,
                 bullets: this.bullets
             });
             this.towers.push(tower);
@@ -3377,7 +3484,7 @@ var Game = function () {
             this.addTowerType = 'BASE';
             this.status = '';
             this.score = 0;
-            this.life = 1000000;
+            this.life = 1000;
 
             // 当前是否选中塔
             this.towerSelect = false;
@@ -3386,6 +3493,15 @@ var Game = function () {
 
             this.wave = -1; // 当前第几波
             this.waves = [];
+
+            // FPS 相关数据
+            this.frames = 0;
+            this.timeLastSecond = new Date().getTime();
+            this.fps = 0;
+            this.fpsRate = 0;
+            this.time = 0;
+
+            this.destory = false;
         }
     }, {
         key: 'windowResizeHandler',
@@ -3434,11 +3550,32 @@ var Game = function () {
 
             if (this.status === '' || this.status === 'gameOver') {
                 panels.style.display = 'none';
+                status.style.display = 'block';
                 this.initData();
                 this.status = 'running';
                 this.draw();
-                _index.gameControl.draw();
+                this.gameControl.draw();
             }
+
+            // 游戏开始时间
+            this.time = new Date().getTime();
+        }
+    }, {
+        key: 'backButtonClickHandler',
+        value: function backButtonClickHandler(e) {
+            e.stopPropagation();
+
+            this.gameControl.stopAnim();
+            $chooseStage.style.display = 'block';
+            var panels = document.getElementById('panels');
+            panels.style.display = 'none';
+            this.ctx.clearRect(0, 0, this.element.width, this.element.height);
+            var gameControl = this.gameControl;
+            gameControl.ctx.clearRect(0, 0, gameControl.element.width, gameControl.element.height);
+
+            this.destory = true;
+            cancelAnimationFrame(this.animId);
+            this.status = '';
         }
     }, {
         key: 'draw',
@@ -3450,8 +3587,14 @@ var Game = function () {
                 return;
             }
 
+            // FIXME: 选择不同的 stage 之后，之前的游戏画面会出现干扰
+            if (this.stage !== _index.world.stage || this.destory) {
+                return;
+            }
+
             // 游戏结束
             if (this.status === 'gameOver') {
+                cancelAnimationFrame(this.animId); // NOT work !?
                 return;
             }
 
@@ -3460,12 +3603,15 @@ var Game = function () {
                 return;
             }
 
+            this.calculateFPS();
+
             this.map.draw({
                 towers: this.towers,
                 towerSelect: this.towerSelect,
                 towerSelectIndex: this.towerSelectIndex
             });
 
+            // TODO: 完成设定波数后，游戏也会结束
             if (this.life <= 0) {
                 this.gameOver();
             }
@@ -3478,15 +3624,17 @@ var Game = function () {
             // 总数小于50，且间隔 x ms以上
             if (this.shouldGenerateEnemy()) {
                 var cfg = this.waves[this.wave].generateEnemy();
+                var basePos = this.orbit[0];
                 var enemy = new _Enemy2.default({
                     id: _id2.default.genId(),
                     ctx: ctx,
-                    x: _constant.gridWidth / 2 + (Math.random() - 0.5) * 10,
-                    y: _constant.gridHeight / 2 + (Math.random() - 0.5) * 10,
+                    x: _constant.GRID_SIZE / 2 + (Math.random() - 0.5) * 10 + basePos[0] * _constant.GRID_SIZE + _constant.OFFSET_X,
+                    y: _constant.GRID_SIZE / 2 + (Math.random() - 0.5) * 10 + basePos[1] * _constant.GRID_SIZE + _constant.OFFSET_Y,
                     color: cfg.color,
                     radius: cfg.radius,
                     speed: cfg.speed,
-                    health: cfg.health * (1 + this.wave / 40)
+                    health: cfg.health * (1 + this.wave / 5),
+                    path: this.map.orbit
                 });
 
                 this.enemies.push(enemy);
@@ -3496,7 +3644,7 @@ var Game = function () {
 
             // 对每一个enemy进行step操作，并绘制
             this.enemies.forEach(function (enemy, index) {
-                enemy.step({ path: _this.pathCoord });
+                enemy.step({ path: _this.map.orbit });
                 enemy.draw();
 
                 if (enemy.dead) {
@@ -3518,13 +3666,6 @@ var Game = function () {
                 }
                 tower.draw(ctx);
             });
-
-            // // 确定游戏是否结束
-            // if (this.enemyCreatedCount > 0 && this.enemies.length === 0) {
-            //     setTimeout(() => {
-            //         this.status = 'gameOver';
-            //     }, 1000);
-            // }
 
             // 确定 tower 的目标
             this.towers.forEach(function (tower) {
@@ -3589,16 +3730,16 @@ var Game = function () {
                 if (0 <= this.col && this.col < _constant.gridNumX && 0 <= this.row && this.row < _constant.gridNumY) {
                     if (this.map.coord[this.col][this.row] !== 'T') {
                         // 该位置没有塔
-                        this.drawGhostTower(ctx, this.col * _constant.gridWidth + _constant.gridWidth / 2, this.row * _constant.gridHeight + _constant.gridHeight / 2, this.addTowerType);
+                        this.drawGhostTower(ctx, (0, _utils.index2Px)(this.col, this.row).x, (0, _utils.index2Px)(this.col, this.row).y, this.addTowerType);
                     }
                 }
             }
 
             this.displayInfo();
 
-            requestAnimationFrame(function () {
+            this.animId = requestAnimationFrame(function () {
                 return _this.draw();
-            }, 100);
+            });
         }
 
         // 循环检测bullet是否和vehicle碰撞
@@ -3628,9 +3769,9 @@ var Game = function () {
                         _glMatrix.vec2.scale(bVec, bVec, aDotB);
                         _glMatrix.vec2.add(normal, bullet.start, bVec);
 
-                        distance = (0, _utils.calcuteDistance)(normal[0], normal[1], enemy.x, enemy.y);
+                        distance = (0, _utils.calculateDistance)(normal[0], normal[1], enemy.x, enemy.y);
                     } else if (bullet.type === 'circle' || bullet.type === 'slow' || bullet.type === 'fire') {
-                        distance = (0, _utils.calcuteDistance)(bullet.x, bullet.y, enemy.x, enemy.y);
+                        distance = (0, _utils.calculateDistance)(bullet.x, bullet.y, enemy.x, enemy.y);
                     }
                     if (bullet.type === 'laser') {
                         if (bullet.target.id === enemy.id) {
@@ -3698,6 +3839,8 @@ var Game = function () {
     }, {
         key: 'createNewTower',
         value: function createNewTower(col, row, towerType) {
+            var _this3 = this;
+
             // 检查当前位置是否已有物体
             if (this.map.coord[col][row] === 'T') {
                 console.log('You can not place tower here!');
@@ -3706,20 +3849,50 @@ var Game = function () {
             var cost = _constant.towerData[towerType].cost;
             // 检查是否有足够金钱
             if (this.money - cost < 0) {
-                // TODO: 将提示信息显示在画面中
-                console.log('You do not have enough money.');
+                this.showError('You do not have enough money.');
                 return -1;
             }
 
-            var x = col * _constant.gridWidth + _constant.gridWidth / 2;
-            var y = row * _constant.gridWidth + _constant.gridWidth / 2;
+            var _index2Px = (0, _utils.index2Px)(col, row),
+                x = _index2Px.x,
+                y = _index2Px.y;
+
             var id = _id2.default.genId();
 
             var config = { id: id, ctx: ctx, x: x, y: y, bullets: this.bullets };
 
             var tower = new _tower2.default[towerType](config);
 
-            this.map.coord[col][row] = 'T';
+            if (!this.map.checkPath(col, row)) {
+                var info = '存在不能到达的区域，不能放置在这里';
+                this.showError(info);
+                return;
+            };
+
+            if (tower.type === 'BLOCK') {
+                this.map.coord[col][row] = 'B';
+            } else {
+                this.map.coord[col][row] = 'T';
+            }
+            this.map.findPath();
+            // 重新计算当前 enemy 的路径
+            this.enemies.forEach(function (enemy) {
+                var _px2Index = (0, _utils.px2Index)(enemy.x, enemy.y),
+                    col = _px2Index.col,
+                    row = _px2Index.row;
+
+                enemy.path = _this3.map.findPointPath([col, row]);
+                enemy.wp = 1;
+
+                // 当前位置到目标点的距离
+                enemy.dx = 0;
+                enemy.dy = 0;
+                enemy.dist = 0;
+
+                // 标记是否需要转弯
+                enemy.angleFlag = 1;
+            });
+
             this.money -= cost;
             this.towers.push(tower);
         }
@@ -3749,12 +3922,13 @@ var Game = function () {
             var index = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.towerSelectIndex;
 
             var tower = this.towers[index];
-            // TODO: 已升级至最大值后，需提示玩家
             if (tower.level < 4) {
                 // TODO: 对塔的升级应该按预设数值，或按比例
-                tower.range *= 1.5;
+                tower.range *= 1.25;
                 tower.damage *= 1.5;
                 tower.level++;
+            } else {
+                this.showError('已升级至最大值');
             }
         }
 
@@ -3779,12 +3953,84 @@ var Game = function () {
     }, {
         key: 'bindEvent',
         value: function bindEvent() {
-            // const element = this.element;
+            var canvas = this.element;
+            var game = this;
+
+            // 在canvas上进行右键操作
+            canvas.oncontextmenu = function (e) {
+                game.mode = '';
+                e.preventDefault();
+            };
+
+            canvas.onclick = function (e) {
+                var rect = canvas.getBoundingClientRect();
+
+                var x = e.clientX - rect.left;
+                var y = e.clientY - rect.top;
+
+                var _px2Index2 = (0, _utils.px2Index)(x, y),
+                    col = _px2Index2.col,
+                    row = _px2Index2.row;
+                // console.log(col, row);
+
+                /* 只在地图范围内进行操作 */
+
+
+                if (0 <= col && col < _constant.gridNumX && 0 <= row && row < _constant.gridNumY) {
+                    if (game.map.coord[col][row] === 'T') {
+                        // 点击的格子内为塔
+                        game.towers.map(function (tower, index) {
+                            if (tower.col === col && tower.row === row) {
+                                console.log('You select ' + index + 'th tower, its id is ' + tower.id);
+
+                                // 已经选中的塔再次点击则取消
+                                if (game.towerSelectIndex === index) {
+                                    game.towerSelectIndex = -1;
+                                    game.towerSelectId = -1;
+                                    game.towerSelect = false;
+                                    // game.map.selectCoord = null;                                
+                                } else {
+                                    game.towerSelectIndex = index;
+                                    game.towerSelectId = tower.id;
+                                    game.towerSelect = true;
+                                    // game.map.selectCoord = { col, row };
+                                }
+                            }
+                        });
+                    } else {
+                        game.towerSelect = false;
+                        game.towerSelectId = -1;
+                        game.towerSelectIndex = -1;
+                        // game.map.selectCoord = { col, row };
+                    }
+
+                    if (game.mode === 'ADD_TOWER') {
+                        game.createNewTower(col, row, game.addTowerType);
+                    }
+                }
+            };
+
+            canvas.onmousemove = function (e) {
+                if (game.mode === 'ADD_TOWER') {
+                    game.cursorX = e.pageX;
+                    game.cursorY = e.pageY;
+                    var rect = canvas.getBoundingClientRect();
+                    var x = e.clientX - rect.left;
+                    var y = e.clientY - rect.top;
+
+                    var _px2Index3 = (0, _utils.px2Index)(x, y),
+                        col = _px2Index3.col,
+                        row = _px2Index3.row;
+
+                    game.col = col;
+                    game.row = row;
+                }
+            };
         }
     }, {
         key: 'shouldGenerateEnemy',
         value: function shouldGenerateEnemy() {
-            return this.wave < 999 && new Date() - this.lastCreatedEnemyTime > 500;
+            return this.wave < 999 && new Date() - this.lastCreatedEnemyTime > 1000;
         }
     }, {
         key: 'shouldGenerateWave',
@@ -3804,6 +4050,38 @@ var Game = function () {
             title.innerHTML = '\u5F97\u5206\uFF1A' + this.score;
             panels.style.display = 'block';
             this.status = 'gameOver';
+            cancelAnimationFrame(this.animId);
+        }
+    }, {
+        key: 'calculateFPS',
+        value: function calculateFPS() {
+            // 当前帧的时间
+            var frameTime = new Date().getTime();
+            this.frames++;
+
+            // 距离上次更新 FPS 已经过去了一秒
+            if (frameTime > this.timeLastSecond + 1000) {
+                this.fps = Math.min(Math.round(this.frames * 1000 / (frameTime - this.timeLastSecond)), _constant.FRAMERATE);
+
+                this.timeLastSecond = frameTime;
+                this.frames = 0;
+            }
+
+            var fps = Math.round(this.fps);
+            var time = Math.round((new Date().getTime() - this.time) / 1000 * 100) / 100; // 显示时间保留两位小数
+            var fpsRate = Math.round(Math.min(this.fps / _constant.FRAMERATE, 1) * 100);
+
+            var statusText = 'Time: <span>' + time + '</span>';
+            statusText += '<p class="fps">FPS: <span>' + fps + ' (' + fpsRate + '%)</span></p>';
+
+            status.innerHTML = statusText;
+        }
+    }, {
+        key: 'showError',
+        value: function showError(info) {
+            var message = new _Message2.default({ text: info });
+            console.log(info);
+            this.gameError.messages.push(message);
         }
     }]);
 
@@ -3856,7 +4134,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
 /* harmony export (immutable) */ __webpack_exports__["multiplyScalar"] = multiplyScalar;
 /* harmony export (immutable) */ __webpack_exports__["multiplyScalarAndAdd"] = multiplyScalarAndAdd;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(2);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -4325,7 +4603,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["multiplyScalarAndAdd"] = multiplyScalarAndAdd;
 /* harmony export (immutable) */ __webpack_exports__["exactEquals"] = exactEquals;
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(2);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -4848,7 +5126,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["multiplyScalarAndAdd"] = multiplyScalarAndAdd;
 /* harmony export (immutable) */ __webpack_exports__["exactEquals"] = exactEquals;
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(2);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -6557,10 +6835,10 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["fromMat3"] = fromMat3;
 /* harmony export (immutable) */ __webpack_exports__["fromEuler"] = fromEuler;
 /* harmony export (immutable) */ __webpack_exports__["str"] = str;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__mat3__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vec3__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__vec4__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__mat3__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vec3__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__vec4__ = __webpack_require__(11);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -7267,7 +7545,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["str"] = str;
 /* harmony export (immutable) */ __webpack_exports__["exactEquals"] = exactEquals;
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(2);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -7883,9 +8161,9 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _glMatrix = __webpack_require__(2);
+var _glMatrix = __webpack_require__(3);
 
-var _utils = __webpack_require__(3);
+var _utils = __webpack_require__(1);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -7923,7 +8201,7 @@ var CircleBullet = function () {
             if (this.target) {
                 var target = enemies.getEleById(this.target.id);
                 if (target) {
-                    var curDis = (0, _utils.calcuteDistance)(target.x, target.y, this.x, this.y);
+                    var curDis = (0, _utils.calculateDistance)(target.x, target.y, this.x, this.y);
                     if (curDis < this.range) {
                         var dx = target.x - this.x;
                         var dy = target.y - this.y;
@@ -7970,9 +8248,144 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _glMatrix = __webpack_require__(2);
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-var _utils = __webpack_require__(3);
+var _BaseTower2 = __webpack_require__(4);
+
+var _BaseTower3 = _interopRequireDefault(_BaseTower2);
+
+var _Bullet = __webpack_require__(22);
+
+var _Bullet2 = _interopRequireDefault(_Bullet);
+
+var _glMatrix = __webpack_require__(3);
+
+var _utils = __webpack_require__(1);
+
+var _config = __webpack_require__(6);
+
+var _constant = __webpack_require__(0);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var BulletTower = function (_BaseTower) {
+    _inherits(BulletTower, _BaseTower);
+
+    function BulletTower(opt) {
+        _classCallCheck(this, BulletTower);
+
+        var _this = _possibleConstructorReturn(this, (BulletTower.__proto__ || Object.getPrototypeOf(BulletTower)).call(this, opt));
+        // const { ctx, x, y, bullets, selected, damage } = opt;
+
+
+        _this.type = 'BULLET';
+        _this.hue = 100;
+        _this.cost = _constant.towerData[_this.type].cost;
+        _this.range = 3 * _constant.gridWidth;
+
+        _this.direction = opt.direction || 0; // 用度数表示的tower指向
+        _this.bulletStartPosVec = _glMatrix.vec2.fromValues(0, 0);
+        _this.directionVec = _glMatrix.vec2.create();
+        return _this;
+    }
+
+    _createClass(BulletTower, [{
+        key: 'draw',
+        value: function draw() {
+            var ctx = this.ctx;
+
+            // 将方向向量归一化
+            this.directionVec = _glMatrix.vec2.fromValues(Math.cos((0, _utils.toRadians)(this.direction)), Math.sin((0, _utils.toRadians)(this.direction)));
+            _glMatrix.vec2.normalize(this.directionVec, this.directionVec);
+
+            // bullet 出射位置
+
+            _glMatrix.vec2.scale(this.bulletStartPosVec, this.directionVec, 30);
+
+            ctx.save();
+            if (_config.config.renderShadow) {
+                ctx.shadowBlur = this.radius;
+                ctx.shadowColor = 'hsl(' + this.hue + ',100%,60%)';
+            }
+
+            // 在选中的情况下，画出其射程范围
+            if (this.selected) {
+                ctx.beginPath();
+                ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+                ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            ctx.strokeStyle = 'hsl(' + this.hue + ',100%,80%';
+            ctx.fillStyle = 'hsl(' + this.hue + ',100%,80%';
+            ctx.lineWidth = Math.max(3, this.radius / 8);
+
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y);
+            ctx.lineTo(this.x + this.bulletStartPosVec[0], this.y + this.bulletStartPosVec[1]);
+            ctx.stroke();
+            ctx.closePath();
+
+            if (this.targetIndex !== -1 && new Date() - this.lastShootTime >= 500) {
+                this.shoot(ctx);
+                this.lastShootTime = new Date();
+            }
+
+            ctx.restore();
+        }
+    }, {
+        key: 'shoot',
+
+
+        // 发射子弹
+        value: function shoot(ctx) {
+            this.bullets.push(new _Bullet2.default({
+                ctx: ctx,
+                x: this.x + this.bulletStartPosVec[0],
+                y: this.y + this.bulletStartPosVec[1],
+                directionVec: this.directionVec
+            }));
+        }
+    }, {
+        key: 'findTarget',
+        value: function findTarget(enemies) {
+            _get(BulletTower.prototype.__proto__ || Object.getPrototypeOf(BulletTower.prototype), 'findTarget', this).call(this, enemies);
+        }
+    }]);
+
+    return BulletTower;
+}(_BaseTower3.default);
+
+exports.default = BulletTower;
+
+/***/ }),
+/* 22 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _glMatrix = __webpack_require__(3);
+
+var _utils = __webpack_require__(1);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -8038,7 +8451,7 @@ var Bullet = function () {
 exports.default = Bullet;
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8054,13 +8467,13 @@ var _BaseTower2 = __webpack_require__(4);
 
 var _BaseTower3 = _interopRequireDefault(_BaseTower2);
 
-var _Laser = __webpack_require__(23);
+var _Laser = __webpack_require__(24);
 
 var _Laser2 = _interopRequireDefault(_Laser);
 
-var _glMatrix = __webpack_require__(2);
+var _glMatrix = __webpack_require__(3);
 
-var _config = __webpack_require__(7);
+var _config = __webpack_require__(6);
 
 var _constant = __webpack_require__(0);
 
@@ -8169,7 +8582,7 @@ var LaserTower = function (_BaseTower) {
 exports.default = LaserTower;
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8181,9 +8594,9 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _glMatrix = __webpack_require__(2);
+var _glMatrix = __webpack_require__(3);
 
-var _utils = __webpack_require__(3);
+var _utils = __webpack_require__(1);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -8245,7 +8658,7 @@ var Laser = function () {
 exports.default = Laser;
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8261,7 +8674,7 @@ var _BaseTower2 = __webpack_require__(4);
 
 var _BaseTower3 = _interopRequireDefault(_BaseTower2);
 
-var _SlowField = __webpack_require__(25);
+var _SlowField = __webpack_require__(26);
 
 var _SlowField2 = _interopRequireDefault(_SlowField);
 
@@ -8355,7 +8768,7 @@ var SlowTower = function (_BaseTower) {
 exports.default = SlowTower;
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8440,7 +8853,7 @@ var SlowField = function () {
 exports.default = SlowField;
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8456,7 +8869,7 @@ var _BaseTower2 = __webpack_require__(4);
 
 var _BaseTower3 = _interopRequireDefault(_BaseTower2);
 
-var _FireZone = __webpack_require__(27);
+var _FireZone = __webpack_require__(28);
 
 var _FireZone2 = _interopRequireDefault(_FireZone);
 
@@ -8550,7 +8963,7 @@ var FireTower = function (_BaseTower) {
 exports.default = FireTower;
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8635,7 +9048,76 @@ var FireZone = function () {
 exports.default = FireZone;
 
 /***/ }),
-/* 28 */
+/* 29 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _BaseTower2 = __webpack_require__(4);
+
+var _BaseTower3 = _interopRequireDefault(_BaseTower2);
+
+var _constant = __webpack_require__(0);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * 障碍物
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+
+
+var Block = function (_BaseTower) {
+    _inherits(Block, _BaseTower);
+
+    function Block(opt) {
+        _classCallCheck(this, Block);
+
+        var _this = _possibleConstructorReturn(this, (Block.__proto__ || Object.getPrototypeOf(Block)).call(this, opt));
+
+        _this.type = 'BLOCK';
+        return _this;
+    }
+
+    _createClass(Block, [{
+        key: 'draw',
+        value: function draw() {
+            var ctx = this.ctx;
+
+            ctx.save();
+
+            ctx.strokeStyle = 'greenyellow';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            var halfSize = _constant.GRID_SIZE / 2;
+            ctx.moveTo(this.x - halfSize, this.y - halfSize);
+            ctx.lineTo(this.x + halfSize, this.y + halfSize);
+            ctx.moveTo(this.x + halfSize, this.y - halfSize);
+            ctx.lineTo(this.x - halfSize, this.y + halfSize);
+
+            ctx.stroke();
+
+            ctx.restore();
+        }
+    }]);
+
+    return Block;
+}(_BaseTower3.default);
+
+exports.default = Block;
+
+/***/ }),
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8648,6 +9130,10 @@ Object.defineProperty(exports, "__esModule", {
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _constant = __webpack_require__(0);
+
+var _utils = __webpack_require__(1);
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -8663,7 +9149,7 @@ var Enemy = function () {
         this.y = opt.y;
 
         // 当前目标点waypoint的index
-        this.wp = 1;
+        this.wp = 0;
 
         // 速度在两个方向上的分量
         this.vx = 0;
@@ -8689,6 +9175,8 @@ var Enemy = function () {
         this.value = opt.value || 50;
         this.damage = opt.damage || 5;
 
+        this.path = opt.path;
+
         /**
          * {
          *   type: 'deceleration',
@@ -8702,10 +9190,13 @@ var Enemy = function () {
 
     _createClass(Enemy, [{
         key: 'step',
-        value: function step(_ref) {
+        value: function step() {
             var _this = this;
 
-            var path = _ref.path;
+            var path = this.path;
+            if (path.length === 0) {
+                return;
+            }
 
             // 对 this.buff 中的数据进行依次处理
             var speed = this.speed;
@@ -8723,10 +9214,15 @@ var Enemy = function () {
                 });
             }
 
-            // const speed = this.speed;
-            var wp = path[this.wp];
-            this.dx = wp[0] * _constant.gridSize + _constant.gridSize * 0.5 - this.x;
-            this.dy = wp[1] * _constant.gridSize + _constant.gridSize * 0.5 - this.y;
+            // 当即将达到终点时，path 长度为1，而 this.wp 为1，超出数组范围
+            var wp = path[Math.min(this.wp, path.length - 1)];
+
+            var _index2Px = _utils.index2Px.apply(undefined, _toConsumableArray(wp)),
+                wpX = _index2Px.x,
+                wpY = _index2Px.y;
+
+            this.dx = wpX - this.x;
+            this.dy = wpY - this.y;
             this.dist = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
 
             if (this.angleFlag) {
@@ -8740,11 +9236,14 @@ var Enemy = function () {
                 this.x += this.vx;
                 this.y += this.vy;
             } else {
-                this.x = (wp[0] + 0.5) * _constant.gridSize;
-                this.y = (wp[1] + 0.5) * _constant.gridSize;
+                var _index2Px2 = _utils.index2Px.apply(undefined, _toConsumableArray(wp)),
+                    x = _index2Px2.x,
+                    y = _index2Px2.y;
+
+                this.x = x;
+                this.y = y;
                 if (this.wp + 1 >= path.length) {
                     // 到达终点
-                    console.log('reach destination');
                     this.dead = true;
                     this.reachDest = true;
                 } else {
@@ -8765,6 +9264,7 @@ var Enemy = function () {
             ctx.stroke();
 
             this.drawHealth();
+            // this.drawItsPath();
         }
     }, {
         key: 'drawHealth',
@@ -8775,6 +9275,27 @@ var Enemy = function () {
             ctx.lineTo(this.x - this.radius + this.health / this.maxHealth * this.radius * 2, this.y);
             ctx.stroke();
         }
+
+        /**
+         * 画出它的前进路径
+         */
+
+    }, {
+        key: 'drawItsPath',
+        value: function drawItsPath() {
+            var ctx = this.ctx;
+            var path = this.path;
+            ctx.strokeStyle = 'greenyellow';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for (var i = 0; i < path.length - 1; i++) {
+                ctx.moveTo((path[i][0] + 0.5) * _constant.GRID_SIZE, (path[i][1] + 0.5) * _constant.GRID_SIZE);
+                if (path[i + 1]) {
+                    ctx.lineTo((path[i + 1][0] + 0.5) * _constant.GRID_SIZE, (path[i + 1][1] + 0.5) * _constant.GRID_SIZE);
+                }
+            }
+            ctx.stroke();
+        }
     }]);
 
     return Enemy;
@@ -8783,7 +9304,7 @@ var Enemy = function () {
 exports.default = Enemy;
 
 /***/ }),
-/* 29 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8793,15 +9314,35 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 地图上不同种类的 grid 的标记
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * DEFAULT: 默认状态，enemy 能够通过，能够放置 tower
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * BLOCK: 障碍物，enemy 不能通过，不能放置 tower
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * PLATFORM: 平台，enemy 不能通过，但能放置 tower  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * PATH: enemy 通行的道路，不能放置 tower
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
 
 var _constant = __webpack_require__(0);
 
-var _Path = __webpack_require__(30);
+var _Path = __webpack_require__(32);
 
 var _Path2 = _interopRequireDefault(_Path);
 
-var _utils = __webpack_require__(3);
+var _utils = __webpack_require__(1);
+
+var _BreadthFirstSearch = __webpack_require__(33);
+
+var _id = __webpack_require__(5);
+
+var _id2 = _interopRequireDefault(_id);
+
+var _index = __webpack_require__(7);
+
+var _index2 = _interopRequireDefault(_index);
+
+var _config = __webpack_require__(6);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -8809,11 +9350,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var Map = function () {
     function Map(opt) {
+        var _this = this;
+
         _classCallCheck(this, Map);
 
         this.ctx = opt.ctx;
         this.newTowerCoord = opt.newTowerCoord || null;
-        this.pathCoord = opt.pathCoord;
+        this.orbit = opt.orbit;
         this.WIDTH = opt.WIDTH;
         this.HEIGHT = opt.HEIGHT;
 
@@ -8825,21 +9368,95 @@ var Map = function () {
 
         // 初始状态下的塔
         if (this.newTowerCoord) {
-            this.coord[this.newTowerCoord[0]][this.newTowerCoord[1]] = 'T';
-        }
+            var _newTowerCoord = _slicedToArray(this.newTowerCoord, 2),
+                col = _newTowerCoord[0],
+                row = _newTowerCoord[1];
 
+            this.coord[col][row] = 'T';
+        }
         // Create an instance of Path object
         this.path = new _Path2.default({
             ctx: this.ctx,
-            radius: _constant.gridWidth / 2,
-            pathCoord: this.pathCoord
+            radius: _constant.GRID_SIZE / 2,
+            orbit: this.orbit
         });
 
-        // Add points to the path
-        this.path.setPoints();
+        // 初始化坐标
+        var game = opt.game;
+        this.game = game;
+
+        var mapSetting = _config.MAP_SETTING[game.stage];
+        if (mapSetting) {
+            /* 默认情况下路径以给出的 orbit 为准，如果存在 mapSetting，则重新寻找路径 */
+            var blockArray = _config.MAP_SETTING[game.stage].BLOCK;
+            blockArray.forEach(function (block) {
+                var _block = _slicedToArray(block, 2),
+                    col = _block[0],
+                    row = _block[1];
+
+                _this.coord[col][row] = 'B';
+
+                var _index2Px = (0, _utils.index2Px)(col, row),
+                    x = _index2Px.x,
+                    y = _index2Px.y;
+
+                var id = _id2.default.genId();
+                var config = { id: id, ctx: _this.ctx, x: x, y: y };
+                var tower = new _index2.default['BLOCK'](config);
+                game.towers.push(tower);
+            });
+
+            this.findPath();
+        } else {
+            this.path.setPoints();
+            this.setMap();
+        }
     }
 
+    // 设置地图数组
+    // 路径所在位置标识为 'P'
+
+
     _createClass(Map, [{
+        key: 'setMap',
+        value: function setMap() {
+            for (var i = 0; i < _constant.gridNumX; i++) {
+                for (var j = 0; j < _constant.gridNumY; j++) {
+                    // 清除之前的路径标记，0 表示空白方块
+                    if (this.coord[i][j] === 'P') {
+                        this.coord[i][j] = 0;
+                    }
+                }
+            }
+
+            var path = this.path.orbit;
+            for (var _i = 0; _i < path.length - 1; _i++) {
+                var current = path[_i];
+                var next = path[_i + 1];
+                if (current[0] === next[0]) {
+                    /* x 坐标相等，y 坐标进行变化 */
+                    var x = current[0];
+
+                    var minY = Math.max(Math.min(current[1], next[1]), 0);
+                    var maxY = Math.min(Math.max(current[1], next[1]), _constant.gridNumY);
+
+                    for (var y = minY; y <= maxY; y++) {
+                        this.coord[x][y] = 'P';
+                    }
+                } else if (current[1] === next[1]) {
+                    /* y 坐标相等，x 坐标进行变化 */
+                    var _y = current[1];
+
+                    var minX = Math.max(Math.min(current[0], next[0]), 0);
+                    var maxX = Math.min(Math.max(current[0], next[0]), _constant.gridNumX);
+
+                    for (var _x = minX; _x <= maxX; _x++) {
+                        this.coord[_x][_y] = 'P';
+                    }
+                }
+            }
+        }
+    }, {
         key: 'draw',
         value: function draw(_ref) {
             var towers = _ref.towers,
@@ -8859,36 +9476,125 @@ var Map = function () {
             ctx.strokeStyle = '#eee';
             ctx.fillStyle = '#fff';
             ctx.lineWidth = 1;
-            // ctx.fillRect(0, 0, WIDTH, HEIGHT);
-            // 横纵数目相等
-            var size = 20;
 
-            ctx.beginPath();
-            // Draw vertical lines
-            for (var i = 0; i < size + 1; i++) {
-                ctx.moveTo(i * _constant.gridWidth, 0);
-                ctx.lineTo(i * _constant.gridWidth, size * _constant.gridHeight);
-            }
-            ctx.stroke();
-
-            // Draw horizontal lines
-            for (i = 0; i < size + 1; i++) {
-                ctx.moveTo(0, i * _constant.gridWidth);
-                ctx.lineTo(size * _constant.gridWidth, i * _constant.gridWidth);
-            }
-            ctx.stroke();
+            (0, _utils.drawGrid)(ctx, _constant.gridNumX, _constant.gridNumY, _constant.GRID_SIZE, '#eee', _constant.OFFSET_X, _constant.OFFSET_Y);
 
             // 当前选中的格子突出显示
-            // TODO: 这一部分移入game.js中
             if (towerSelect) {
-                var col = towers[towerSelectIndex].col;
-                var row = towers[towerSelectIndex].row;
-                (0, _utils.highlightGrid)(ctx, col * _constant.gridWidth, row * _constant.gridHeight, _constant.gridWidth, _constant.gridHeight);
+                var _towers$towerSelectIn = towers[towerSelectIndex],
+                    col = _towers$towerSelectIn.col,
+                    row = _towers$towerSelectIn.row;
+
+                var _index2Px2 = (0, _utils.index2Px)(col, row),
+                    x = _index2Px2.x,
+                    y = _index2Px2.y;
+
+                (0, _utils.highlightGrid)(ctx, x - _constant.GRID_SIZE / 2, y - _constant.GRID_SIZE / 2, _constant.GRID_SIZE, _constant.GRID_SIZE);
             }
+            // // 空白格子也突出显示
+            // else if (this.selectCoord) {
+            //     const { col, row } = this.selectCoord;
+            //     if (this.coord[col][row] !== 'P') {
+            //         highlightGrid(ctx, col * gridWidth, row * gridHeight, gridWidth, gridHeight);            
+            //     }
+            // }
 
             ctx.restore();
 
             this.path.draw();
+        }
+
+        // 寻找路径
+
+    }, {
+        key: 'findPath',
+        value: function findPath() {
+            var _this2 = this;
+
+            var graph = new _BreadthFirstSearch.Graph(_constant.gridNumX, _constant.gridNumY);
+            this.graph = graph;
+            for (var j = 0; j < _constant.gridNumY; j++) {
+                for (var i = 0; i < _constant.gridNumX; i++) {
+                    // 标记地图中的障碍物
+                    if (this.coord[i][j] === 'B' || this.coord[i][j] === 'T') {
+                        graph.walls.push([i, j]);
+                    }
+                }
+            }
+
+            var startPoint = this.orbit[0];
+            var endPoint = this.orbit[this.orbit.length - 1];
+            var bfs = new _BreadthFirstSearch.BreadthFirstSearch(graph, endPoint);
+            var pathArr = bfs.findPath(startPoint);
+            this.orbit = [];
+            pathArr.forEach(function (p) {
+                return _this2.orbit.push(p);
+            });
+
+            this.path = new _Path2.default({
+                ctx: this.ctx,
+                orbit: this.orbit
+            });
+
+            // Add points to the path
+            this.path.setPoints();
+            this.setMap();
+        }
+    }, {
+        key: 'findPointPath',
+        value: function findPointPath(_ref2) {
+            var _ref3 = _slicedToArray(_ref2, 2),
+                x = _ref3[0],
+                y = _ref3[1];
+
+            var graph = this.graph;
+
+            var endPoint = this.orbit[this.orbit.length - 1];
+            var bfs = new _BreadthFirstSearch.BreadthFirstSearch(graph, endPoint);
+            var pathArr = bfs.findPath([x, y]);
+
+            return pathArr;
+        }
+
+        /**
+         * 检查在该位置放置障碍物后，起点和终点间是否存在一条路径，
+         * 以及所有的 enemy 是否能够到达终点
+         */
+
+    }, {
+        key: 'checkPath',
+        value: function checkPath(col, row) {
+            var graph = new _BreadthFirstSearch.Graph(_constant.gridNumX, _constant.gridNumY);
+            for (var j = 0; j < _constant.gridNumY; j++) {
+                for (var i = 0; i < _constant.gridNumX; i++) {
+                    // 标记地图中的障碍物
+                    if (this.coord[i][j] === 'B' || this.coord[i][j] === 'T') {
+                        graph.walls.push([i, j]);
+                    }
+                }
+            }
+            graph.walls.push([col, row]);
+
+            var startPoint = this.orbit[0];
+            var endPoint = this.orbit[this.orbit.length - 1];
+            var bfs = new _BreadthFirstSearch.BreadthFirstSearch(graph, endPoint);
+            var startArr = bfs.findPath(startPoint);
+            if (startArr.length === 0) {
+                return false;
+            }
+
+            return this.game.enemies.every(function (enemy) {
+                var _px2Index = (0, _utils.px2Index)(enemy.x, enemy.y),
+                    col = _px2Index.col,
+                    row = _px2Index.row;
+
+                if (col === endPoint[0] && row === endPoint[1]) {
+                    return true;
+                }
+
+                var pathArr = bfs.findPath([col, row]);
+                return pathArr.length > 0;
+            });
         }
     }]);
 
@@ -8898,7 +9604,7 @@ var Map = function () {
 exports.default = Map;
 
 /***/ }),
-/* 30 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8910,6 +9616,12 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _constant = __webpack_require__(0);
+
+var _utils = __webpack_require__(1);
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Path = function () {
@@ -8917,8 +9629,8 @@ var Path = function () {
         _classCallCheck(this, Path);
 
         this.ctx = opt.ctx;
-        this.radius = opt.radius;
-        this.pathCoord = opt.pathCoord;
+        this.radius = opt.radius || _constant.GRID_SIZE / 2;
+        this.orbit = opt.orbit;
         this.points = [];
 
         /**
@@ -8930,10 +9642,15 @@ var Path = function () {
 
         // Define path points
         this.setPoints = function () {
-            for (var i = 0, len = this.pathCoord.length; i < len; i++) {
-                var coord = this.pathCoord[i];
-                this.addPoint(40 * coord[0] + 20, 40 * coord[1] + 20);
-            }
+            var _this = this;
+
+            this.orbit.forEach(function (coord) {
+                var _index2Px = _utils.index2Px.apply(undefined, _toConsumableArray(coord)),
+                    x = _index2Px.x,
+                    y = _index2Px.y;
+
+                _this.addPoint(x, y);
+            });
         };
     }
 
@@ -8945,35 +9662,48 @@ var Path = function () {
     _createClass(Path, [{
         key: 'draw',
         value: function draw() {
+            if (this.points.length === 0) {
+                return;
+            }
             var ctx = this.ctx;
+            var PATH_COLOR = '#333';
             ctx.save();
 
             ctx.beginPath();
             ctx.lineJoin = 'round';
-            ctx.strokeStyle = '#333';
-            ctx.lineWidth = this.radius * 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = PATH_COLOR;
+            ctx.lineWidth = (this.radius - 1) * 2;
             ctx.shadowBlur = 0;
 
-            for (var i = 0; i < this.points.length; i++) {
-                ctx.lineTo(this.points[i][0], this.points[i][1]);
-            }
+            this.points.forEach(function (point) {
+                ctx.lineTo(point[0], point[1]);
+            });
+
             ctx.stroke();
 
             ctx.beginPath();
             ctx.lineWidth = 1;
-            ctx.fillStyle = '#555';
-            ctx.arc(this.points[0][0], this.points[0][1], this.radius, 0.5 * Math.PI, 1.5 * Math.PI, false);
+            ctx.fillStyle = PATH_COLOR;
+            var startPoint = this.points[0];
+            ctx.arc(startPoint[0], startPoint[1], this.radius, 0 * Math.PI, 2 * Math.PI, false);
             ctx.fill();
 
             // Draw a line in the middle of the path
             ctx.strokeStyle = '#111';
             ctx.lineWidth = 1;
             ctx.beginPath();
-            for (var _i = 0; _i < this.points.length; _i++) {
-                ctx.lineTo(this.points[_i][0], this.points[_i][1]);
-            }
-            // ctx.closePath();
+            this.points.forEach(function (point) {
+                ctx.lineTo(point[0], point[1]);
+            });
             ctx.stroke();
+
+            // 标记终点
+            ctx.beginPath();
+            ctx.fillStyle = 'tomato';
+            var endPoint = this.points[this.points.length - 1];
+            ctx.arc(endPoint[0], endPoint[1], this.radius * 0.6, 0 * Math.PI, 2 * Math.PI, false);
+            ctx.fill();
 
             ctx.restore();
         }
@@ -8982,12 +9712,285 @@ var Path = function () {
     return Path;
 }();
 
-;
-
 exports.default = Path;
 
 /***/ }),
-/* 31 */
+/* 33 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Graph = exports.Graph = function () {
+    function Graph(w, h) {
+        _classCallCheck(this, Graph);
+
+        this.width = w;
+        this.height = h;
+        this.walls = []; // 障碍物
+    }
+
+    /**
+     * @param {*} node: [x, y] 
+     */
+
+
+    _createClass(Graph, [{
+        key: 'inBounds',
+        value: function inBounds(node) {
+            return 0 <= node[0] && node[0] < this.width && 0 <= node[1] && node[1] < this.height;
+        }
+
+        /**
+         * 检查给定的一个点是否上有障碍物
+         * 即给定点的坐标与障碍物数组中的任意元素坐标均不等
+         */
+
+    }, {
+        key: 'passable',
+        value: function passable(node) {
+            var walls = this.walls;
+            return walls.every(function (wall) {
+                return wall[0] !== node[0] || wall[1] !== node[1];
+            });
+        }
+    }, {
+        key: 'neighbors',
+        value: function neighbors(node) {
+            var _node = _slicedToArray(node, 2),
+                x = _node[0],
+                y = _node[1];
+
+            var results = [[x + 1, y], [x, y - 1], [x - 1, y], [x, y + 1]];
+            results = results.filter(this.passable, this);
+            results = results.filter(this.inBounds, this);
+            return results;
+        }
+
+        /**
+         * 输出 Graph 的信息
+         * 障碍物所在处标记为'#'，可通过区域标记为'.'
+         */
+
+    }, {
+        key: 'print',
+        value: function print() {
+            var info = '';
+            for (var j = 0; j < this.height; j++) {
+                for (var i = 0; i < this.width; i++) {
+                    if (hasNode.call(this.walls, [i, j])) {
+                        info += '#';
+                    } else {
+                        info += '.';
+                    }
+                }
+                info += '\n';
+            }
+            console.log(info);
+        }
+    }]);
+
+    return Graph;
+}();
+
+var Queue = function () {
+    function Queue() {
+        _classCallCheck(this, Queue);
+
+        this.elements = [];
+    }
+
+    _createClass(Queue, [{
+        key: 'empty',
+        value: function empty() {
+            return this.elements.length === 0;
+        }
+    }, {
+        key: 'put',
+        value: function put(x) {
+            this.elements.push(x);
+        }
+    }, {
+        key: 'get',
+        value: function get() {
+            return this.elements.shift();
+        }
+    }]);
+
+    return Queue;
+}();
+
+var BreadthFirstSearch = exports.BreadthFirstSearch = function () {
+    // 寻找graph上任一点到start的路径
+    function BreadthFirstSearch(graph, start) {
+        var _this = this;
+
+        _classCallCheck(this, BreadthFirstSearch);
+
+        this.graph = graph;
+        this.width = graph.width;
+        this.height = graph.height;
+        this.start = start;
+
+        var frontier = new Queue();
+        frontier.put(start);
+
+        var visited = [start];
+
+        this.cameFrom = [];
+        this.distance = [];
+        for (var i = 0; i < this.width; i++) {
+            this.cameFrom[i] = [];
+            this.distance[i] = [];
+            for (var j = 0; j < this.height; j++) {
+                this.cameFrom[i][j] = null;
+                this.distance[i][j] = -1;
+            }
+        }
+
+        var current = void 0;
+        var curNeighbors = [];
+
+        while (!frontier.empty()) {
+            current = frontier.get();
+
+            curNeighbors = graph.neighbors(current);
+            curNeighbors.forEach(function (next) {
+                if (!hasNode.call(visited, next)) {
+                    frontier.put(next);
+                    visited.push(next);
+
+                    var _next = _slicedToArray(next, 2),
+                        x = _next[0],
+                        y = _next[1];
+
+                    _this.cameFrom[x][y] = current;
+                    _this.distance[x][y] = _this.distance[current[0]][current[1]] + 1;
+                }
+            });
+        }
+    }
+
+    _createClass(BreadthFirstSearch, [{
+        key: 'showPath',
+        value: function showPath() {
+            var info = '';
+            for (var j = 0; j < this.height; j++) {
+                for (var i = 0; i < this.width; i++) {
+                    if (hasNode.call(this.graph.walls, [i, j])) {
+                        info += '#\t\t';
+                    } else {
+                        info += this.cameFrom[i][j] + '\t\t';
+                    }
+                }
+                info += '\n';
+            }
+            console.log(info);
+        }
+    }, {
+        key: 'showDistance',
+        value: function showDistance() {
+            var info = '';
+            for (var j = 0; j < this.height; j++) {
+                for (var i = 0; i < this.width; i++) {
+                    if (hasNode.call(this.graph.walls, [i, j])) {
+                        info += '#\t';
+                    } else {
+                        info += this.distance[i][j] + '\t';
+                    }
+                }
+                info += '\n';
+            }
+            console.log(info);
+        }
+
+        /**
+         * 最后生成的路径数组中，node为第一个元素，this.start为最后一个元素
+         */
+
+    }, {
+        key: 'findPath',
+        value: function findPath(node) {
+            var path = [];
+
+            var _node2 = _slicedToArray(node, 2),
+                curX = _node2[0],
+                curY = _node2[1];
+            // 如果需要查询的 node 恰等于 start，则将 start 返回
+
+
+            if (curX === this.start[0] && curY === this.start[1]) {
+                return [[curX, curY]];
+            }
+            if (this.cameFrom[curX][curY] === null) {
+                return [];
+            }
+            path.push(node);
+            while (curX !== this.start[0] || curY !== this.start[1]) {
+                var _cameFrom$curX$curY = _slicedToArray(this.cameFrom[curX][curY], 2),
+                    x = _cameFrom$curX$curY[0],
+                    y = _cameFrom$curX$curY[1];
+
+                path.push([x, y]);
+                curX = x;
+                curY = y;
+            }
+            return path;
+        }
+    }]);
+
+    return BreadthFirstSearch;
+}();
+
+/**
+ * 用于检查一个数组中是否存在 arr
+ * @param {array} node 是一个形如 [x, y] 的数组
+ * 调用：hasNode.call(array, node)
+ */
+
+
+function hasNode(node) {
+    return this.some(function (item) {
+        return item[0] === node[0] && item[1] === node[1];
+    });
+}
+
+function removeNode(node) {
+    var index = this.find(function (item) {
+        return item[0] === node[0] && item[1] === node[1];
+    });
+    if (index >= 0) {
+        this.splice(index, 1);
+        return true;
+    }
+    return false;
+}
+
+// const g = new Graph(10, 10);
+// var walls = [[1, 7], [1, 8], [2, 7], [2, 8], [3, 7], [3, 8], [0,0],[6,2], [6,3], [6,4]];
+// for (var i = 0; i < walls.length; i++) {
+//     g.walls.push(walls[i]);
+// }
+// g.print();
+
+// var bfs = new BreadthFirstSearch(g, [5,8]);
+// bfs.showDistance();
+// bfs.showPath();
+// var path11 = bfs.findPath([1,1]);
+// console.log(path11);
+
+/***/ }),
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9077,7 +10080,7 @@ var Wave = function () {
 exports.default = Wave;
 
 /***/ }),
-/* 32 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9091,13 +10094,11 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _tower = __webpack_require__(11);
+var _tower = __webpack_require__(7);
 
-var _utils = __webpack_require__(3);
+var _utils = __webpack_require__(1);
 
 var _constant = __webpack_require__(0);
-
-var _index = __webpack_require__(6);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -9112,7 +10113,7 @@ var FILL_COLOR = '#fafafa';
 var DISABLE_COLOR = '#aaa';
 
 // 每一个子数组代表一列
-var TOWER_TYPE = [['BASE', 'FIRE'], ['LASER'], ['SLOW']];
+var TOWER_TYPE = [['BASE', 'FIRE'], ['LASER'], ['SLOW', 'BLOCK']];
 
 var GameControl = function () {
     function GameControl(opt) {
@@ -9128,6 +10129,7 @@ var GameControl = function () {
 
         element.width = WIDTH;
         element.height = HEIGHT;
+        this.element = element;
 
         this.ctx = element.getContext('2d');
         this.offsetX = this.option.offsetX;
@@ -9197,9 +10199,17 @@ var GameControl = function () {
             this.drawButton();
             this.drawSelectedTowerInfo();
 
-            requestAnimationFrame(function () {
+            this.animId = requestAnimationFrame(function () {
                 return _this.draw();
-            }, 1000);
+            });
+        }
+    }, {
+        key: 'stopAnim',
+        value: function stopAnim() {
+            cancelAnimationFrame(this.animId);
+            var ctx = this.ctx;
+            ctx.fillStyle = '#010c12';
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
         }
     }, {
         key: 'drawGrid',
@@ -9337,6 +10347,7 @@ var GameControl = function () {
 
             $element.mousemove(function (e) {
                 // e.stopPropagation()
+                var gameInfo = _this3.game.gameInfo;
                 var pauseBtn = _this3.pauseBtn;
                 var sellBtn = _this3.sellBtn;
 
@@ -9382,7 +10393,7 @@ var GameControl = function () {
                         infoX -= 50;
                     }
 
-                    _index.gameInfo.infos = [{
+                    gameInfo.infos = [{
                         x: infoX,
                         y: _this3.offsetY + row * GRID_HEIGHT,
                         width: 200,
@@ -9391,7 +10402,7 @@ var GameControl = function () {
                     }];
                 } else {
                     // infoCtx.clearRect(0, 0, 150, 75);
-                    _index.gameInfo.infos = [];
+                    gameInfo.infos = [];
                 }
             });
         }
@@ -9440,11 +10451,19 @@ var TowerArea = function () {
             radius: 10
         });
 
+        this.block = new _tower.Block({
+            x: this.offsetX + GRID_WIDTH * 2.5,
+            y: this.offsetY + GRID_HEIGHT * 1.5,
+            ctx: this.ctx,
+            radius: 0
+        });
+
         this.towers = {
             BASE: this.baseTower,
             LASER: this.laserTower,
             SLOW: this.slowTower,
-            FIRE: this.fireTower
+            FIRE: this.fireTower,
+            BLOCK: this.block
         };
     }
 
@@ -9456,21 +10475,8 @@ var TowerArea = function () {
             var ctx = this.ctx;
             ctx.strokeStyle = FILL_COLOR;
             ctx.lineWidth = 1;
-            // 横线
-            ctx.beginPath();
-            for (var i = 0; i < GRID_NUM_Y + 1; i++) {
-                ctx.moveTo(this.offsetX, i * GRID_WIDTH + this.offsetY);
-                ctx.lineTo(this.offsetX + GRID_NUM_X * GRID_WIDTH, i * GRID_WIDTH + this.offsetY);
-            }
-            ctx.stroke();
 
-            // 纵线
-            ctx.beginPath();
-            for (var _i = 0; _i < GRID_NUM_X + 1; _i++) {
-                ctx.moveTo(_i * GRID_WIDTH + this.offsetX, this.offsetY);
-                ctx.lineTo(_i * GRID_WIDTH + this.offsetX, this.offsetY + GRID_NUM_Y * GRID_HEIGHT);
-            }
-            ctx.stroke();
+            (0, _utils.drawGrid)(ctx, GRID_NUM_X, GRID_NUM_Y, GRID_WIDTH, FILL_COLOR, this.offsetX, this.offsetY);
 
             if (this.selected !== -1) {
                 this.highlightTower(this.selected[0], this.selected[1]);
@@ -9493,7 +10499,7 @@ var TowerArea = function () {
 }();
 
 /***/ }),
-/* 33 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9574,6 +10580,762 @@ var GameInfo = function () {
 }();
 
 exports.default = GameInfo;
+
+/***/ }),
+/* 37 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _constant = __webpack_require__(0);
+
+var _EntityCollection = __webpack_require__(38);
+
+var _EntityCollection2 = _interopRequireDefault(_EntityCollection);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var GameInfo = function () {
+    function GameInfo(opt) {
+        _classCallCheck(this, GameInfo);
+
+        this.element = opt.element;
+        this.game = opt.game;
+
+        this.element.width = _constant.WIDTH + _constant.GAME_CONTROL_WIDTH;
+        this.element.height = _constant.HEIGHT;
+
+        this.messages = new _EntityCollection2.default();
+    }
+
+    _createClass(GameInfo, [{
+        key: 'draw',
+        value: function draw() {
+            var _this = this;
+
+            var messages = this.messages;
+            var canvas = this.element;
+            var ctx = canvas.getContext('2d');
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            this.messages = messages.filter(function (msg) {
+                return !msg.vanish;
+            });
+            this.messages.forEach(function (msg, index) {
+                // 不同的消息在 y 方向上叠加
+                // TODO: y 方向的数值需要改变
+                msg.y = canvas.height - 15 - index * 30;
+                msg.draw();
+            });
+
+            setTimeout(function () {
+                _this.draw();
+            }, 200);
+        }
+    }]);
+
+    return GameInfo;
+}();
+
+exports.default = GameInfo;
+
+/***/ }),
+/* 38 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _extendableBuiltin(cls) {
+    function ExtendableBuiltin() {
+        var instance = Reflect.construct(cls, Array.from(arguments));
+        Object.setPrototypeOf(instance, Object.getPrototypeOf(this));
+        return instance;
+    }
+
+    ExtendableBuiltin.prototype = Object.create(cls.prototype, {
+        constructor: {
+            value: cls,
+            enumerable: false,
+            writable: true,
+            configurable: true
+        }
+    });
+
+    if (Object.setPrototypeOf) {
+        Object.setPrototypeOf(ExtendableBuiltin, cls);
+    } else {
+        ExtendableBuiltin.__proto__ = cls;
+    }
+
+    return ExtendableBuiltin;
+}
+
+/**
+ * 用于保存游戏中的各种 entity 的容器对象
+ * 例如 enemy, tower, bullet
+ * 提供增、删功能
+ */
+
+var EntityCollection = function (_extendableBuiltin2) {
+    _inherits(EntityCollection, _extendableBuiltin2);
+
+    function EntityCollection() {
+        _classCallCheck(this, EntityCollection);
+
+        return _possibleConstructorReturn(this, (EntityCollection.__proto__ || Object.getPrototypeOf(EntityCollection)).call(this));
+    }
+
+    _createClass(EntityCollection, [{
+        key: "getElementById",
+        value: function getElementById(id) {
+            for (var i = 0; i < this.length; i++) {
+                if (this[i].id === id) {
+                    return this[i];
+                }
+            }
+            return null;
+        }
+    }, {
+        key: "removeElementById",
+        value: function removeElementById(id) {
+            var removed = void 0;
+            for (var i = 0; i < this.length; i++) {
+                if (this[i].id === id) {
+                    removed = this.splice(i, 1);
+                    break;
+                }
+            }
+            return removed;
+        }
+    }, {
+        key: "removeElementByIndex",
+        value: function removeElementByIndex(idx) {
+            var removed = this.splice(idx, 1);
+            return removed;
+        }
+    }]);
+
+    return EntityCollection;
+}(_extendableBuiltin(Array));
+
+exports.default = EntityCollection;
+
+/***/ }),
+/* 39 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(40);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(42)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../node_modules/css-loader/index.js!../../node_modules/less-loader/dist/cjs.js!./index.less", function() {
+			var newContent = require("!!../../node_modules/css-loader/index.js!../../node_modules/less-loader/dist/cjs.js!./index.less");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 40 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(41)(undefined);
+// imports
+
+
+// module
+exports.push([module.i, "body {\n  background: #eee;\n  background: #010c12;\n}\nmain {\n  display: flex;\n  /*border: 1px solid;*/\n}\ncanvas#background {\n  position: absolute;\n  z-index: 0;\n}\ncanvas#drawing {\n  border: 6px #333 solid;\n  border-right: none;\n  z-index: 1;\n}\ncanvas#game-control {\n  border: 6px #333 solid;\n  border-left: none;\n  position: absolute;\n}\ncanvas#game-info {\n  z-index: 3;\n  pointer-events: none;\n}\ncanvas#error-message {\n  z-index: 3;\n  pointer-events: none;\n  width: 1030px;\n  height: 650px;\n}\n#add-tower {\n  display: flex;\n}\n.add-tower-pic {\n  width: 50px;\n  height: 50px;\n  background-color: #fff;\n  display: inline-block;\n  margin-left: 20px;\n  border: 1px solid #000;\n}\n.ui {\n  font-family: Arial, Helvetica, sans-serif;\n  font-size: 10px;\n  color: #999;\n  text-align: left;\n  padding: 8px;\n  background-color: rgba(0, 0, 0, 0.6);\n}\n#panels {\n  width: 100%;\n  position: absolute;\n  z-index: 3;\n  display: none;\n}\n#message {\n  padding: 16px;\n  margin-top: 10px;\n  width: 300px;\n}\n.ui h2 {\n  font-size: 24px;\n  margin-bottom: 20px;\n  color: #eee;\n}\n.ui ul {\n  margin: 10px 0;\n}\n.ui ul li {\n  margin: 0 0 2px 0;\n}\n.ui a {\n  outline: none;\n  font-family: Arial, Helvetica, sans-serif;\n  font-size: 38px;\n  text-decoration: none;\n  color: #bbb;\n  display: block;\n  transition: all .18s linear;\n}\n.ui a:hover {\n  color: #fff;\n  background-color: #000;\n  transition: all .18s linear;\n}\n#choose-stage {\n  width: 1030px;\n  height: 640px;\n  z-index: 10;\n  color: #fff;\n  text-align: center;\n  background: #00080e;\n  background: radial-gradient(#004646, #00080e);\n}\n.choose-stage-button {\n  font-family: Arial, Helvetica, sans-serif;\n  font-size: 38px;\n  color: #bbb;\n  text-decoration: none;\n  display: block;\n  transition: all .18s linear;\n  margin: 20px 0;\n  padding: 10px 0;\n}\n.choose-stage-button:first-of-type {\n  margin-top: 80px;\n}\n.choose-stage-button:hover {\n  background-color: #000;\n  transition: all .18s linear;\n}\n/* 游戏顶部状态信息 */\n#status {\n  width: 780px;\n  height: 15px;\n  padding: 8px;\n  display: none;\n  position: absolute;\n  z-index: 2;\n}\n#status span {\n  color: #bbb;\n  font-weight: bold;\n  margin-right: 5px;\n}\n#status .fps {\n  float: right;\n  margin-top: 0;\n  margin-bottom: 0;\n}\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 41 */
+/***/ (function(module, exports) {
+
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+// css base code, injected by the css-loader
+module.exports = function(useSourceMap) {
+	var list = [];
+
+	// return the list of modules as css string
+	list.toString = function toString() {
+		return this.map(function (item) {
+			var content = cssWithMappingToString(item, useSourceMap);
+			if(item[2]) {
+				return "@media " + item[2] + "{" + content + "}";
+			} else {
+				return content;
+			}
+		}).join("");
+	};
+
+	// import a list of modules into the list
+	list.i = function(modules, mediaQuery) {
+		if(typeof modules === "string")
+			modules = [[null, modules, ""]];
+		var alreadyImportedModules = {};
+		for(var i = 0; i < this.length; i++) {
+			var id = this[i][0];
+			if(typeof id === "number")
+				alreadyImportedModules[id] = true;
+		}
+		for(i = 0; i < modules.length; i++) {
+			var item = modules[i];
+			// skip already imported module
+			// this implementation is not 100% perfect for weird media query combinations
+			//  when a module is imported multiple times with different media queries.
+			//  I hope this will never occur (Hey this way we have smaller bundles)
+			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+				if(mediaQuery && !item[2]) {
+					item[2] = mediaQuery;
+				} else if(mediaQuery) {
+					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+				}
+				list.push(item);
+			}
+		}
+	};
+	return list;
+};
+
+function cssWithMappingToString(item, useSourceMap) {
+	var content = item[1] || '';
+	var cssMapping = item[3];
+	if (!cssMapping) {
+		return content;
+	}
+
+	if (useSourceMap && typeof btoa === 'function') {
+		var sourceMapping = toComment(cssMapping);
+		var sourceURLs = cssMapping.sources.map(function (source) {
+			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
+		});
+
+		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
+	}
+
+	return [content].join('\n');
+}
+
+// Adapted from convert-source-map (MIT)
+function toComment(sourceMap) {
+	// eslint-disable-next-line no-undef
+	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
+	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
+
+	return '/*# ' + data + ' */';
+}
+
+
+/***/ }),
+/* 42 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+
+var stylesInDom = {};
+
+var	memoize = function (fn) {
+	var memo;
+
+	return function () {
+		if (typeof memo === "undefined") memo = fn.apply(this, arguments);
+		return memo;
+	};
+};
+
+var isOldIE = memoize(function () {
+	// Test for IE <= 9 as proposed by Browserhacks
+	// @see http://browserhacks.com/#hack-e71d8692f65334173fee715c222cb805
+	// Tests for existence of standard globals is to allow style-loader
+	// to operate correctly into non-standard environments
+	// @see https://github.com/webpack-contrib/style-loader/issues/177
+	return window && document && document.all && !window.atob;
+});
+
+var getElement = (function (fn) {
+	var memo = {};
+
+	return function(selector) {
+		if (typeof memo[selector] === "undefined") {
+			var styleTarget = fn.call(this, selector);
+			// Special case to return head of iframe instead of iframe itself
+			if (styleTarget instanceof window.HTMLIFrameElement) {
+				try {
+					// This will throw an exception if access to iframe is blocked
+					// due to cross-origin restrictions
+					styleTarget = styleTarget.contentDocument.head;
+				} catch(e) {
+					styleTarget = null;
+				}
+			}
+			memo[selector] = styleTarget;
+		}
+		return memo[selector]
+	};
+})(function (target) {
+	return document.querySelector(target)
+});
+
+var singleton = null;
+var	singletonCounter = 0;
+var	stylesInsertedAtTop = [];
+
+var	fixUrls = __webpack_require__(43);
+
+module.exports = function(list, options) {
+	if (typeof DEBUG !== "undefined" && DEBUG) {
+		if (typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
+	}
+
+	options = options || {};
+
+	options.attrs = typeof options.attrs === "object" ? options.attrs : {};
+
+	// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+	// tags it will allow on a page
+	if (!options.singleton) options.singleton = isOldIE();
+
+	// By default, add <style> tags to the <head> element
+	if (!options.insertInto) options.insertInto = "head";
+
+	// By default, add <style> tags to the bottom of the target
+	if (!options.insertAt) options.insertAt = "bottom";
+
+	var styles = listToStyles(list, options);
+
+	addStylesToDom(styles, options);
+
+	return function update (newList) {
+		var mayRemove = [];
+
+		for (var i = 0; i < styles.length; i++) {
+			var item = styles[i];
+			var domStyle = stylesInDom[item.id];
+
+			domStyle.refs--;
+			mayRemove.push(domStyle);
+		}
+
+		if(newList) {
+			var newStyles = listToStyles(newList, options);
+			addStylesToDom(newStyles, options);
+		}
+
+		for (var i = 0; i < mayRemove.length; i++) {
+			var domStyle = mayRemove[i];
+
+			if(domStyle.refs === 0) {
+				for (var j = 0; j < domStyle.parts.length; j++) domStyle.parts[j]();
+
+				delete stylesInDom[domStyle.id];
+			}
+		}
+	};
+};
+
+function addStylesToDom (styles, options) {
+	for (var i = 0; i < styles.length; i++) {
+		var item = styles[i];
+		var domStyle = stylesInDom[item.id];
+
+		if(domStyle) {
+			domStyle.refs++;
+
+			for(var j = 0; j < domStyle.parts.length; j++) {
+				domStyle.parts[j](item.parts[j]);
+			}
+
+			for(; j < item.parts.length; j++) {
+				domStyle.parts.push(addStyle(item.parts[j], options));
+			}
+		} else {
+			var parts = [];
+
+			for(var j = 0; j < item.parts.length; j++) {
+				parts.push(addStyle(item.parts[j], options));
+			}
+
+			stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
+		}
+	}
+}
+
+function listToStyles (list, options) {
+	var styles = [];
+	var newStyles = {};
+
+	for (var i = 0; i < list.length; i++) {
+		var item = list[i];
+		var id = options.base ? item[0] + options.base : item[0];
+		var css = item[1];
+		var media = item[2];
+		var sourceMap = item[3];
+		var part = {css: css, media: media, sourceMap: sourceMap};
+
+		if(!newStyles[id]) styles.push(newStyles[id] = {id: id, parts: [part]});
+		else newStyles[id].parts.push(part);
+	}
+
+	return styles;
+}
+
+function insertStyleElement (options, style) {
+	var target = getElement(options.insertInto)
+
+	if (!target) {
+		throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");
+	}
+
+	var lastStyleElementInsertedAtTop = stylesInsertedAtTop[stylesInsertedAtTop.length - 1];
+
+	if (options.insertAt === "top") {
+		if (!lastStyleElementInsertedAtTop) {
+			target.insertBefore(style, target.firstChild);
+		} else if (lastStyleElementInsertedAtTop.nextSibling) {
+			target.insertBefore(style, lastStyleElementInsertedAtTop.nextSibling);
+		} else {
+			target.appendChild(style);
+		}
+		stylesInsertedAtTop.push(style);
+	} else if (options.insertAt === "bottom") {
+		target.appendChild(style);
+	} else if (typeof options.insertAt === "object" && options.insertAt.before) {
+		var nextSibling = getElement(options.insertInto + " " + options.insertAt.before);
+		target.insertBefore(style, nextSibling);
+	} else {
+		throw new Error("[Style Loader]\n\n Invalid value for parameter 'insertAt' ('options.insertAt') found.\n Must be 'top', 'bottom', or Object.\n (https://github.com/webpack-contrib/style-loader#insertat)\n");
+	}
+}
+
+function removeStyleElement (style) {
+	if (style.parentNode === null) return false;
+	style.parentNode.removeChild(style);
+
+	var idx = stylesInsertedAtTop.indexOf(style);
+	if(idx >= 0) {
+		stylesInsertedAtTop.splice(idx, 1);
+	}
+}
+
+function createStyleElement (options) {
+	var style = document.createElement("style");
+
+	options.attrs.type = "text/css";
+
+	addAttrs(style, options.attrs);
+	insertStyleElement(options, style);
+
+	return style;
+}
+
+function createLinkElement (options) {
+	var link = document.createElement("link");
+
+	options.attrs.type = "text/css";
+	options.attrs.rel = "stylesheet";
+
+	addAttrs(link, options.attrs);
+	insertStyleElement(options, link);
+
+	return link;
+}
+
+function addAttrs (el, attrs) {
+	Object.keys(attrs).forEach(function (key) {
+		el.setAttribute(key, attrs[key]);
+	});
+}
+
+function addStyle (obj, options) {
+	var style, update, remove, result;
+
+	// If a transform function was defined, run it on the css
+	if (options.transform && obj.css) {
+	    result = options.transform(obj.css);
+
+	    if (result) {
+	    	// If transform returns a value, use that instead of the original css.
+	    	// This allows running runtime transformations on the css.
+	    	obj.css = result;
+	    } else {
+	    	// If the transform function returns a falsy value, don't add this css.
+	    	// This allows conditional loading of css
+	    	return function() {
+	    		// noop
+	    	};
+	    }
+	}
+
+	if (options.singleton) {
+		var styleIndex = singletonCounter++;
+
+		style = singleton || (singleton = createStyleElement(options));
+
+		update = applyToSingletonTag.bind(null, style, styleIndex, false);
+		remove = applyToSingletonTag.bind(null, style, styleIndex, true);
+
+	} else if (
+		obj.sourceMap &&
+		typeof URL === "function" &&
+		typeof URL.createObjectURL === "function" &&
+		typeof URL.revokeObjectURL === "function" &&
+		typeof Blob === "function" &&
+		typeof btoa === "function"
+	) {
+		style = createLinkElement(options);
+		update = updateLink.bind(null, style, options);
+		remove = function () {
+			removeStyleElement(style);
+
+			if(style.href) URL.revokeObjectURL(style.href);
+		};
+	} else {
+		style = createStyleElement(options);
+		update = applyToTag.bind(null, style);
+		remove = function () {
+			removeStyleElement(style);
+		};
+	}
+
+	update(obj);
+
+	return function updateStyle (newObj) {
+		if (newObj) {
+			if (
+				newObj.css === obj.css &&
+				newObj.media === obj.media &&
+				newObj.sourceMap === obj.sourceMap
+			) {
+				return;
+			}
+
+			update(obj = newObj);
+		} else {
+			remove();
+		}
+	};
+}
+
+var replaceText = (function () {
+	var textStore = [];
+
+	return function (index, replacement) {
+		textStore[index] = replacement;
+
+		return textStore.filter(Boolean).join('\n');
+	};
+})();
+
+function applyToSingletonTag (style, index, remove, obj) {
+	var css = remove ? "" : obj.css;
+
+	if (style.styleSheet) {
+		style.styleSheet.cssText = replaceText(index, css);
+	} else {
+		var cssNode = document.createTextNode(css);
+		var childNodes = style.childNodes;
+
+		if (childNodes[index]) style.removeChild(childNodes[index]);
+
+		if (childNodes.length) {
+			style.insertBefore(cssNode, childNodes[index]);
+		} else {
+			style.appendChild(cssNode);
+		}
+	}
+}
+
+function applyToTag (style, obj) {
+	var css = obj.css;
+	var media = obj.media;
+
+	if(media) {
+		style.setAttribute("media", media)
+	}
+
+	if(style.styleSheet) {
+		style.styleSheet.cssText = css;
+	} else {
+		while(style.firstChild) {
+			style.removeChild(style.firstChild);
+		}
+
+		style.appendChild(document.createTextNode(css));
+	}
+}
+
+function updateLink (link, options, obj) {
+	var css = obj.css;
+	var sourceMap = obj.sourceMap;
+
+	/*
+		If convertToAbsoluteUrls isn't defined, but sourcemaps are enabled
+		and there is no publicPath defined then lets turn convertToAbsoluteUrls
+		on by default.  Otherwise default to the convertToAbsoluteUrls option
+		directly
+	*/
+	var autoFixUrls = options.convertToAbsoluteUrls === undefined && sourceMap;
+
+	if (options.convertToAbsoluteUrls || autoFixUrls) {
+		css = fixUrls(css);
+	}
+
+	if (sourceMap) {
+		// http://stackoverflow.com/a/26603875
+		css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
+	}
+
+	var blob = new Blob([css], { type: "text/css" });
+
+	var oldSrc = link.href;
+
+	link.href = URL.createObjectURL(blob);
+
+	if(oldSrc) URL.revokeObjectURL(oldSrc);
+}
+
+
+/***/ }),
+/* 43 */
+/***/ (function(module, exports) {
+
+
+/**
+ * When source maps are enabled, `style-loader` uses a link element with a data-uri to
+ * embed the css on the page. This breaks all relative urls because now they are relative to a
+ * bundle instead of the current page.
+ *
+ * One solution is to only use full urls, but that may be impossible.
+ *
+ * Instead, this function "fixes" the relative urls to be absolute according to the current page location.
+ *
+ * A rudimentary test suite is located at `test/fixUrls.js` and can be run via the `npm test` command.
+ *
+ */
+
+module.exports = function (css) {
+  // get current location
+  var location = typeof window !== "undefined" && window.location;
+
+  if (!location) {
+    throw new Error("fixUrls requires window.location");
+  }
+
+	// blank or null?
+	if (!css || typeof css !== "string") {
+	  return css;
+  }
+
+  var baseUrl = location.protocol + "//" + location.host;
+  var currentDir = baseUrl + location.pathname.replace(/\/[^\/]*$/, "/");
+
+	// convert each url(...)
+	/*
+	This regular expression is just a way to recursively match brackets within
+	a string.
+
+	 /url\s*\(  = Match on the word "url" with any whitespace after it and then a parens
+	   (  = Start a capturing group
+	     (?:  = Start a non-capturing group
+	         [^)(]  = Match anything that isn't a parentheses
+	         |  = OR
+	         \(  = Match a start parentheses
+	             (?:  = Start another non-capturing groups
+	                 [^)(]+  = Match anything that isn't a parentheses
+	                 |  = OR
+	                 \(  = Match a start parentheses
+	                     [^)(]*  = Match anything that isn't a parentheses
+	                 \)  = Match a end parentheses
+	             )  = End Group
+              *\) = Match anything and then a close parens
+          )  = Close non-capturing group
+          *  = Match anything
+       )  = Close capturing group
+	 \)  = Match a close parens
+
+	 /gi  = Get all matches, not the first.  Be case insensitive.
+	 */
+	var fixedCss = css.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi, function(fullMatch, origUrl) {
+		// strip quotes (if they exist)
+		var unquotedOrigUrl = origUrl
+			.trim()
+			.replace(/^"(.*)"$/, function(o, $1){ return $1; })
+			.replace(/^'(.*)'$/, function(o, $1){ return $1; });
+
+		// already a full url? no change
+		if (/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/)/i.test(unquotedOrigUrl)) {
+		  return fullMatch;
+		}
+
+		// convert the url to a full url
+		var newUrl;
+
+		if (unquotedOrigUrl.indexOf("//") === 0) {
+		  	//TODO: should we add protocol?
+			newUrl = unquotedOrigUrl;
+		} else if (unquotedOrigUrl.indexOf("/") === 0) {
+			// path should be relative to the base url
+			newUrl = baseUrl + unquotedOrigUrl; // already starts with '/'
+		} else {
+			// path should be relative to current directory
+			newUrl = currentDir + unquotedOrigUrl.replace(/^\.\//, ""); // Strip leading './'
+		}
+
+		// send back the fixed url(...)
+		return "url(" + JSON.stringify(newUrl) + ")";
+	});
+
+	// send back the fixed css
+	return fixedCss;
+};
+
 
 /***/ })
 /******/ ]);
