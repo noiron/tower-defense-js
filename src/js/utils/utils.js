@@ -1,5 +1,6 @@
 import { vec2 } from 'gl-matrix';
 import { GRID_SIZE, OFFSET_X, OFFSET_Y } from './constant';
+import Message from '../Entity/Message';
 
 export function toRadians(angle) {
     return angle * (Math.PI / 180);
@@ -168,25 +169,3 @@ export function drawGrid(ctx, cols, rows, gridSize = GRID_SIZE, strokeStyle = '#
     ctx.stroke();
 }
 
-export function showError(info) {
-    clearError();
-    
-    const canvas = document.getElementById('error-message');
-    const ctx = canvas.getContext('2d');
-    console.log('err:', info);
-    ctx.fillStyle = 'red';
-    ctx.font = '20px Arial';
-    const canvasHeight = canvas.height;
-    console.log(canvasHeight);
-    if (info) {
-        ctx.fillText(info, 50, canvas.height - 15);
-    }
-
-    setTimeout(clearError, 2000);
-}
-
-export function clearError() {
-    const canvas = document.getElementById('error-message');
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-}

@@ -3,10 +3,9 @@ import TowerFactory from './Entity/tower';
 import Enemy from './Entity/Enemy';
 import Map from './Entity/Map';
 import Wave from './Wave';
+import Message from './Entity/Message';
 import { calculateDistance, index2Px, px2Index, showError } from './utils/utils';
 import {
-    gridWidth,
-    gridHeight,
     gridNumX,
     gridNumY,
     WIDTH,
@@ -21,6 +20,7 @@ import {
 import globalId from './id';
 import GameControl from './Entity/GameControl';
 import GameInfo from './Entity/GameInfo';
+import GameError from './Entity/GameError';
 import { orbit } from './utils/config';
 import { world } from '../index';
 
@@ -80,7 +80,15 @@ export default class Game {
             game: this
         });
         this.gameInfo = gameInfo;
-        gameInfo.draw();  
+        gameInfo.draw();
+
+        const $gameError = document.getElementById('error-message');
+        const gameError = new GameError({
+            element: $gameError,
+            game: this
+        });
+        this.gameError = gameError;
+        gameError.draw();
     }
 
     initData() {
@@ -472,7 +480,7 @@ export default class Game {
         const cost = towerData[towerType].cost;
         // 检查是否有足够金钱
         if (this.money - cost < 0) {
-            showError('You do not have enough money.');
+            this.showError('You do not have enough money.');
             return -1;
         }
 
@@ -485,7 +493,7 @@ export default class Game {
 
         if (!this.map.checkPath(col, row)) {
             const info = '存在不能到达的区域，不能放置在这里';
-            showError(info);
+            this.showError(info);
             return;
         };
 
@@ -535,7 +543,7 @@ export default class Game {
             tower.damage *= 1.5;
             tower.level++;
         } else {
-            showError('已升级至最大值');
+            this.showError('已升级至最大值');
         }
     }
 
@@ -668,6 +676,12 @@ export default class Game {
         statusText += `<p class="fps">FPS: <span>${fps} (${fpsRate}%)</span></p>`;
         
         status.innerHTML = statusText;
+    }
+
+    showError(info) {
+        const message = new Message({ text: info });
+        console.log(info);
+        this.gameError.messages.push(message);
     }
 }
 

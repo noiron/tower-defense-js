@@ -1,6 +1,9 @@
 {
   "presets": ["env"],
   "plugins": [
-    ["transform-object-rest-spread"]
+    ["transform-object-rest-spread"],
+    ["transform-builtin-extend", {
+      "globals": ["Array"]
+    }]
   ]
 }
