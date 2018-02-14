@@ -9,7 +9,7 @@ export default class CircleBullet {
         this.ctx = ctx;
         this.target = target;
         this.radius = 3;
-        this.speed = 8;
+        this.speed = 5;
         this.vx = 0;
         this.vy = 0;
         this.angle = 0;

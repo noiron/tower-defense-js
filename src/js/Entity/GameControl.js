@@ -1,4 +1,4 @@
-import { BaseTower, LaserTower, SlowTower, FireTower, Block } from './tower';
+import TowerFactory, { BaseTower, LaserTower, SlowTower, FireTower, Block } from './tower';
 import { isInside, highlightGrid, drawGrid } from './../utils/utils';
 import { GAME_CONTROL_WIDTH, GAME_CONTROL_HEIGHT, towerData } from '../utils/constant';
 
@@ -11,6 +11,7 @@ const HEIGHT = GAME_CONTROL_HEIGHT; // 640
 
 const FILL_COLOR = '#fafafa';
 const DISABLE_COLOR = '#aaa';
+const HOVER_COLOR = 'red';
 
 // 每一个子数组代表一列
 const TOWER_TYPE = [
@@ -106,6 +107,7 @@ class GameControl {
         this.animId = requestAnimationFrame(() => this.draw());
     }
 
+    // Not used?
     stopAnim() {
         cancelAnimationFrame(this.animId);
         const ctx = this.ctx;
@@ -148,8 +150,8 @@ class GameControl {
                 ctx.strokeStyle = DISABLE_COLOR;
                 ctx.fillStyle = DISABLE_COLOR;
             } else if (btn.status === 'hover') {
-                ctx.strokeStyle = 'red';
-                ctx.fillStyle = 'red';
+                ctx.strokeStyle = HOVER_COLOR;
+                ctx.fillStyle = HOVER_COLOR;
             } else {
                 ctx.strokeStyle = FILL_COLOR;
                 ctx.fillStyle = FILL_COLOR;
@@ -180,6 +182,7 @@ class GameControl {
         let x = 0;
         let y = 0;
 
+        // 点击事件的绑定
         $element.click(e => {
             const $canvas = $(e.target);
             const offset = $canvas.offset();
@@ -219,20 +222,17 @@ class GameControl {
                 if (game.towerSelect === true) {
                     console.log('you sell a tower');
                     game.sellTower();
-                } else {
-                    // console.log('do nothing');
                 }
             }
 
             if (isInside({ x, y }, this.upgradeBtn)) {
                 if (game.towerSelect === true) {
                     game.upgradeTower();
-                } else {
-                    // 
                 }
             }
         });
 
+        // hover 事件的绑定
         $element.mousemove(e => {
             // e.stopPropagation()
             const gameInfo = this.game.gameInfo;
@@ -258,9 +258,7 @@ class GameControl {
             }
 
             // 鼠标 hover 在 tower 上时，显示相应提示信息
-            // TODO: 显示造价和伤害信息
             if (isInside({ x, y }, this.towerAreaRect)) {
-                // 计算当前是在哪个格子中
                 const col = Math.floor((x - this.offsetX) / GRID_WIDTH);
                 const row = Math.floor((y - this.offsetY) / GRID_HEIGHT);
 
@@ -275,6 +273,7 @@ class GameControl {
                     text.push(`造价: ${data.cost}`);
                     text.push(`攻击: ${tower.damage}`);
                 }
+                // TODO: 修改此处，使其更通用
                 if (row === 0 && col === 2) {
                     infoX -= 120;
                 } else if (row === 1 && col === 0) {
@@ -290,7 +289,6 @@ class GameControl {
                 }];
 
             } else {
-                // infoCtx.clearRect(0, 0, 150, 75);
                 gameInfo.infos = [];
             }
         });
@@ -318,7 +316,7 @@ class TowerArea {
             y: this.offsetY + GRID_HEIGHT / 2,
             ctx: this.ctx,
             direction: 90,
-            radius: 12
+            radius: 10
         });
 
         this.slowTower = new SlowTower({

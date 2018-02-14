@@ -1,4 +1,4 @@
-import { GRID_SIZE, OFFSET_X, OFFSET_Y } from './../utils/constant';
+import { GRID_SIZE } from './../utils/constant';
 import { index2Px } from '../utils/utils';
 
 export default class Enemy {

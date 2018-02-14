@@ -14,6 +14,8 @@ export default class LaserTower extends BaseTower {
         this.hue = 60;
         this.cost = towerData[this.type].cost;
         this.range = 4 * gridWidth;
+        this.radius = opt.radius || 10;
+        this.barrelLength = 2.5;
 
         this.direction = opt.direction || 0; // 用度数表示的tower指向
         this.bulletStartPosVec = vec2.fromValues(0, 0);

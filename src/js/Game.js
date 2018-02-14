@@ -4,7 +4,7 @@ import Enemy from './Entity/Enemy';
 import Map from './Entity/Map';
 import Wave from './Wave';
 import Message from './Entity/Message';
-import { calculateDistance, index2Px, px2Index, showError } from './utils/utils';
+import { calculateDistance, index2Px, px2Index } from './utils/utils';
 import {
     gridNumX,
     gridNumY,
@@ -383,8 +383,6 @@ export default class Game {
             }
         }
 
-        this.displayInfo();
-
         this.animId = requestAnimationFrame(() => this.draw());
     }
 
@@ -539,6 +537,7 @@ export default class Game {
         const tower = this.towers[index];
         if (tower.level < 4) {
             // TODO: 对塔的升级应该按预设数值，或按比例
+            // TODO: 将塔的升级方法写入塔自身的 class 中去
             tower.range *= 1.25;
             tower.damage *= 1.5;
             tower.level++;
@@ -552,15 +551,6 @@ export default class Game {
         const config = { ctx, x, y, bullets: this.bullets, selected: true };
         const tower = new TowerFactory[towerType](config);
         tower.draw(ctx);
-    }
-
-    displayInfo() {
-        // 画面信息的显示
-        const enemyCountElement = document.getElementById('enemyCount');
-        if (enemyCountElement) {
-            enemyCountElement.innerHTML = `Enemy Count: ${this.enemies.length}, Bullets: ${this
-                .bullets.length}`;
-        }
     }
 
     bindEvent() {
