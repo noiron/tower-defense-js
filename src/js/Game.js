@@ -144,32 +144,6 @@ export default class Game {
         this.destory = false;
     }
 
-    windowResizeHandler() {
-        // 确定canvas的位置
-        const cvx = (window.innerWidth - WIDTH - GAME_CONTROL_WIDTH) * 0.5;
-        const cvy = (window.innerHeight - HEIGHT) * 0.5;
-
-        canvas.style.position = 'absolute';
-        canvas.style.left = cvx + 'px';
-        canvas.style.top = cvy + 'px';
-
-        backgroundCanvas.style.position = 'absolute';
-        backgroundCanvas.style.left = cvx + BORDER_WIDTH + 'px';
-        backgroundCanvas.style.top = cvy + BORDER_WIDTH + 'px';
-
-        gameControlCanvas.style.position = 'absolute';
-        gameControlCanvas.style.left = cvx + WIDTH + BORDER_WIDTH + 'px';
-        gameControlCanvas.style.top = cvy + 'px';
-
-        panels.style.position = 'absolute';
-        panels.style.left = cvx + BORDER_WIDTH + 'px';
-        panels.style.top = cvy + 200 + 'px';
-
-        gameInfoCanvas.style.position = 'absolute';
-        gameInfoCanvas.style.left = cvx + BORDER_WIDTH + 'px';
-        gameInfoCanvas.style.top = cvy + BORDER_WIDTH + 'px';
-    }
-
     renderBackground() {
         const gradient = bgCtx.createRadialGradient(
             (WIDTH + GAME_CONTROL_WIDTH) * 0.5,
@@ -386,7 +360,7 @@ export default class Game {
         this.animId = requestAnimationFrame(() => this.draw());
     }
 
-    // 循环检测bullet是否和vehicle碰撞
+    // 循环检测 bullet 是否和 enemy 碰撞
     detectImpact() {
         for (var i = 0; i < this.bullets.length; i++) {
             let impact = false;
@@ -397,65 +371,51 @@ export default class Game {
                 const enemy = this.enemies[j];
 
                 // 计算 bullet 和 enemy 距离
-                if (bullet.type === 'line') {
-                    // 求圆心至bullet的垂足
-                    let normal = vec2.create();
-                    let bVec = bullet.directionVec;
-                    let aDotB = 1;
-
-                    let aVec = vec2.fromValues(
-                        enemy.x - bullet.start[0],
-                        enemy.y - bullet.start[1]
-                    );
-                    vec2.multiply(aDotB, aVec, bVec);
-                    vec2.scale(bVec, bVec, aDotB);
-                    vec2.add(normal, bullet.start, bVec);
-
-                    distance = calculateDistance(normal[0], normal[1], enemy.x, enemy.y);
-                } else if (bullet.type === 'circle' || bullet.type === 'slow' || bullet.type === 'fire') {
-                    distance = calculateDistance(bullet.x, bullet.y, enemy.x, enemy.y);
-                }
-                if (bullet.type === 'laser') {
-                    if (bullet.target.id === enemy.id) {
-                        distance = 0;
-                    }
-                }
+                distance = distBulletToEnemy(bullet, enemy);
 
                 // enemy进入bullet的作用范围后，依据其种类产生效果
-                if (bullet.type === 'circle' || bullet.type === 'laser') {
-                    if (distance <= enemy.radius + 2) {
-                        impact = true;
-                        enemy.health -= bullet.damage;
-                        if (enemy.health <= 0) {
-                            this.money += enemy.value;
-                            this.enemies.remove(j--);
-                            this.score += 100;
+                switch (bullet.type) {
+                    case 'circle':
+                    case 'laser':
+                        if (distance <= enemy.radius + 2) {
+                            impact = true;
+                            enemy.health -= bullet.damage;
+                            if (enemy.health <= 0) {
+                                this.money += enemy.value;
+                                this.enemies.remove(j--);
+                                this.score += 100;
+                            }
+                            break;
                         }
                         break;
-                    }
-                } else if (bullet.type === 'slow') {
-                    if (distance <= bullet.range) {
-                        if (enemy.buff.every(b => b.source !== bullet.id)) {
-                            enemy.buff.push({
-                                type: 'deceleration',
-                                value: 0.35,
-                                source: bullet.id,
-                                duration: 10
-                            });
+
+                    case 'slow':
+                        if (distance <= bullet.range) {
+                            if (enemy.buff.every(b => b.source !== bullet.id)) {
+                                enemy.buff.push({
+                                    type: 'deceleration',
+                                    value: 0.35,
+                                    source: bullet.id,
+                                    duration: 10
+                                });
+                            }
                         }
-                    }
-                } else if (bullet.type === 'fire') {
-                    if (distance <= bullet.range) {
-                        enemy.health -= bullet.damage;
-                        if (enemy.health <= 0) {
-                            this.money += enemy.value;
-                            this.enemies.remove(j--);
-                            this.score += 100;
+                        break;
+
+                    case 'fire':
+                        if (distance <= bullet.range) {
+                            enemy.health -= bullet.damage;
+                            if (enemy.health <= 0) {
+                                this.money += enemy.value;
+                                this.enemies.remove(j--);
+                                this.score += 100;
+                            }
                         }
-                    }
+                        break;
                 }
             }
-            if (bullet.type === 'laser' || bullet.type === 'slow' || bullet.type === 'fire') {
+
+            if (['laser', 'slow', 'fire'].includes(bullet.type)) {
                 impact = false;
             }
             if (impact) {
@@ -691,4 +651,23 @@ function bulletOutOfBound(bullet) {
         default:
             return false;
     }
+}
+
+// 计算不同种类的 bullet 和 enemy 的距离
+function distBulletToEnemy(bullet, enemy) {
+    let dist;
+
+    switch (bullet.type) {
+        case 'circle':
+        case 'slow':
+        case 'fire':
+            dist = calculateDistance(bullet.x, bullet.y, enemy.x, enemy.y);
+            break;
+        case 'laser':
+            if (bullet.target.id === enemy.id) {
+                dist = 0;
+            }
+            break;
+    }
+    return dist;
 }

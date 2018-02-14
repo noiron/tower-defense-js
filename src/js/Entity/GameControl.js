@@ -1,4 +1,4 @@
-import TowerFactory, { BaseTower, LaserTower, SlowTower, FireTower, Block } from './tower';
+import { BaseTower, LaserTower, SlowTower, FireTower, Block } from './tower';
 import { isInside, highlightGrid, drawGrid } from './../utils/utils';
 import { GAME_CONTROL_WIDTH, GAME_CONTROL_HEIGHT, towerData } from '../utils/constant';
 
@@ -304,14 +304,14 @@ class TowerArea {
         this.offsetX = opt.x;
         this.offsetY = opt.y;
 
-        this.baseTower = new BaseTower({
+        const baseTower = new BaseTower({
             x: this.offsetX + GRID_WIDTH / 2 + 10,
             y: this.offsetY + GRID_HEIGHT / 2,
             ctx: this.ctx,
             radius: 12
         });
 
-        this.laserTower = new LaserTower({
+        const laserTower = new LaserTower({
             x: this.offsetX + GRID_WIDTH * 1.5 + 5,
             y: this.offsetY + GRID_HEIGHT / 2,
             ctx: this.ctx,
@@ -319,21 +319,21 @@ class TowerArea {
             radius: 10
         });
 
-        this.slowTower = new SlowTower({
+        const slowTower = new SlowTower({
             x: this.offsetX + GRID_WIDTH * 2.5 + 5,
             y: this.offsetY + GRID_HEIGHT / 2,
             ctx: this.ctx,
             radius: 12
         });
 
-        this.fireTower = new FireTower({
+        const fireTower = new FireTower({
             x: this.offsetX + GRID_WIDTH / 2 + 5,
             y: this.offsetY + GRID_HEIGHT * 1.5,
             ctx: this.ctx,
             radius: 10
         });
 
-        this.block = new Block({
+        const block = new Block({
             x: this.offsetX + GRID_WIDTH * 2.5,
             y: this.offsetY + GRID_HEIGHT * 1.5,
             ctx: this.ctx,
@@ -341,11 +341,11 @@ class TowerArea {
         });
 
         this.towers = {
-            BASE: this.baseTower,
-            LASER: this.laserTower,
-            SLOW: this.slowTower,
-            FIRE: this.fireTower,
-            BLOCK: this.block
+            BASE: baseTower,
+            LASER: laserTower,
+            SLOW: slowTower,
+            FIRE: fireTower,
+            BLOCK: block
         };
     }
 
