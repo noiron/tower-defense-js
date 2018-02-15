@@ -483,6 +483,17 @@ export default class Game {
     sellTower(index = this.towerSelectIndex) {
         const tower = this.towers[index];
         const { col, row, type: towerType = 'BASE' } = tower;
+
+        // 删除 laser tower 时将其对应的 laser 一起删除
+        if (towerType === 'LASER') {
+            for (let i = 0; i < this.bullets.length; i++) {
+                const bullet = this.bullets[i];
+                if (bullet.type === 'laser' && bullet.parent.id === tower.id) {
+                    this.bullets.remove(i--);
+                }
+            }
+        }
+
         this.towers.remove(index);
         console.log(index);
         this.map.coord[col][row] = '';
@@ -539,7 +550,7 @@ export default class Game {
                     game.towers.map((tower, index) => {
                         if (tower.col === col && tower.row === row) {
                             console.log(`You select ${index}th tower, its id is ${tower.id}`);
-        
+
                             // 已经选中的塔再次点击则取消
                             if (game.towerSelectIndex === index) {
                                 game.towerSelectIndex = -1;

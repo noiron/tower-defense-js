@@ -23,22 +23,36 @@ export default class LaserTower extends BaseTower {
 
         this.shooting = false;
         this.damage = 0.1;
+        this.laserId = -1;
     }
 
     shoot() {
         if (this.target) {
+            const laserId = globalId.genId();
+            this.laserId = laserId;
+
+            const idx = this.bullets.findIndex(b => { 
+                return b.parent === this; 
+            });
+
+            // 如果 bullets 数组中已存在以本 tower 为 parent 的元素，则返回
+            if (idx > 0) { 
+                return;
+            }
+
             this.bullets.push(
                 new Laser({
-                    id: globalId.genId(),
+                    id: laserId,
                     target: this.target,
                     ctx: this.ctx,
                     x: this.x + this.bulletStartPosVec[0],
                     y: this.y + this.bulletStartPosVec[1],
-                    range: this.range, // 宽度？
                     damage: this.damage,
                     parent: this
                 })
             );
+
+            this.shooting = true;
         }
     }
 
@@ -80,7 +94,6 @@ export default class LaserTower extends BaseTower {
 
         if (this.targetIndex !== -1 && this.shooting === false) {
             this.shoot(ctx);
-            this.shooting = true;
         }
 
         ctx.restore();

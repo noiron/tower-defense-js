@@ -1,9 +1,7 @@
-import { vec2 } from 'gl-matrix';
-import { toRadians, calculateDistance } from './../../utils/utils';
-
 export default class Laser {
-    constructor({ ctx, x, y, parent, target, range, damage }) {
+    constructor({ ctx, x, y, parent, target, damage, id }) {
         this.type = 'laser';
+        this.id = id;
         this.x = x;
         this.y = y;
         this.ctx = ctx;
@@ -14,7 +12,6 @@ export default class Laser {
         this.vy = 0;
         this.angle = 0;
         this.hue = parent.hue;
-        this.range = range;
         this.damage = damage || 5;
         this.parent = parent;
     }
@@ -25,7 +22,7 @@ export default class Laser {
         this.y = parent.y + parent.bulletStartPosVec[1];
     }
 
-    draw(ctx, enemies) {
+    draw(ctx) {
         this.step();
 
         // 绘图开始
