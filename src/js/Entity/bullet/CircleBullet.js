@@ -22,7 +22,7 @@ export default class CircleBullet {
         // 计算新位置
         
         if (this.target) {
-            const target = enemies.getEleById(this.target.id);
+            const target = enemies.getElementById(this.target.id);
             if (target) {
                 const curDis = calculateDistance(target.x, target.y, this.x, this.y);
                 if (curDis < this.range) {

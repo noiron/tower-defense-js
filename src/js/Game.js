@@ -98,7 +98,7 @@ export default class Game {
 
         this.bullets = [];
         this.towers = new EntityCollection();
-        this.enemies = [];
+        this.enemies = new EntityCollection();
 
         this.money = 5000;
         this.col = 0;
@@ -258,7 +258,7 @@ export default class Game {
         }
 
         // 对每一个enemy进行step操作，并绘制
-        this.enemies.forEach((enemy, index) => {
+        this.enemies.forEach(enemy => {
             enemy.step({ path: this.map.orbit });
             enemy.draw();
 
@@ -266,8 +266,7 @@ export default class Game {
                 if (enemy.reachDest) {
                     this.life -= enemy.damage;
                 }
-                // TODO: 此处利用 id 进行删除
-                this.enemies.remove(index);
+                this.enemies.removeElementById(enemy.id);
             }
         });
 
@@ -383,7 +382,7 @@ export default class Game {
                             enemy.health -= bullet.damage;
                             if (enemy.health <= 0) {
                                 this.money += enemy.value;
-                                this.enemies.remove(j--);
+                                this.enemies.removeElementByIndex(j--);
                                 this.score += 100;
                             }
                             break;
@@ -408,7 +407,7 @@ export default class Game {
                             enemy.health -= bullet.damage;
                             if (enemy.health <= 0) {
                                 this.money += enemy.value;
-                                this.enemies.remove(j--);
+                                this.enemies.removeElementByIndex(j--);
                                 this.score += 100;
                             }
                         }

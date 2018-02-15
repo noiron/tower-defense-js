@@ -116,7 +116,7 @@ export default class BaseTower {
     findTarget(enemies) {
         // 先判断原有的target是否仍在范围内
         if (this.target !== null) {
-            const prevTgt = enemies.getEle(this.target);
+            const prevTgt = enemies.getElementById(this.target.id);
             if (prevTgt) {
                 if (calculateDistance(prevTgt.x, prevTgt.y, this.x, this.y) < this.range) {
                     return;
@@ -148,7 +148,7 @@ export default class BaseTower {
         }
 
         if (this.targetIndex !== -1) {
-            const target = enemies.getEleById(this.targetId);
+            const target = enemies.getElementById(this.targetId);
             if (target) {
                 this.directionVec = vec2.fromValues(target.x - this.x, target.y - this.y);
                 this.direction = Math.atan2(target.y - this.y, target.x - this.x) * (180 / Math.PI);
