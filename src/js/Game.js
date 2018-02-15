@@ -23,6 +23,7 @@ import GameInfo from './Entity/GameInfo';
 import GameError from './Entity/GameError';
 import { orbit } from './utils/config';
 import { world } from '../index';
+import EntityCollection from './EntityCollection';
 
 const BORDER_WIDTH = 6;
 
@@ -96,7 +97,7 @@ export default class Game {
         globalId.clear();
 
         this.bullets = [];
-        this.towers = [];
+        this.towers = new EntityCollection();
         this.enemies = [];
 
         this.money = 5000;
@@ -494,8 +495,7 @@ export default class Game {
             }
         }
 
-        this.towers.remove(index);
-        console.log(index);
+        this.towers.removeElementByIndex(index);
         this.map.coord[col][row] = '';
 
         // 出售价格改为购买价格的 50%
