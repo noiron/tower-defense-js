@@ -96,7 +96,7 @@ export default class Game {
         this.genId = 0;
         globalId.clear();
 
-        this.bullets = [];
+        this.bullets = new EntityCollection();
         this.towers = new EntityCollection();
         this.enemies = new EntityCollection();
 
@@ -305,7 +305,7 @@ export default class Game {
                 case 'line':
                 case 'circle': {
                     if (bulletOutOfBound(bullet)) {
-                        this.bullets.remove(i--);
+                        this.bullets.removeElementByIndex(i--);
                     } else {
                         bullet.draw(ctx, this.enemies);
                     }
@@ -314,7 +314,7 @@ export default class Game {
                 case 'laser': {
                     // 如果 bullet 的目标和其 parent 的目标不一致时，则删除这个 bullet
                     if (!bullet.parent.target || bullet.parent.target.id !== bullet.target.id) {
-                        this.bullets.remove(i--);
+                        this.bullets.removeElementByIndex(i--);
                         bullet.parent.shooting = false;
                     } else {
                         bullet.draw(ctx, this.enemies);
@@ -324,7 +324,7 @@ export default class Game {
                 case 'slow': 
                 case 'fire': {
                     if (bullet.life <= 0) {
-                        this.bullets.remove(i--);
+                        this.bullets.removeElementByIndex(i--);
                         bullet.parent.shooting = false;
                     } else {
                         bullet.parent.shooting = true;
@@ -419,7 +419,7 @@ export default class Game {
                 impact = false;
             }
             if (impact) {
-                this.bullets.remove(i--);
+                this.bullets.removeElementByIndex(i--);
             }
         }
     }
@@ -489,7 +489,7 @@ export default class Game {
             for (let i = 0; i < this.bullets.length; i++) {
                 const bullet = this.bullets[i];
                 if (bullet.type === 'laser' && bullet.parent.id === tower.id) {
-                    this.bullets.remove(i--);
+                    this.bullets.removeElementByIndex(i--);
                 }
             }
         }
