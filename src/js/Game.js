@@ -21,9 +21,10 @@ import globalId from './id';
 import GameControl from './Entity/GameControl';
 import GameInfo from './Entity/GameInfo';
 import GameError from './Entity/GameError';
-import { orbit } from './utils/config';
+import { orbit, cfgPlayAudio } from './utils/config';
 import { world } from '../index';
 import EntityCollection from './EntityCollection';
+import { beepAudio } from './audio';
 
 const BORDER_WIDTH = 6;
 
@@ -267,6 +268,7 @@ export default class Game {
                     this.life -= enemy.damage;
                 }
                 this.enemies.removeElementById(enemy.id);
+                cfgPlayAudio && beepAudio.play();
             }
         });
 
@@ -383,6 +385,8 @@ export default class Game {
                             if (enemy.health <= 0) {
                                 this.money += enemy.value;
                                 this.enemies.removeElementByIndex(j--);
+                                cfgPlayAudio && beepAudio.play();
+                                
                                 this.score += 100;
                             }
                             break;
@@ -549,7 +553,6 @@ export default class Game {
                     game.towers.map((tower, index) => {
                         if (tower.col === col && tower.row === row) {
                             console.log(`You select ${index}th tower, its id is ${tower.id}`);
-
                             // 已经选中的塔再次点击则取消
                             if (game.towerSelectIndex === index) {
                                 game.towerSelectIndex = -1;
