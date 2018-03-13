@@ -1,6 +1,34 @@
+import id from './id';
+
+interface EneyInitCnt {
+    a: number;
+    b: number;
+    c: number;
+}
+
+interface EnemyCnt { 
+    a?: number,
+    b?: number,
+    c?: number,
+};
+
+interface EnemyCfgItem {
+    radius: number;
+    speed: number;
+    color: string;
+    health: number;
+}
+
 export default class Wave {
-    constructor(opt = {}) {
-        //
+    enemyInitCnt: { 
+        a: number,
+        b: number,
+        c: number,
+    };
+    enemyCnt: EnemyCnt;
+    enemyCfg: { [propName: string]: EnemyCfgItem };
+
+    constructor(opt: any = {}) {
         this.enemyInitCnt = opt.enemyInitCnt || {
             a: 10,
             b: 5,
@@ -17,13 +45,13 @@ export default class Wave {
                 radius: 10,
                 speed: 1,
                 color: '#FFDDA0',
-                health: 20,
+                health: 20
             },
             b: {
                 radius: 8,
                 speed: 1.5,
                 color: '#0280B2',
-                health: 16,
+                health: 16
             },
             c: {
                 radius: 6,
@@ -34,6 +62,9 @@ export default class Wave {
         };
     }
 
+    /**
+     * Check if all kinds of enemies are dead
+     */
     waveFinish() {
         const keys = Object.keys(this.enemyCnt);
         return keys.every(key => {
