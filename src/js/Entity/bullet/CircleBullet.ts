@@ -1,8 +1,30 @@
-import { vec2 } from 'gl-matrix';
 import { toRadians, calculateDistance } from './../../utils/utils';
+import EntityCollection from '../../EntityCollection';
+import Enemy from '../Enemy';
 
 export default class CircleBullet {
-    constructor({ ctx, x, y, target, range, damage }) {
+    type: string; // TODO: 这里应该是确定的几种类型
+    x: number;
+    y: number;
+    ctx: CanvasRenderingContext2D;
+    target: Enemy;
+    radius: number;
+    speed: number;
+    vx: number;
+    vy: number;
+    angle: number;
+    hue: number;
+    range: number;
+    damage: number;
+
+    constructor({ ctx, x, y, target, range, damage }: {
+        ctx: CanvasRenderingContext2D;
+        x: number;
+        y: number;
+        target: Enemy;
+        range: number;
+        damage: number;
+    }) {
         this.type = 'circle';
         this.x = x;
         this.y = y;
@@ -18,7 +40,7 @@ export default class CircleBullet {
         this.damage = damage || 5;
     }
 
-    step(enemies) {
+    step(enemies: EntityCollection) {
         // 计算新位置
         
         if (this.target) {
@@ -39,7 +61,7 @@ export default class CircleBullet {
         this.y += this.vy;
     }
 
-    draw(ctx, enemies) {
+    draw(ctx: CanvasRenderingContext2D, enemies: EntityCollection) {
         this.step(enemies);
 
         // 绘图开始

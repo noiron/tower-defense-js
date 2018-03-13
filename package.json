@@ -37,6 +37,7 @@
     "webpack-monitor": "^1.0.13"
   },
   "dependencies": {
-    "gl-matrix": "^2.4.0"
+    "gl-matrix": "^2.4.0",
+    "tslint": "^5.9.1"
   }
 }
