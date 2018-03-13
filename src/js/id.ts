@@ -1,4 +1,6 @@
 class globalId {
+    value: Array<number>;
+
     constructor() {
         this.value  = [];
     }

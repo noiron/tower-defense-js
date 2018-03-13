@@ -19,6 +19,12 @@ module.exports = {
                 include: path.join(__dirname, 'src')
             },
             {
+                test: /\.ts$/,
+                use: ['ts-loader'],
+                include: path.join(__dirname, 'src')
+                // exclude: /node_modules/
+            },
+            {
                 test: /\.less$/,
                 use: [{
                     loader: 'style-loader'
@@ -33,6 +39,9 @@ module.exports = {
                 loader: 'file-loader'
             }
         ]
+    },
+    resolve: {
+        extensions: ['.js', '.ts']
     },
     devServer: {
         stats: 'errors-only'
