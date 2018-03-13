@@ -4,10 +4,10 @@ export const config = {
     renderShadow: false
 };
 
-export const cfgPlayAudio = false;
+export const cfgPlayAudio: boolean = false;
 
-const cols = gridNumX;  // 16
-const rows = gridNumY;  // 12
+const cols: number = gridNumX;  // 16
+const rows: number = gridNumY;  // 12
 
 // 地图路径坐标
 export const orbit = {
