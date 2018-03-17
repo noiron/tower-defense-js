@@ -116,6 +116,84 @@ var towerData = exports.towerData = {
 
 /***/ }),
 /* 1 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ARRAY_TYPE", function() { return ARRAY_TYPE; });
+/* harmony export (immutable) */ __webpack_exports__["setMatrixArrayType"] = setMatrixArrayType;
+/* harmony export (immutable) */ __webpack_exports__["toRadian"] = toRadian;
+/* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
+/* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE. */
+
+/**
+ * Common utilities
+ * @module glMatrix
+ */
+
+// Configuration Constants
+const EPSILON = 0.000001;
+/* harmony export (immutable) */ __webpack_exports__["EPSILON"] = EPSILON;
+
+let ARRAY_TYPE = (typeof Float32Array !== 'undefined') ? Float32Array : Array;
+const RANDOM = Math.random;
+/* harmony export (immutable) */ __webpack_exports__["RANDOM"] = RANDOM;
+
+
+/**
+ * Sets the type of array used when creating new vectors and matrices
+ *
+ * @param {Type} type Array type, such as Float32Array or Array
+ */
+function setMatrixArrayType(type) {
+  ARRAY_TYPE = type;
+}
+
+const degree = Math.PI / 180;
+
+/**
+ * Convert Degree To Radian
+ *
+ * @param {Number} a Angle in Degrees
+ */
+function toRadian(a) {
+  return a * degree;
+}
+
+/**
+ * Tests whether or not the arguments have approximately the same value, within an absolute
+ * or relative tolerance of glMatrix.EPSILON (an absolute tolerance is used for values less
+ * than or equal to 1.0, and a relative tolerance is used for larger values)
+ *
+ * @param {Number} a The first number to test.
+ * @param {Number} b The second number to test.
+ * @returns {Boolean} True if the numbers are approximately equal, false otherwise.
+ */
+function equals(a, b) {
+  return Math.abs(a - b) <= EPSILON*Math.max(1.0, Math.abs(a), Math.abs(b));
+}
+
+
+/***/ }),
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -136,12 +214,6 @@ var _glMatrix = __webpack_require__(3);
 
 var _constant = __webpack_require__(0);
 
-var _Message = __webpack_require__(12);
-
-var _Message2 = _interopRequireDefault(_Message);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 function toRadians(angle) {
     return angle * (Math.PI / 180);
 }
@@ -152,9 +224,6 @@ Array.prototype.remove = function (from, to) {
     this.length = from < 0 ? this.length + from : from;
     return this.push.apply(this, rest);
 };
-
-// 根据id删除元素
-Array.prototype.removeById = function (id) {};
 
 Array.prototype.getEleById = function (id) {
     var result = null;
@@ -312,90 +381,12 @@ function drawGrid(ctx, cols, rows) {
 }
 
 /***/ }),
-/* 2 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ARRAY_TYPE", function() { return ARRAY_TYPE; });
-/* harmony export (immutable) */ __webpack_exports__["setMatrixArrayType"] = setMatrixArrayType;
-/* harmony export (immutable) */ __webpack_exports__["toRadian"] = toRadian;
-/* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE. */
-
-/**
- * Common utilities
- * @module glMatrix
- */
-
-// Configuration Constants
-const EPSILON = 0.000001;
-/* harmony export (immutable) */ __webpack_exports__["EPSILON"] = EPSILON;
-
-let ARRAY_TYPE = (typeof Float32Array !== 'undefined') ? Float32Array : Array;
-const RANDOM = Math.random;
-/* harmony export (immutable) */ __webpack_exports__["RANDOM"] = RANDOM;
-
-
-/**
- * Sets the type of array used when creating new vectors and matrices
- *
- * @param {Type} type Array type, such as Float32Array or Array
- */
-function setMatrixArrayType(type) {
-  ARRAY_TYPE = type;
-}
-
-const degree = Math.PI / 180;
-
-/**
- * Convert Degree To Radian
- *
- * @param {Number} a Angle in Degrees
- */
-function toRadian(a) {
-  return a * degree;
-}
-
-/**
- * Tests whether or not the arguments have approximately the same value, within an absolute
- * or relative tolerance of glMatrix.EPSILON (an absolute tolerance is used for values less
- * than or equal to 1.0, and a relative tolerance is used for larger values)
- *
- * @param {Number} a The first number to test.
- * @param {Number} b The second number to test.
- * @returns {Boolean} True if the numbers are approximately equal, false otherwise.
- */
-function equals(a, b) {
-  return Math.abs(a - b) <= EPSILON*Math.max(1.0, Math.abs(a), Math.abs(b));
-}
-
-
-/***/ }),
 /* 3 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__gl_matrix_common__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__gl_matrix_common__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__gl_matrix_mat2__ = __webpack_require__(15);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__gl_matrix_mat2d__ = __webpack_require__(16);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__gl_matrix_mat3__ = __webpack_require__(9);
@@ -474,7 +465,7 @@ var _CircleBullet2 = _interopRequireDefault(_CircleBullet);
 
 var _glMatrix = __webpack_require__(3);
 
-var _utils = __webpack_require__(1);
+var _utils = __webpack_require__(2);
 
 var _config = __webpack_require__(6);
 
@@ -514,7 +505,8 @@ var BaseTower = function () {
 
         this.col = col;
         this.row = row;
-        this.radius = radius || 12;
+        this.radius = radius || 10;
+        this.barrelLength = 2;
         this.hue = 200;
         this.bullets = bullets;
         this.cost = _constant.towerData[this.type].cost;
@@ -541,7 +533,7 @@ var BaseTower = function () {
             _glMatrix.vec2.normalize(this.directionVec, this.directionVec);
 
             // bullet 出射位置
-            _glMatrix.vec2.scale(this.bulletStartPosVec, this.directionVec, this.radius * 2.5);
+            _glMatrix.vec2.scale(this.bulletStartPosVec, this.directionVec, this.radius * this.barrelLength);
 
             if (new Date() - this.lastShootTime >= this.shootInterval) {
                 this.shoot();
@@ -570,7 +562,7 @@ var BaseTower = function () {
 
             ctx.strokeStyle = 'hsl(' + this.hue + ',100%, 40%';
             ctx.fillStyle = 'hsl(' + this.hue + ',100%, 40%';
-            ctx.lineWidth = Math.max(3, this.radius / 8);
+            ctx.lineWidth = Math.max(5, this.radius / 6);
 
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
@@ -611,7 +603,7 @@ var BaseTower = function () {
         value: function findTarget(enemies) {
             // 先判断原有的target是否仍在范围内
             if (this.target !== null) {
-                var prevTgt = enemies.getEle(this.target);
+                var prevTgt = enemies.getElementById(this.target.id);
                 if (prevTgt) {
                     if ((0, _utils.calculateDistance)(prevTgt.x, prevTgt.y, this.x, this.y) < this.range) {
                         return;
@@ -643,7 +635,7 @@ var BaseTower = function () {
             }
 
             if (this.targetIndex !== -1) {
-                var target = enemies.getEleById(this.targetId);
+                var target = enemies.getElementById(this.targetId);
                 if (target) {
                     this.directionVec = _glMatrix.vec2.fromValues(target.x - this.x, target.y - this.y);
                     this.direction = Math.atan2(target.y - this.y, target.x - this.x) * (180 / Math.PI);
@@ -721,13 +713,15 @@ exports.default = new globalId();
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.MAP_SETTING = exports.orbit = exports.config = undefined;
+exports.MAP_SETTING = exports.orbit = exports.cfgPlayAudio = exports.config = undefined;
 
 var _constant = __webpack_require__(0);
 
 var config = exports.config = {
     renderShadow: false
 };
+
+var cfgPlayAudio = exports.cfgPlayAudio = false;
 
 var cols = _constant.gridNumX; // 16
 var rows = _constant.gridNumY; // 12
@@ -818,7 +812,7 @@ var _Game2 = _interopRequireDefault(_Game);
 
 var _constant = __webpack_require__(0);
 
-__webpack_require__(39);
+__webpack_require__(41);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -968,7 +962,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["multiplyScalarAndAdd"] = multiplyScalarAndAdd;
 /* harmony export (immutable) */ __webpack_exports__["exactEquals"] = exactEquals;
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -1785,7 +1779,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["str"] = str;
 /* harmony export (immutable) */ __webpack_exports__["exactEquals"] = exactEquals;
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -2617,7 +2611,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["str"] = str;
 /* harmony export (immutable) */ __webpack_exports__["exactEquals"] = exactEquals;
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -3257,57 +3251,84 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-// 在画面上显示信息
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-// 属性：
-// 文字内容
-// 位置，大小
-// 颜色
-// type: 提示信息和错误信息需要显示在不同的 canvas 层上 
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var canvas = document.getElementById('error-message');
-var ctx = canvas.getContext('2d');
-
-var Message = function () {
-    function Message(opt) {
-        _classCallCheck(this, Message);
-
-        this.text = opt.text;
-        this.x = opt.x || 0;
-        this.y = opt.y || canvas.height - 15;
-        this.width = opt.width || 0;
-        this.height = opt.height || 0;
-
-        this.life = 2000; // 信息存在的时长
-        this.startTime = new Date().getTime(); // 信息开始显示的时间
-
-        this.vanish = false;
+function _extendableBuiltin(cls) {
+    function ExtendableBuiltin() {
+        var instance = Reflect.construct(cls, Array.from(arguments));
+        Object.setPrototypeOf(instance, Object.getPrototypeOf(this));
+        return instance;
     }
 
-    _createClass(Message, [{
-        key: 'draw',
-        value: function draw() {
-            if (new Date().getTime() - this.startTime > this.life) {
-                this.vanish = true;
-            }
+    ExtendableBuiltin.prototype = Object.create(cls.prototype, {
+        constructor: {
+            value: cls,
+            enumerable: false,
+            writable: true,
+            configurable: true
+        }
+    });
 
-            if (this.vanish) {
-                return;
-            }
+    if (Object.setPrototypeOf) {
+        Object.setPrototypeOf(ExtendableBuiltin, cls);
+    } else {
+        ExtendableBuiltin.__proto__ = cls;
+    }
 
-            ctx.fillStyle = 'red';
-            ctx.font = '20px Arial';
+    return ExtendableBuiltin;
+}
 
-            if (this.text) {
-                ctx.fillText(this.text, 50, this.y);
+/**
+ * 用于保存游戏中的各种 entity 的容器对象
+ * 例如 enemy, tower, bullet
+ * 提供增、删功能
+ */
+
+var EntityCollection = function (_extendableBuiltin2) {
+    _inherits(EntityCollection, _extendableBuiltin2);
+
+    function EntityCollection() {
+        _classCallCheck(this, EntityCollection);
+
+        return _possibleConstructorReturn(this, (EntityCollection.__proto__ || Object.getPrototypeOf(EntityCollection)).call(this));
+    }
+
+    _createClass(EntityCollection, [{
+        key: "getElementById",
+        value: function getElementById(id) {
+            for (var i = 0; i < this.length; i++) {
+                if (this[i].id === id) {
+                    return this[i];
+                }
             }
+            return null;
+        }
+    }, {
+        key: "removeElementById",
+        value: function removeElementById(id) {
+            var removed = void 0;
+            for (var i = 0; i < this.length; i++) {
+                if (this[i].id === id) {
+                    removed = this.splice(i, 1);
+                    break;
+                }
+            }
+            return removed;
+        }
+    }, {
+        key: "removeElementByIndex",
+        value: function removeElementByIndex(idx) {
+            var removed = this.splice(idx, 1);
+            return removed;
         }
     }]);
 
-    return Message;
-}();
+    return EntityCollection;
+}(_extendableBuiltin(Array));
 
-exports.default = Message;
+exports.default = EntityCollection;
 
 /***/ }),
 /* 13 */
@@ -3347,11 +3368,11 @@ var _Wave = __webpack_require__(34);
 
 var _Wave2 = _interopRequireDefault(_Wave);
 
-var _Message = __webpack_require__(12);
+var _Message = __webpack_require__(35);
 
 var _Message2 = _interopRequireDefault(_Message);
 
-var _utils = __webpack_require__(1);
+var _utils = __webpack_require__(2);
 
 var _constant = __webpack_require__(0);
 
@@ -3359,21 +3380,27 @@ var _id = __webpack_require__(5);
 
 var _id2 = _interopRequireDefault(_id);
 
-var _GameControl = __webpack_require__(35);
+var _GameControl = __webpack_require__(36);
 
 var _GameControl2 = _interopRequireDefault(_GameControl);
 
-var _GameInfo = __webpack_require__(36);
+var _GameInfo = __webpack_require__(37);
 
 var _GameInfo2 = _interopRequireDefault(_GameInfo);
 
-var _GameError = __webpack_require__(37);
+var _GameError = __webpack_require__(38);
 
 var _GameError2 = _interopRequireDefault(_GameError);
 
 var _config = __webpack_require__(6);
 
 var _index = __webpack_require__(8);
+
+var _EntityCollection = __webpack_require__(12);
+
+var _EntityCollection2 = _interopRequireDefault(_EntityCollection);
+
+var _audio = __webpack_require__(39);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3455,9 +3482,9 @@ var Game = function () {
             this.genId = 0;
             _id2.default.clear();
 
-            this.bullets = [];
-            this.towers = [];
-            this.enemies = [];
+            this.bullets = new _EntityCollection2.default();
+            this.towers = new _EntityCollection2.default();
+            this.enemies = new _EntityCollection2.default();
 
             this.money = 5000;
             this.col = 0;
@@ -3502,33 +3529,6 @@ var Game = function () {
             this.time = 0;
 
             this.destory = false;
-        }
-    }, {
-        key: 'windowResizeHandler',
-        value: function windowResizeHandler() {
-            // 确定canvas的位置
-            var cvx = (window.innerWidth - _constant.WIDTH - _constant.GAME_CONTROL_WIDTH) * 0.5;
-            var cvy = (window.innerHeight - _constant.HEIGHT) * 0.5;
-
-            canvas.style.position = 'absolute';
-            canvas.style.left = cvx + 'px';
-            canvas.style.top = cvy + 'px';
-
-            backgroundCanvas.style.position = 'absolute';
-            backgroundCanvas.style.left = cvx + BORDER_WIDTH + 'px';
-            backgroundCanvas.style.top = cvy + BORDER_WIDTH + 'px';
-
-            gameControlCanvas.style.position = 'absolute';
-            gameControlCanvas.style.left = cvx + _constant.WIDTH + BORDER_WIDTH + 'px';
-            gameControlCanvas.style.top = cvy + 'px';
-
-            panels.style.position = 'absolute';
-            panels.style.left = cvx + BORDER_WIDTH + 'px';
-            panels.style.top = cvy + 200 + 'px';
-
-            gameInfoCanvas.style.position = 'absolute';
-            gameInfoCanvas.style.left = cvx + BORDER_WIDTH + 'px';
-            gameInfoCanvas.style.top = cvy + BORDER_WIDTH + 'px';
         }
     }, {
         key: 'renderBackground',
@@ -3643,7 +3643,7 @@ var Game = function () {
             }
 
             // 对每一个enemy进行step操作，并绘制
-            this.enemies.forEach(function (enemy, index) {
+            this.enemies.forEach(function (enemy) {
                 enemy.step({ path: _this.map.orbit });
                 enemy.draw();
 
@@ -3651,8 +3651,8 @@ var Game = function () {
                     if (enemy.reachDest) {
                         _this.life -= enemy.damage;
                     }
-                    // TODO: 此处利用 id 进行删除
-                    _this.enemies.remove(index);
+                    _this.enemies.removeElementById(enemy.id);
+                    _config.cfgPlayAudio && _audio.beepAudio.play();
                 }
             });
 
@@ -3691,7 +3691,7 @@ var Game = function () {
                     case 'circle':
                         {
                             if (bulletOutOfBound(bullet)) {
-                                this.bullets.remove(i--);
+                                this.bullets.removeElementByIndex(i--);
                             } else {
                                 bullet.draw(ctx, this.enemies);
                             }
@@ -3701,7 +3701,7 @@ var Game = function () {
                         {
                             // 如果 bullet 的目标和其 parent 的目标不一致时，则删除这个 bullet
                             if (!bullet.parent.target || bullet.parent.target.id !== bullet.target.id) {
-                                this.bullets.remove(i--);
+                                this.bullets.removeElementByIndex(i--);
                                 bullet.parent.shooting = false;
                             } else {
                                 bullet.draw(ctx, this.enemies);
@@ -3712,7 +3712,7 @@ var Game = function () {
                     case 'fire':
                         {
                             if (bullet.life <= 0) {
-                                this.bullets.remove(i--);
+                                this.bullets.removeElementByIndex(i--);
                                 bullet.parent.shooting = false;
                             } else {
                                 bullet.parent.shooting = true;
@@ -3735,14 +3735,12 @@ var Game = function () {
                 }
             }
 
-            this.displayInfo();
-
             this.animId = requestAnimationFrame(function () {
                 return _this.draw();
             });
         }
 
-        // 循环检测bullet是否和vehicle碰撞
+        // 循环检测 bullet 是否和 enemy 碰撞
 
     }, {
         key: 'detectImpact',
@@ -3758,68 +3756,59 @@ var Game = function () {
                     var enemy = _this2.enemies[j];
 
                     // 计算 bullet 和 enemy 距离
-                    if (bullet.type === 'line') {
-                        // 求圆心至bullet的垂足
-                        var normal = _glMatrix.vec2.create();
-                        var bVec = bullet.directionVec;
-                        var aDotB = 1;
-
-                        var aVec = _glMatrix.vec2.fromValues(enemy.x - bullet.start[0], enemy.y - bullet.start[1]);
-                        _glMatrix.vec2.multiply(aDotB, aVec, bVec);
-                        _glMatrix.vec2.scale(bVec, bVec, aDotB);
-                        _glMatrix.vec2.add(normal, bullet.start, bVec);
-
-                        distance = (0, _utils.calculateDistance)(normal[0], normal[1], enemy.x, enemy.y);
-                    } else if (bullet.type === 'circle' || bullet.type === 'slow' || bullet.type === 'fire') {
-                        distance = (0, _utils.calculateDistance)(bullet.x, bullet.y, enemy.x, enemy.y);
-                    }
-                    if (bullet.type === 'laser') {
-                        if (bullet.target.id === enemy.id) {
-                            distance = 0;
-                        }
-                    }
+                    distance = distBulletToEnemy(bullet, enemy);
 
                     // enemy进入bullet的作用范围后，依据其种类产生效果
-                    if (bullet.type === 'circle' || bullet.type === 'laser') {
-                        if (distance <= enemy.radius + 2) {
-                            impact = true;
-                            enemy.health -= bullet.damage;
-                            if (enemy.health <= 0) {
-                                _this2.money += enemy.value;
-                                _this2.enemies.remove(j--);
-                                _this2.score += 100;
+                    switch (bullet.type) {
+                        case 'circle':
+                        case 'laser':
+                            if (distance <= enemy.radius + 2) {
+                                impact = true;
+                                enemy.health -= bullet.damage;
+                                if (enemy.health <= 0) {
+                                    _this2.money += enemy.value;
+                                    _this2.enemies.removeElementByIndex(j--);
+                                    _config.cfgPlayAudio && _audio.beepAudio.play();
+
+                                    _this2.score += 100;
+                                }
+                                break;
                             }
                             break;
-                        }
-                    } else if (bullet.type === 'slow') {
-                        if (distance <= bullet.range) {
-                            if (enemy.buff.every(function (b) {
-                                return b.source !== bullet.id;
-                            })) {
-                                enemy.buff.push({
-                                    type: 'deceleration',
-                                    value: 0.35,
-                                    source: bullet.id,
-                                    duration: 10
-                                });
+
+                        case 'slow':
+                            if (distance <= bullet.range) {
+                                if (enemy.buff.every(function (b) {
+                                    return b.source !== bullet.id;
+                                })) {
+                                    enemy.buff.push({
+                                        type: 'deceleration',
+                                        value: 0.35,
+                                        source: bullet.id,
+                                        duration: 10
+                                    });
+                                }
                             }
-                        }
-                    } else if (bullet.type === 'fire') {
-                        if (distance <= bullet.range) {
-                            enemy.health -= bullet.damage;
-                            if (enemy.health <= 0) {
-                                _this2.money += enemy.value;
-                                _this2.enemies.remove(j--);
-                                _this2.score += 100;
+                            break;
+
+                        case 'fire':
+                            if (distance <= bullet.range) {
+                                enemy.health -= bullet.damage;
+                                if (enemy.health <= 0) {
+                                    _this2.money += enemy.value;
+                                    _this2.enemies.removeElementByIndex(j--);
+                                    _this2.score += 100;
+                                }
                             }
-                        }
+                            break;
                     }
                 }
-                if (bullet.type === 'laser' || bullet.type === 'slow' || bullet.type === 'fire') {
+
+                if (['laser', 'slow', 'fire'].includes(bullet.type)) {
                     impact = false;
                 }
                 if (impact) {
-                    _this2.bullets.remove(i--);
+                    _this2.bullets.removeElementByIndex(i--);
                 }
             };
 
@@ -3907,8 +3896,18 @@ var Game = function () {
                 _tower$type = tower.type,
                 towerType = _tower$type === undefined ? 'BASE' : _tower$type;
 
-            this.towers.remove(index);
-            console.log(index);
+            // 删除 laser tower 时将其对应的 laser 一起删除
+
+            if (towerType === 'LASER') {
+                for (var i = 0; i < this.bullets.length; i++) {
+                    var _bullet = this.bullets[i];
+                    if (_bullet.type === 'laser' && _bullet.parent.id === tower.id) {
+                        this.bullets.removeElementByIndex(i--);
+                    }
+                }
+            }
+
+            this.towers.removeElementByIndex(index);
             this.map.coord[col][row] = '';
 
             // 出售价格改为购买价格的 50%
@@ -3924,6 +3923,7 @@ var Game = function () {
             var tower = this.towers[index];
             if (tower.level < 4) {
                 // TODO: 对塔的升级应该按预设数值，或按比例
+                // TODO: 将塔的升级方法写入塔自身的 class 中去
                 tower.range *= 1.25;
                 tower.damage *= 1.5;
                 tower.level++;
@@ -3940,15 +3940,6 @@ var Game = function () {
             var config = { ctx: ctx, x: x, y: y, bullets: this.bullets, selected: true };
             var tower = new _tower2.default[towerType](config);
             tower.draw(ctx);
-        }
-    }, {
-        key: 'displayInfo',
-        value: function displayInfo() {
-            // 画面信息的显示
-            var enemyCountElement = document.getElementById('enemyCount');
-            if (enemyCountElement) {
-                enemyCountElement.innerHTML = 'Enemy Count: ' + this.enemies.length + ', Bullets: ' + this.bullets.length;
-            }
         }
     }, {
         key: 'bindEvent',
@@ -3982,7 +3973,6 @@ var Game = function () {
                         game.towers.map(function (tower, index) {
                             if (tower.col === col && tower.row === row) {
                                 console.log('You select ' + index + 'th tower, its id is ' + tower.id);
-
                                 // 已经选中的塔再次点击则取消
                                 if (game.towerSelectIndex === index) {
                                     game.towerSelectIndex = -1;
@@ -4104,6 +4094,25 @@ function bulletOutOfBound(bullet) {
     }
 }
 
+// 计算不同种类的 bullet 和 enemy 的距离
+function distBulletToEnemy(bullet, enemy) {
+    var dist = void 0;
+
+    switch (bullet.type) {
+        case 'circle':
+        case 'slow':
+        case 'fire':
+            dist = (0, _utils.calculateDistance)(bullet.x, bullet.y, enemy.x, enemy.y);
+            break;
+        case 'laser':
+            if (bullet.target.id === enemy.id) {
+                dist = 0;
+            }
+            break;
+    }
+    return dist;
+}
+
 /***/ }),
 /* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -4134,7 +4143,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
 /* harmony export (immutable) */ __webpack_exports__["multiplyScalar"] = multiplyScalar;
 /* harmony export (immutable) */ __webpack_exports__["multiplyScalarAndAdd"] = multiplyScalarAndAdd;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -4603,7 +4612,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["multiplyScalarAndAdd"] = multiplyScalarAndAdd;
 /* harmony export (immutable) */ __webpack_exports__["exactEquals"] = exactEquals;
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -5126,7 +5135,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["multiplyScalarAndAdd"] = multiplyScalarAndAdd;
 /* harmony export (immutable) */ __webpack_exports__["exactEquals"] = exactEquals;
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -6835,7 +6844,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["fromMat3"] = fromMat3;
 /* harmony export (immutable) */ __webpack_exports__["fromEuler"] = fromEuler;
 /* harmony export (immutable) */ __webpack_exports__["str"] = str;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__mat3__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vec3__ = __webpack_require__(10);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__vec4__ = __webpack_require__(11);
@@ -7545,7 +7554,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["str"] = str;
 /* harmony export (immutable) */ __webpack_exports__["exactEquals"] = exactEquals;
 /* harmony export (immutable) */ __webpack_exports__["equals"] = equals;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(1);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -8163,7 +8172,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _glMatrix = __webpack_require__(3);
 
-var _utils = __webpack_require__(1);
+var _utils = __webpack_require__(2);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -8184,7 +8193,7 @@ var CircleBullet = function () {
         this.ctx = ctx;
         this.target = target;
         this.radius = 3;
-        this.speed = 8;
+        this.speed = 5;
         this.vx = 0;
         this.vy = 0;
         this.angle = 0;
@@ -8199,7 +8208,7 @@ var CircleBullet = function () {
             // 计算新位置
 
             if (this.target) {
-                var target = enemies.getEleById(this.target.id);
+                var target = enemies.getElementById(this.target.id);
                 if (target) {
                     var curDis = (0, _utils.calculateDistance)(target.x, target.y, this.x, this.y);
                     if (curDis < this.range) {
@@ -8260,7 +8269,7 @@ var _Bullet2 = _interopRequireDefault(_Bullet);
 
 var _glMatrix = __webpack_require__(3);
 
-var _utils = __webpack_require__(1);
+var _utils = __webpack_require__(2);
 
 var _config = __webpack_require__(6);
 
@@ -8385,7 +8394,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _glMatrix = __webpack_require__(3);
 
-var _utils = __webpack_require__(1);
+var _utils = __webpack_require__(2);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -8503,6 +8512,8 @@ var LaserTower = function (_BaseTower) {
         _this.hue = 60;
         _this.cost = _constant.towerData[_this.type].cost;
         _this.range = 4 * _constant.gridWidth;
+        _this.radius = opt.radius || 10;
+        _this.barrelLength = 2.5;
 
         _this.direction = opt.direction || 0; // 用度数表示的tower指向
         _this.bulletStartPosVec = _glMatrix.vec2.fromValues(0, 0);
@@ -8510,23 +8521,39 @@ var LaserTower = function (_BaseTower) {
 
         _this.shooting = false;
         _this.damage = 0.1;
+        _this.laserId = -1;
         return _this;
     }
 
     _createClass(LaserTower, [{
         key: 'shoot',
         value: function shoot() {
+            var _this2 = this;
+
             if (this.target) {
+                var laserId = _id2.default.genId();
+                this.laserId = laserId;
+
+                var idx = this.bullets.findIndex(function (b) {
+                    return b.parent === _this2;
+                });
+
+                // 如果 bullets 数组中已存在以本 tower 为 parent 的元素，则返回
+                if (idx > 0) {
+                    return;
+                }
+
                 this.bullets.push(new _Laser2.default({
-                    id: _id2.default.genId(),
+                    id: laserId,
                     target: this.target,
                     ctx: this.ctx,
                     x: this.x + this.bulletStartPosVec[0],
                     y: this.y + this.bulletStartPosVec[1],
-                    range: this.range, // 宽度？
                     damage: this.damage,
                     parent: this
                 }));
+
+                this.shooting = true;
             }
         }
     }, {
@@ -8569,7 +8596,6 @@ var LaserTower = function (_BaseTower) {
 
             if (this.targetIndex !== -1 && this.shooting === false) {
                 this.shoot(ctx);
-                this.shooting = true;
             }
 
             ctx.restore();
@@ -8594,10 +8620,6 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _glMatrix = __webpack_require__(3);
-
-var _utils = __webpack_require__(1);
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Laser = function () {
@@ -8607,12 +8629,13 @@ var Laser = function () {
             y = _ref.y,
             parent = _ref.parent,
             target = _ref.target,
-            range = _ref.range,
-            damage = _ref.damage;
+            damage = _ref.damage,
+            id = _ref.id;
 
         _classCallCheck(this, Laser);
 
         this.type = 'laser';
+        this.id = id;
         this.x = x;
         this.y = y;
         this.ctx = ctx;
@@ -8623,7 +8646,6 @@ var Laser = function () {
         this.vy = 0;
         this.angle = 0;
         this.hue = parent.hue;
-        this.range = range;
         this.damage = damage || 5;
         this.parent = parent;
     }
@@ -8637,7 +8659,7 @@ var Laser = function () {
         }
     }, {
         key: 'draw',
-        value: function draw(ctx, enemies) {
+        value: function draw(ctx) {
             this.step();
 
             // 绘图开始
@@ -9131,7 +9153,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _constant = __webpack_require__(0);
 
-var _utils = __webpack_require__(1);
+var _utils = __webpack_require__(2);
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -9330,7 +9352,7 @@ var _Path = __webpack_require__(32);
 
 var _Path2 = _interopRequireDefault(_Path);
 
-var _utils = __webpack_require__(1);
+var _utils = __webpack_require__(2);
 
 var _BreadthFirstSearch = __webpack_require__(33);
 
@@ -9618,7 +9640,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _constant = __webpack_require__(0);
 
-var _utils = __webpack_require__(1);
+var _utils = __webpack_require__(2);
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -9632,16 +9654,24 @@ var Path = function () {
         this.radius = opt.radius || _constant.GRID_SIZE / 2;
         this.orbit = opt.orbit;
         this.points = [];
+    }
 
-        /**
-         * Add a point to path
-         */
-        this.addPoint = function (x, y) {
+    /**
+     * Add a point to path
+    */
+
+
+    _createClass(Path, [{
+        key: 'addPoint',
+        value: function addPoint(x, y) {
             this.points.push([x, y]);
-        };
+        }
+    }, {
+        key: 'setPoints',
+
 
         // Define path points
-        this.setPoints = function () {
+        value: function setPoints() {
             var _this = this;
 
             this.orbit.forEach(function (coord) {
@@ -9651,15 +9681,13 @@ var Path = function () {
 
                 _this.addPoint(x, y);
             });
-        };
-    }
+        }
 
-    /**
-     * Render path
-     */
+        /**
+         * Render path
+         */
 
-
-    _createClass(Path, [{
+    }, {
         key: 'draw',
         value: function draw() {
             if (this.points.length === 0) {
@@ -10090,13 +10118,80 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// 在画面上显示信息
+
+// 属性：
+// 文字内容
+// 位置，大小
+// 颜色
+// type: 提示信息和错误信息需要显示在不同的 canvas 层上 
+
+var canvas = document.getElementById('error-message');
+var ctx = canvas.getContext('2d');
+
+var Message = function () {
+    function Message(opt) {
+        _classCallCheck(this, Message);
+
+        this.text = opt.text;
+        this.x = opt.x || 0;
+        this.y = opt.y || canvas.height - 15;
+        this.width = opt.width || 0;
+        this.height = opt.height || 0;
+
+        this.life = 2000; // 信息存在的时长
+        this.startTime = new Date().getTime(); // 信息开始显示的时间
+
+        this.vanish = false;
+    }
+
+    _createClass(Message, [{
+        key: 'draw',
+        value: function draw() {
+            if (new Date().getTime() - this.startTime > this.life) {
+                this.vanish = true;
+            }
+
+            if (this.vanish) {
+                return;
+            }
+
+            ctx.fillStyle = 'red';
+            ctx.font = '20px Arial';
+
+            if (this.text) {
+                ctx.fillText(this.text, 50, this.y);
+            }
+        }
+    }]);
+
+    return Message;
+}();
+
+exports.default = Message;
+
+/***/ }),
+/* 36 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _tower = __webpack_require__(7);
 
-var _utils = __webpack_require__(1);
+var _utils = __webpack_require__(2);
 
 var _constant = __webpack_require__(0);
 
@@ -10111,6 +10206,7 @@ var HEIGHT = _constant.GAME_CONTROL_HEIGHT; // 640
 
 var FILL_COLOR = '#fafafa';
 var DISABLE_COLOR = '#aaa';
+var HOVER_COLOR = 'red';
 
 // 每一个子数组代表一列
 var TOWER_TYPE = [['BASE', 'FIRE'], ['LASER'], ['SLOW', 'BLOCK']];
@@ -10203,6 +10299,9 @@ var GameControl = function () {
                 return _this.draw();
             });
         }
+
+        // Not used?
+
     }, {
         key: 'stopAnim',
         value: function stopAnim() {
@@ -10254,8 +10353,8 @@ var GameControl = function () {
                     ctx.strokeStyle = DISABLE_COLOR;
                     ctx.fillStyle = DISABLE_COLOR;
                 } else if (btn.status === 'hover') {
-                    ctx.strokeStyle = 'red';
-                    ctx.fillStyle = 'red';
+                    ctx.strokeStyle = HOVER_COLOR;
+                    ctx.fillStyle = HOVER_COLOR;
                 } else {
                     ctx.strokeStyle = FILL_COLOR;
                     ctx.fillStyle = FILL_COLOR;
@@ -10292,6 +10391,7 @@ var GameControl = function () {
             var x = 0;
             var y = 0;
 
+            // 点击事件的绑定
             $element.click(function (e) {
                 var $canvas = $(e.target);
                 var offset = $canvas.offset();
@@ -10331,20 +10431,17 @@ var GameControl = function () {
                     if (game.towerSelect === true) {
                         console.log('you sell a tower');
                         game.sellTower();
-                    } else {
-                        // console.log('do nothing');
                     }
                 }
 
                 if ((0, _utils.isInside)({ x: x, y: y }, _this3.upgradeBtn)) {
                     if (game.towerSelect === true) {
                         game.upgradeTower();
-                    } else {
-                        // 
                     }
                 }
             });
 
+            // hover 事件的绑定
             $element.mousemove(function (e) {
                 // e.stopPropagation()
                 var gameInfo = _this3.game.gameInfo;
@@ -10370,9 +10467,7 @@ var GameControl = function () {
                 }
 
                 // 鼠标 hover 在 tower 上时，显示相应提示信息
-                // TODO: 显示造价和伤害信息
                 if ((0, _utils.isInside)({ x: x, y: y }, _this3.towerAreaRect)) {
-                    // 计算当前是在哪个格子中
                     var col = Math.floor((x - _this3.offsetX) / GRID_WIDTH);
                     var row = Math.floor((y - _this3.offsetY) / GRID_HEIGHT);
 
@@ -10387,6 +10482,7 @@ var GameControl = function () {
                         text.push('\u9020\u4EF7: ' + data.cost);
                         text.push('\u653B\u51FB: ' + tower.damage);
                     }
+                    // TODO: 修改此处，使其更通用
                     if (row === 0 && col === 2) {
                         infoX -= 120;
                     } else if (row === 1 && col === 0) {
@@ -10401,7 +10497,6 @@ var GameControl = function () {
                         text: text
                     }];
                 } else {
-                    // infoCtx.clearRect(0, 0, 150, 75);
                     gameInfo.infos = [];
                 }
             });
@@ -10422,36 +10517,36 @@ var TowerArea = function () {
         this.offsetX = opt.x;
         this.offsetY = opt.y;
 
-        this.baseTower = new _tower.BaseTower({
+        var baseTower = new _tower.BaseTower({
             x: this.offsetX + GRID_WIDTH / 2 + 10,
             y: this.offsetY + GRID_HEIGHT / 2,
             ctx: this.ctx,
             radius: 12
         });
 
-        this.laserTower = new _tower.LaserTower({
+        var laserTower = new _tower.LaserTower({
             x: this.offsetX + GRID_WIDTH * 1.5 + 5,
             y: this.offsetY + GRID_HEIGHT / 2,
             ctx: this.ctx,
             direction: 90,
-            radius: 12
+            radius: 10
         });
 
-        this.slowTower = new _tower.SlowTower({
+        var slowTower = new _tower.SlowTower({
             x: this.offsetX + GRID_WIDTH * 2.5 + 5,
             y: this.offsetY + GRID_HEIGHT / 2,
             ctx: this.ctx,
             radius: 12
         });
 
-        this.fireTower = new _tower.FireTower({
+        var fireTower = new _tower.FireTower({
             x: this.offsetX + GRID_WIDTH / 2 + 5,
             y: this.offsetY + GRID_HEIGHT * 1.5,
             ctx: this.ctx,
             radius: 10
         });
 
-        this.block = new _tower.Block({
+        var block = new _tower.Block({
             x: this.offsetX + GRID_WIDTH * 2.5,
             y: this.offsetY + GRID_HEIGHT * 1.5,
             ctx: this.ctx,
@@ -10459,11 +10554,11 @@ var TowerArea = function () {
         });
 
         this.towers = {
-            BASE: this.baseTower,
-            LASER: this.laserTower,
-            SLOW: this.slowTower,
-            FIRE: this.fireTower,
-            BLOCK: this.block
+            BASE: baseTower,
+            LASER: laserTower,
+            SLOW: slowTower,
+            FIRE: fireTower,
+            BLOCK: block
         };
     }
 
@@ -10499,7 +10594,7 @@ var TowerArea = function () {
 }();
 
 /***/ }),
-/* 36 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10540,6 +10635,15 @@ var GameInfo = function () {
         value: function draw() {
             var _this = this;
 
+            setTimeout(function () {
+                return _this.draw();
+            }, 300);
+
+            // 游戏未开始时，不显示提示信息
+            if (this.game.status === '') {
+                return;
+            }
+
             var infos = this.infos;
             var ctx = this.element.getContext('2d');
 
@@ -10569,10 +10673,6 @@ var GameInfo = function () {
                     ctx.restore();
                 }
             });
-            // requestAnimationFrame(() => this.draw());
-            setTimeout(function () {
-                return _this.draw();
-            }, 300);
         }
     }]);
 
@@ -10582,7 +10682,7 @@ var GameInfo = function () {
 exports.default = GameInfo;
 
 /***/ }),
-/* 37 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10596,7 +10696,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _constant = __webpack_require__(0);
 
-var _EntityCollection = __webpack_require__(38);
+var _EntityCollection = __webpack_require__(12);
 
 var _EntityCollection2 = _interopRequireDefault(_EntityCollection);
 
@@ -10604,9 +10704,12 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var GameInfo = function () {
-    function GameInfo(opt) {
-        _classCallCheck(this, GameInfo);
+/** 
+ * 显示在游戏画面左下角的错误信息
+*/
+var GameError = function () {
+    function GameError(opt) {
+        _classCallCheck(this, GameError);
 
         this.element = opt.element;
         this.game = opt.game;
@@ -10617,7 +10720,7 @@ var GameInfo = function () {
         this.messages = new _EntityCollection2.default();
     }
 
-    _createClass(GameInfo, [{
+    _createClass(GameError, [{
         key: 'draw',
         value: function draw() {
             var _this = this;
@@ -10644,113 +10747,45 @@ var GameInfo = function () {
         }
     }]);
 
-    return GameInfo;
+    return GameError;
 }();
 
-exports.default = GameInfo;
+exports.default = GameError;
 
 /***/ }),
-/* 38 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
+exports.beepAudio = undefined;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _short = __webpack_require__(40);
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+var _short2 = _interopRequireDefault(_short);
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _extendableBuiltin(cls) {
-    function ExtendableBuiltin() {
-        var instance = Reflect.construct(cls, Array.from(arguments));
-        Object.setPrototypeOf(instance, Object.getPrototypeOf(this));
-        return instance;
-    }
-
-    ExtendableBuiltin.prototype = Object.create(cls.prototype, {
-        constructor: {
-            value: cls,
-            enumerable: false,
-            writable: true,
-            configurable: true
-        }
-    });
-
-    if (Object.setPrototypeOf) {
-        Object.setPrototypeOf(ExtendableBuiltin, cls);
-    } else {
-        ExtendableBuiltin.__proto__ = cls;
-    }
-
-    return ExtendableBuiltin;
-}
-
-/**
- * 用于保存游戏中的各种 entity 的容器对象
- * 例如 enemy, tower, bullet
- * 提供增、删功能
- */
-
-var EntityCollection = function (_extendableBuiltin2) {
-    _inherits(EntityCollection, _extendableBuiltin2);
-
-    function EntityCollection() {
-        _classCallCheck(this, EntityCollection);
-
-        return _possibleConstructorReturn(this, (EntityCollection.__proto__ || Object.getPrototypeOf(EntityCollection)).call(this));
-    }
-
-    _createClass(EntityCollection, [{
-        key: "getElementById",
-        value: function getElementById(id) {
-            for (var i = 0; i < this.length; i++) {
-                if (this[i].id === id) {
-                    return this[i];
-                }
-            }
-            return null;
-        }
-    }, {
-        key: "removeElementById",
-        value: function removeElementById(id) {
-            var removed = void 0;
-            for (var i = 0; i < this.length; i++) {
-                if (this[i].id === id) {
-                    removed = this.splice(i, 1);
-                    break;
-                }
-            }
-            return removed;
-        }
-    }, {
-        key: "removeElementByIndex",
-        value: function removeElementByIndex(idx) {
-            var removed = this.splice(idx, 1);
-            return removed;
-        }
-    }]);
-
-    return EntityCollection;
-}(_extendableBuiltin(Array));
-
-exports.default = EntityCollection;
+var beepAudio = exports.beepAudio = new Audio(_short2.default);
 
 /***/ }),
-/* 39 */
+/* 40 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__.p + "46cf373e4666b35178b0986a5d2b34b5.mp3";
+
+/***/ }),
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(40);
+var content = __webpack_require__(42);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -10758,7 +10793,7 @@ var transform;
 var options = {"hmr":true}
 options.transform = transform
 // add the styles to the DOM
-var update = __webpack_require__(42)(content, options);
+var update = __webpack_require__(44)(content, options);
 if(content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if(false) {
@@ -10775,10 +10810,10 @@ if(false) {
 }
 
 /***/ }),
-/* 40 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(41)(undefined);
+exports = module.exports = __webpack_require__(43)(undefined);
 // imports
 
 
@@ -10789,7 +10824,7 @@ exports.push([module.i, "body {\n  background: #eee;\n  background: #010c12;\n}\
 
 
 /***/ }),
-/* 41 */
+/* 43 */
 /***/ (function(module, exports) {
 
 /*
@@ -10871,7 +10906,7 @@ function toComment(sourceMap) {
 
 
 /***/ }),
-/* 42 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -10927,7 +10962,7 @@ var singleton = null;
 var	singletonCounter = 0;
 var	stylesInsertedAtTop = [];
 
-var	fixUrls = __webpack_require__(43);
+var	fixUrls = __webpack_require__(45);
 
 module.exports = function(list, options) {
 	if (typeof DEBUG !== "undefined" && DEBUG) {
@@ -11243,7 +11278,7 @@ function updateLink (link, options, obj) {
 
 
 /***/ }),
-/* 43 */
+/* 45 */
 /***/ (function(module, exports) {
 
 
