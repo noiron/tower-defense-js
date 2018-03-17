@@ -21,7 +21,8 @@ export default class BaseTower {
         const { col, row } = px2Index(x, y);
         this.col = col;
         this.row = row;
-        this.radius = radius || 12;
+        this.radius = radius || 10;
+        this.barrelLength = 2; 
         this.hue = 200;
         this.bullets = bullets;
         this.cost = towerData[this.type].cost;
@@ -49,7 +50,7 @@ export default class BaseTower {
         vec2.normalize(this.directionVec, this.directionVec);
 
         // bullet 出射位置
-        vec2.scale(this.bulletStartPosVec, this.directionVec, this.radius * 2.5);
+        vec2.scale(this.bulletStartPosVec, this.directionVec, this.radius * this.barrelLength);
 
         if (new Date - this.lastShootTime >= this.shootInterval) {
             this.shoot();
@@ -77,7 +78,7 @@ export default class BaseTower {
 
         ctx.strokeStyle = 'hsl(' + this.hue + ',100%, 40%';
         ctx.fillStyle = 'hsl(' + this.hue + ',100%, 40%';
-        ctx.lineWidth = Math.max(3, this.radius / 8);
+        ctx.lineWidth = Math.max(5, this.radius / 6);
 
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
@@ -115,7 +116,7 @@ export default class BaseTower {
     findTarget(enemies) {
         // 先判断原有的target是否仍在范围内
         if (this.target !== null) {
-            const prevTgt = enemies.getEle(this.target);
+            const prevTgt = enemies.getElementById(this.target.id);
             if (prevTgt) {
                 if (calculateDistance(prevTgt.x, prevTgt.y, this.x, this.y) < this.range) {
                     return;
@@ -147,7 +148,7 @@ export default class BaseTower {
         }
 
         if (this.targetIndex !== -1) {
-            const target = enemies.getEleById(this.targetId);
+            const target = enemies.getElementById(this.targetId);
             if (target) {
                 this.directionVec = vec2.fromValues(target.x - this.x, target.y - this.y);
                 this.direction = Math.atan2(target.y - this.y, target.x - this.x) * (180 / Math.PI);

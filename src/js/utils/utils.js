@@ -1,6 +1,5 @@
 import { vec2 } from 'gl-matrix';
 import { GRID_SIZE, OFFSET_X, OFFSET_Y } from './constant';
-import Message from '../Entity/Message';
 
 export function toRadians(angle) {
     return angle * (Math.PI / 180);
@@ -11,11 +10,6 @@ Array.prototype.remove = function (from, to) {
     let rest = this.slice((to || from) + 1 || this.length);
     this.length = from < 0 ? this.length + from : from;
     return this.push.apply(this, rest);
-};
-
-// 根据id删除元素
-Array.prototype.removeById = function(id) {
-    
 };
 
 Array.prototype.getEleById = function (id) {

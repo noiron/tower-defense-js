@@ -7,21 +7,21 @@ class Path {
         this.radius = opt.radius || GRID_SIZE / 2;
         this.orbit = opt.orbit;
         this.points = [];
+    }
 
-        /**
-         * Add a point to path
-         */
-        this.addPoint = function(x, y) {
-            this.points.push([x, y]);
-        };
-
-        // Define path points
-        this.setPoints = function() {
-            this.orbit.forEach(coord => {
-                const {x, y} = index2Px(...coord);
-                this.addPoint(x, y);
-            });
-        };
+    /**
+     * Add a point to path
+    */
+    addPoint(x, y) {
+        this.points.push([x, y]);
+    };
+    
+    // Define path points
+    setPoints() {
+        this.orbit.forEach(coord => {
+            const {x, y} = index2Px(...coord);
+            this.addPoint(x, y);
+        });
     }
 
     /**

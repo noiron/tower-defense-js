@@ -19,6 +19,13 @@ class GameInfo {
     }
 
     draw() {
+        setTimeout(() => this.draw(), 300);
+
+        // 游戏未开始时，不显示提示信息
+        if (this.game.status === '') {
+            return;
+        }
+
         const infos = this.infos;
         const ctx = this.element.getContext('2d');
     
@@ -48,8 +55,6 @@ class GameInfo {
                 ctx.restore();
             }
         });
-        // requestAnimationFrame(() => this.draw());
-        setTimeout(() => this.draw(), 300);
     }
 }
 

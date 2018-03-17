@@ -4,6 +4,8 @@ export const config = {
     renderShadow: false
 };
 
+export const cfgPlayAudio = false;
+
 const cols = gridNumX;  // 16
 const rows = gridNumY;  // 12
 

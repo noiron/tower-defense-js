@@ -27,6 +27,10 @@ module.exports = {
                 }, {
                     loader: 'less-loader'
                 }]
+            },
+            {
+                test: /\.mp3$/,
+                loader: 'file-loader'
             }
         ]
     },

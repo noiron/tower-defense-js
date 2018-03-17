@@ -4,7 +4,7 @@ import Enemy from './Entity/Enemy';
 import Map from './Entity/Map';
 import Wave from './Wave';
 import Message from './Entity/Message';
-import { calculateDistance, index2Px, px2Index, showError } from './utils/utils';
+import { calculateDistance, index2Px, px2Index } from './utils/utils';
 import {
     gridNumX,
     gridNumY,
@@ -21,8 +21,10 @@ import globalId from './id';
 import GameControl from './Entity/GameControl';
 import GameInfo from './Entity/GameInfo';
 import GameError from './Entity/GameError';
-import { orbit } from './utils/config';
+import { orbit, cfgPlayAudio } from './utils/config';
 import { world } from '../index';
+import EntityCollection from './EntityCollection';
+import { beepAudio } from './audio';
 
 const BORDER_WIDTH = 6;
 
@@ -95,9 +97,9 @@ export default class Game {
         this.genId = 0;
         globalId.clear();
 
-        this.bullets = [];
-        this.towers = [];
-        this.enemies = [];
+        this.bullets = new EntityCollection();
+        this.towers = new EntityCollection();
+        this.enemies = new EntityCollection();
 
         this.money = 5000;
         this.col = 0;
@@ -142,32 +144,6 @@ export default class Game {
         this.time = 0;
 
         this.destory = false;
-    }
-
-    windowResizeHandler() {
-        // 确定canvas的位置
-        const cvx = (window.innerWidth - WIDTH - GAME_CONTROL_WIDTH) * 0.5;
-        const cvy = (window.innerHeight - HEIGHT) * 0.5;
-
-        canvas.style.position = 'absolute';
-        canvas.style.left = cvx + 'px';
-        canvas.style.top = cvy + 'px';
-
-        backgroundCanvas.style.position = 'absolute';
-        backgroundCanvas.style.left = cvx + BORDER_WIDTH + 'px';
-        backgroundCanvas.style.top = cvy + BORDER_WIDTH + 'px';
-
-        gameControlCanvas.style.position = 'absolute';
-        gameControlCanvas.style.left = cvx + WIDTH + BORDER_WIDTH + 'px';
-        gameControlCanvas.style.top = cvy + 'px';
-
-        panels.style.position = 'absolute';
-        panels.style.left = cvx + BORDER_WIDTH + 'px';
-        panels.style.top = cvy + 200 + 'px';
-
-        gameInfoCanvas.style.position = 'absolute';
-        gameInfoCanvas.style.left = cvx + BORDER_WIDTH + 'px';
-        gameInfoCanvas.style.top = cvy + BORDER_WIDTH + 'px';
     }
 
     renderBackground() {
@@ -283,7 +259,7 @@ export default class Game {
         }
 
         // 对每一个enemy进行step操作，并绘制
-        this.enemies.forEach((enemy, index) => {
+        this.enemies.forEach(enemy => {
             enemy.step({ path: this.map.orbit });
             enemy.draw();
 
@@ -291,8 +267,8 @@ export default class Game {
                 if (enemy.reachDest) {
                     this.life -= enemy.damage;
                 }
-                // TODO: 此处利用 id 进行删除
-                this.enemies.remove(index);
+                this.enemies.removeElementById(enemy.id);
+                cfgPlayAudio && beepAudio.play();
             }
         });
 
@@ -331,7 +307,7 @@ export default class Game {
                 case 'line':
                 case 'circle': {
                     if (bulletOutOfBound(bullet)) {
-                        this.bullets.remove(i--);
+                        this.bullets.removeElementByIndex(i--);
                     } else {
                         bullet.draw(ctx, this.enemies);
                     }
@@ -340,7 +316,7 @@ export default class Game {
                 case 'laser': {
                     // 如果 bullet 的目标和其 parent 的目标不一致时，则删除这个 bullet
                     if (!bullet.parent.target || bullet.parent.target.id !== bullet.target.id) {
-                        this.bullets.remove(i--);
+                        this.bullets.removeElementByIndex(i--);
                         bullet.parent.shooting = false;
                     } else {
                         bullet.draw(ctx, this.enemies);
@@ -350,7 +326,7 @@ export default class Game {
                 case 'slow': 
                 case 'fire': {
                     if (bullet.life <= 0) {
-                        this.bullets.remove(i--);
+                        this.bullets.removeElementByIndex(i--);
                         bullet.parent.shooting = false;
                     } else {
                         bullet.parent.shooting = true;
@@ -383,12 +359,10 @@ export default class Game {
             }
         }
 
-        this.displayInfo();
-
         this.animId = requestAnimationFrame(() => this.draw());
     }
 
-    // 循环检测bullet是否和vehicle碰撞
+    // 循环检测 bullet 是否和 enemy 碰撞
     detectImpact() {
         for (var i = 0; i < this.bullets.length; i++) {
             let impact = false;
@@ -399,69 +373,57 @@ export default class Game {
                 const enemy = this.enemies[j];
 
                 // 计算 bullet 和 enemy 距离
-                if (bullet.type === 'line') {
-                    // 求圆心至bullet的垂足
-                    let normal = vec2.create();
-                    let bVec = bullet.directionVec;
-                    let aDotB = 1;
-
-                    let aVec = vec2.fromValues(
-                        enemy.x - bullet.start[0],
-                        enemy.y - bullet.start[1]
-                    );
-                    vec2.multiply(aDotB, aVec, bVec);
-                    vec2.scale(bVec, bVec, aDotB);
-                    vec2.add(normal, bullet.start, bVec);
-
-                    distance = calculateDistance(normal[0], normal[1], enemy.x, enemy.y);
-                } else if (bullet.type === 'circle' || bullet.type === 'slow' || bullet.type === 'fire') {
-                    distance = calculateDistance(bullet.x, bullet.y, enemy.x, enemy.y);
-                }
-                if (bullet.type === 'laser') {
-                    if (bullet.target.id === enemy.id) {
-                        distance = 0;
-                    }
-                }
+                distance = distBulletToEnemy(bullet, enemy);
 
                 // enemy进入bullet的作用范围后，依据其种类产生效果
-                if (bullet.type === 'circle' || bullet.type === 'laser') {
-                    if (distance <= enemy.radius + 2) {
-                        impact = true;
-                        enemy.health -= bullet.damage;
-                        if (enemy.health <= 0) {
-                            this.money += enemy.value;
-                            this.enemies.remove(j--);
-                            this.score += 100;
+                switch (bullet.type) {
+                    case 'circle':
+                    case 'laser':
+                        if (distance <= enemy.radius + 2) {
+                            impact = true;
+                            enemy.health -= bullet.damage;
+                            if (enemy.health <= 0) {
+                                this.money += enemy.value;
+                                this.enemies.removeElementByIndex(j--);
+                                cfgPlayAudio && beepAudio.play();
+                                
+                                this.score += 100;
+                            }
+                            break;
                         }
                         break;
-                    }
-                } else if (bullet.type === 'slow') {
-                    if (distance <= bullet.range) {
-                        if (enemy.buff.every(b => b.source !== bullet.id)) {
-                            enemy.buff.push({
-                                type: 'deceleration',
-                                value: 0.35,
-                                source: bullet.id,
-                                duration: 10
-                            });
+
+                    case 'slow':
+                        if (distance <= bullet.range) {
+                            if (enemy.buff.every(b => b.source !== bullet.id)) {
+                                enemy.buff.push({
+                                    type: 'deceleration',
+                                    value: 0.35,
+                                    source: bullet.id,
+                                    duration: 10
+                                });
+                            }
                         }
-                    }
-                } else if (bullet.type === 'fire') {
-                    if (distance <= bullet.range) {
-                        enemy.health -= bullet.damage;
-                        if (enemy.health <= 0) {
-                            this.money += enemy.value;
-                            this.enemies.remove(j--);
-                            this.score += 100;
+                        break;
+
+                    case 'fire':
+                        if (distance <= bullet.range) {
+                            enemy.health -= bullet.damage;
+                            if (enemy.health <= 0) {
+                                this.money += enemy.value;
+                                this.enemies.removeElementByIndex(j--);
+                                this.score += 100;
+                            }
                         }
-                    }
+                        break;
                 }
             }
-            if (bullet.type === 'laser' || bullet.type === 'slow' || bullet.type === 'fire') {
+
+            if (['laser', 'slow', 'fire'].includes(bullet.type)) {
                 impact = false;
             }
             if (impact) {
-                this.bullets.remove(i--);
+                this.bullets.removeElementByIndex(i--);
             }
         }
     }
@@ -525,8 +487,18 @@ export default class Game {
     sellTower(index = this.towerSelectIndex) {
         const tower = this.towers[index];
         const { col, row, type: towerType = 'BASE' } = tower;
-        this.towers.remove(index);
-        console.log(index);
+
+        // 删除 laser tower 时将其对应的 laser 一起删除
+        if (towerType === 'LASER') {
+            for (let i = 0; i < this.bullets.length; i++) {
+                const bullet = this.bullets[i];
+                if (bullet.type === 'laser' && bullet.parent.id === tower.id) {
+                    this.bullets.removeElementByIndex(i--);
+                }
+            }
+        }
+
+        this.towers.removeElementByIndex(index);
         this.map.coord[col][row] = '';
 
         // 出售价格改为购买价格的 50%
@@ -539,6 +511,7 @@ export default class Game {
         const tower = this.towers[index];
         if (tower.level < 4) {
             // TODO: 对塔的升级应该按预设数值，或按比例
+            // TODO: 将塔的升级方法写入塔自身的 class 中去
             tower.range *= 1.25;
             tower.damage *= 1.5;
             tower.level++;
@@ -552,15 +525,6 @@ export default class Game {
         const config = { ctx, x, y, bullets: this.bullets, selected: true };
         const tower = new TowerFactory[towerType](config);
         tower.draw(ctx);
-    }
-
-    displayInfo() {
-        // 画面信息的显示
-        const enemyCountElement = document.getElementById('enemyCount');
-        if (enemyCountElement) {
-            enemyCountElement.innerHTML = `Enemy Count: ${this.enemies.length}, Bullets: ${this
-                .bullets.length}`;
-        }
     }
 
     bindEvent() {
@@ -589,7 +553,6 @@ export default class Game {
                     game.towers.map((tower, index) => {
                         if (tower.col === col && tower.row === row) {
                             console.log(`You select ${index}th tower, its id is ${tower.id}`);
-        
                             // 已经选中的塔再次点击则取消
                             if (game.towerSelectIndex === index) {
                                 game.towerSelectIndex = -1;
@@ -701,4 +664,23 @@ function bulletOutOfBound(bullet) {
         default:
             return false;
     }
+}
+
+// 计算不同种类的 bullet 和 enemy 的距离
+function distBulletToEnemy(bullet, enemy) {
+    let dist;
+
+    switch (bullet.type) {
+        case 'circle':
+        case 'slow':
+        case 'fire':
+            dist = calculateDistance(bullet.x, bullet.y, enemy.x, enemy.y);
+            break;
+        case 'laser':
+            if (bullet.target.id === enemy.id) {
+                dist = 0;
+            }
+            break;
+    }
+    return dist;
 }

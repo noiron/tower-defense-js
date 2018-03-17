@@ -1,7 +1,10 @@
 import { WIDTH, HEIGHT, GAME_CONTROL_WIDTH } from '../utils/constant';
 import EntityCollection from '../EntityCollection';
 
-class GameInfo {
+/** 
+ * 显示在游戏画面左下角的错误信息
+*/
+class GameError {
     constructor(opt) {
         this.element = opt.element;
         this.game = opt.game;
@@ -34,4 +37,4 @@ class GameInfo {
 }
 
 
-export default GameInfo;
+export default GameError;
