@@ -15,4 +15,15 @@ module.exports = {
     semi: [1, 'always'],
     indent: ['warn', 2, { SwitchCase: 1 }],
   },
+  overrides: [
+    {
+      files: ['./*.js'],
+      env: {
+        node: true,
+      },
+      rules: {
+        '@typescript-eslint/no-var-requires': 0,
+      },
+    },
+  ],
 };

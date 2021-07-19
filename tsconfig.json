@@ -1,6 +1,15 @@
 {
-    "compilerOptions": {
-        "noImplicitAny": true,
-        "allowJs": true,
-    }
+  "compilerOptions": {
+    "target": "es5",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "noImplicitAny": true,
+    "allowJs": true,
+  },
+  "include": [
+    "src"
+  ],
 }
