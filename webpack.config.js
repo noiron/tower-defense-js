@@ -12,15 +12,10 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.js$/,
+        test: [/\.js$/, /\.ts$/],
         use: ['babel-loader'],
         include: path.join(__dirname, 'src'),
-      },
-      {
-        test: /\.ts$/,
-        use: ['ts-loader'],
-        include: path.join(__dirname, 'src'),
-        // exclude: /node_modules/
+        exclude: /node_modules/,
       },
       {
         test: /\.less$/,
