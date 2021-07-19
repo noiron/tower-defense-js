@@ -5,34 +5,34 @@
  */
 
 class EntityCollection extends Array {
-    constructor() {
-        super();
-    }
+  constructor() {
+    super();
+  }
 
-    getElementById(id) {
-        for (let i = 0; i < this.length; i++) {
-            if (this[i].id === id) {
-                return this[i];
-            }
-        }
-        return null;
+  getElementById(id) {
+    for (let i = 0; i < this.length; i++) {
+      if (this[i].id === id) {
+        return this[i];
+      }
     }
+    return null;
+  }
 
-    removeElementById(id) {
-        let removed;
-        for (let i = 0; i < this.length; i++) {
-            if (this[i].id === id) {
-                removed = this.splice(i, 1);
-                break;
-            }
-        }
-        return removed;
+  removeElementById(id) {
+    let removed;
+    for (let i = 0; i < this.length; i++) {
+      if (this[i].id === id) {
+        removed = this.splice(i, 1);
+        break;
+      }
     }
+    return removed;
+  }
 
-    removeElementByIndex(idx) {
-        const removed = this.splice(idx, 1);
-        return removed;
-    }
+  removeElementByIndex(idx) {
+    const removed = this.splice(idx, 1);
+    return removed;
+  }
 }
 
 export default EntityCollection;
