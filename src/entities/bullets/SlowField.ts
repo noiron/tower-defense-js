@@ -4,7 +4,7 @@
 
 import { BULLETS, BULLET_TYPE } from '@/constants';
 import { IBulletOption } from '@/interface';
-import { SlowTower } from '../tower';
+import { SlowTower } from '../towers';
 
 export default class SlowField {
   type: BULLET_TYPE;

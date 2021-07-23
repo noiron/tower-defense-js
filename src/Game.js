@@ -1,5 +1,5 @@
 import { vec2 } from 'gl-matrix';
-import TowerFactory from './entities/tower';
+import TowerFactory from './entities/towers';
 import Enemy from './entities/Enemy';
 import Map from './entities/Map';
 import Wave from './Wave';

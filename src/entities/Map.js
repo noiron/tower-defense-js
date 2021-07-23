@@ -11,7 +11,7 @@ import Path from './Path';
 import { highlightGrid, drawGrid, index2Px, px2Index } from '../utils';
 import { Graph, BreadthFirstSearch } from '../utils/BreadthFirstSearch';
 import globalId from '../id';
-import TowerFactory from './tower/index';
+import TowerFactory from './towers/index';
 import { MAP_SETTING } from '../utils/config';
 
 export default class Map {

@@ -2,7 +2,7 @@ import BaseTower from './BaseTower';
 import Bullet from '../bullets/Bullet';
 import { vec2 } from 'gl-matrix';
 import { toRadians } from '@/utils';
-import { config } from '../../utils/config';
+import { config } from '@/utils/config';
 import { gridWidth, towerData } from '@/constants';
 
 export default class BulletTower extends BaseTower {

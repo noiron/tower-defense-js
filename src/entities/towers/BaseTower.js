@@ -2,7 +2,7 @@
  * 用于发射圆形子弹的塔
  */
 
-import Bullet from '../bullet/CircleBullet';
+import Bullet from '../bullets/CircleBullet';
 import { vec2 } from 'gl-matrix';
 import { toRadians, calculateDistance, px2Index } from '../../utils';
 import { config } from '@/utils/config';

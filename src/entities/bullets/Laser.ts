@@ -1,7 +1,7 @@
 import { BULLETS, BULLET_TYPE } from '@/constants';
 import { IBulletOption } from '@/interface';
 import Enemy from '../Enemy';
-import { LaserTower } from '../tower';
+import { LaserTower } from '../towers';
 
 export default class Laser {
   type: BULLET_TYPE;

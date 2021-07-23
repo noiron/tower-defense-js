@@ -1,5 +1,5 @@
 import Enemy from './entities/Enemy';
-import { BaseTower } from './entities/tower';
+import { BaseTower } from './entities/towers';
 
 /** Bullet 相关类型初始化所需参数 */
 export interface IBulletOption {

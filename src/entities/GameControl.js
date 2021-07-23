@@ -1,4 +1,4 @@
-import { BaseTower, LaserTower, SlowTower, FireTower, Block } from './tower';
+import { BaseTower, LaserTower, SlowTower, FireTower, Block } from './towers';
 import { isInside, highlightGrid, drawGrid } from '../utils';
 import {
   GAME_CONTROL_WIDTH,

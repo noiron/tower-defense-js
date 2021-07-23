@@ -4,7 +4,7 @@
 
 import { BULLETS } from '@/constants';
 import { IBulletOption } from '@/interface';
-import { FireTower } from '../tower';
+import { FireTower } from '../towers';
 
 export default class FireZone {
   type: string;
