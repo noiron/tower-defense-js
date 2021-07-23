@@ -1,5 +1,10 @@
 import Game from './js/Game';
-import { WIDTH, HEIGHT, GAME_CONTROL_WIDTH, GAME_CONTROL_HEIGHT } from './js/utils/constant';
+import {
+  WIDTH,
+  HEIGHT,
+  GAME_CONTROL_WIDTH,
+  GAME_CONTROL_HEIGHT,
+} from './js/utils/constant';
 import './style/index.less';
 let stage = 1;
 let game = {};
@@ -7,7 +12,7 @@ let game = {};
 function beginGame() {
   game = new Game({
     element: document.getElementById('drawing'),
-    stage
+    stage,
   });
   world.game = game;
   world.stage = stage;
@@ -42,9 +47,11 @@ const gameInfoCanvas = document.getElementById('game-info');
 const errorMsgCanvas = document.getElementById('error-message');
 
 const chooseStage = document.getElementById('choose-stage');
-const chooseStageButtons = document.getElementsByClassName('choose-stage-button');
+const chooseStageButtons = document.getElementsByClassName(
+  'choose-stage-button'
+);
 // 点击按钮选择不同的 stage
-Array.prototype.forEach.call(chooseStageButtons, b => {
+Array.prototype.forEach.call(chooseStageButtons, (b) => {
   b.addEventListener('click', chooseStageHandler, false);
 });
 

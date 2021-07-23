@@ -14,3 +14,9 @@ A tower defense game using javascript in development.
     npm start
 
 Open localhost:3000 in your browser.
+
+## More
+
+Use Mocha to test
+
+https://github.com/mochajs/mocha-examples/tree/master/packages/typescript-babel
