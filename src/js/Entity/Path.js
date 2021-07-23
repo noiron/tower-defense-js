@@ -1,5 +1,5 @@
 import { GRID_SIZE } from '../utils/constant';
-import { index2Px } from '../utils/utils';
+import { index2Px } from '../utils';
 
 class Path {
   constructor(opt) {

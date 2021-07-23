@@ -14,7 +14,7 @@ import {
   OFFSET_Y,
 } from './../utils/constant';
 import Path from './Path';
-import { highlightGrid, drawGrid, index2Px, px2Index } from '../utils/utils';
+import { highlightGrid, drawGrid, index2Px, px2Index } from '../utils';
 import { Graph, BreadthFirstSearch } from '../utils/BreadthFirstSearch';
 import globalId from './../id';
 import TowerFactory from './tower/index';

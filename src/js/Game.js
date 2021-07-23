@@ -4,7 +4,7 @@ import Enemy from './Entity/Enemy';
 import Map from './Entity/Map';
 import Wave from './Wave';
 import Message from './Entity/Message';
-import { calculateDistance, index2Px, px2Index } from './utils/utils';
+import { calculateDistance, index2Px, px2Index } from './utils';
 import {
   gridNumX,
   gridNumY,

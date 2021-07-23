@@ -1,5 +1,5 @@
 import { BaseTower, LaserTower, SlowTower, FireTower, Block } from './tower';
-import { isInside, highlightGrid, drawGrid } from './../utils/utils';
+import { isInside, highlightGrid, drawGrid } from '../utils';
 import {
   GAME_CONTROL_WIDTH,
   GAME_CONTROL_HEIGHT,

@@ -4,7 +4,7 @@
 
 import Bullet from './../bullet/CircleBullet';
 import { vec2 } from 'gl-matrix';
-import { toRadians, calculateDistance, px2Index } from './../../utils/utils';
+import { toRadians, calculateDistance, px2Index } from '../../utils';
 import { config } from './../../utils/config';
 import { GRID_SIZE, towerData } from './../../utils/constant';
 import globalId from './../../id';
