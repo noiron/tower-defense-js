@@ -3334,10 +3334,10 @@ getpass@^0.1.1:
   dependencies:
     assert-plus "^1.0.0"
 
-gl-matrix@^2.4.0:
-  version "2.8.1"
-  resolved "https://r.cnpmjs.org/gl-matrix/download/gl-matrix-2.8.1.tgz#1c7873448eac61d2cd25803a074e837bd42581a3"
-  integrity sha1-HHhzRI6sYdLNJYA6B06De9QlgaM=
+gl-matrix@^3.3.0:
+  version "3.3.0"
+  resolved "https://r.cnpmjs.org/gl-matrix/download/gl-matrix-3.3.0.tgz#232eef60b1c8b30a28cbbe75b2caf6c48fd6358b"
+  integrity sha1-Iy7vYLHIswooy751ssr2xI/WNYs=
 
 glob-parent@^3.1.0:
   version "3.1.0"

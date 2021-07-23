@@ -1,32 +1,33 @@
 /**
- * 范围伤害 aoe
+ * 减速场 ====> 就是一个大圆圈
  */
 
-import { BULLETS } from '@/constants';
+import { BULLETS, BULLET_TYPE } from '@/constants';
 import { IBulletOption } from '@/interface';
-import { FireTower } from '../tower';
+import { SlowTower } from '../tower';
 
-export default class FireZone {
-  type: string;
+export default class SlowField {
+  type: BULLET_TYPE;
   ctx: CanvasRenderingContext2D;
   id: number;
   minRange: number;
   maxRange: number;
   range: number;
-  parent: FireTower;
-  damage: number;
-  maxLife: number;
+  parent: SlowTower;
+  ratio: number;
   life: number;
+  maxLife: number;
   x: number;
   y: number;
 
   constructor(
     opt: IBulletOption & {
-      parent: FireTower;
+      ratio: number;
+      parent: SlowTower;
     }
   ) {
-    const { ctx, parent, range, damage, id } = opt;
-    this.type = BULLETS.FIRE;
+    const { ctx, parent, range, ratio, id } = opt;
+    this.type = BULLETS.SLOW;
     this.ctx = ctx;
     this.id = id;
 
@@ -36,7 +37,7 @@ export default class FireZone {
     this.range = this.minRange;
 
     this.parent = parent;
-    this.damage = damage;
+    this.ratio = ratio; // 减速系数
 
     this.maxLife = 300;
     this.life = this.maxLife;
@@ -45,11 +46,11 @@ export default class FireZone {
     this.y = parent.y;
   }
 
-  draw(ctx: CanvasRenderingContext2D): void {
+  draw(ctx: CanvasRenderingContext2D) {
     if (this.life > 0) {
       this.range = this.calcRange();
       ctx.save();
-      ctx.fillStyle = 'rgba(255, 0, 0, 0.15)';
+      ctx.fillStyle = 'rgba(1, 158, 213, 0.15)';
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.range, 0, Math.PI * 2);
       ctx.fill();

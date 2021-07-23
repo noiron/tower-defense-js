@@ -16,6 +16,7 @@ import {
   OFFSET_X,
   OFFSET_Y,
   GRID_SIZE,
+  BULLETS,
 } from '@/constants';
 import globalId from './id';
 import GameControl from './entities/GameControl';
@@ -25,8 +26,6 @@ import { orbit, cfgPlayAudio } from './utils/config';
 import { world } from './index';
 import EntityCollection from './EntityCollection';
 import { beepAudio } from './audio';
-
-const BORDER_WIDTH = 6;
 
 const canvas = document.getElementById('drawing');
 const ctx = canvas.getContext('2d');
@@ -158,7 +157,7 @@ export default class Game {
     this.fpsRate = 0;
     this.time = 0;
 
-    this.destory = false;
+    this.destroy = false;
   }
 
   renderBackground() {
@@ -212,7 +211,7 @@ export default class Game {
       gameControl.element.height
     );
 
-    this.destory = true;
+    this.destroy = true;
     cancelAnimationFrame(this.animId);
     this.status = '';
   }
@@ -224,7 +223,7 @@ export default class Game {
     }
 
     // FIXME: 选择不同的 stage 之后，之前的游戏画面会出现干扰
-    if (this.stage !== world.stage || this.destory) {
+    if (this.stage !== world.stage || this.destroy) {
       return;
     }
 
@@ -708,12 +707,12 @@ function distBulletToEnemy(bullet, enemy) {
   let dist;
 
   switch (bullet.type) {
-    case 'circle':
-    case 'slow':
-    case 'fire':
+    case BULLETS.CIRCLE:
+    case BULLETS.SLOW:
+    case BULLETS.FIRE:
       dist = calculateDistance(bullet.x, bullet.y, enemy.x, enemy.y);
       break;
-    case 'laser':
+    case BULLETS.LASER:
       if (bullet.target.id === enemy.id) {
         dist = 0;
       }

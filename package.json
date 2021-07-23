@@ -35,7 +35,7 @@
     "webpack-dev-server": "^2.9.3"
   },
   "dependencies": {
-    "gl-matrix": "^2.4.0",
+    "gl-matrix": "^3.3.0",
     "tslint": "^5.9.1"
   }
 }

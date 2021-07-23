@@ -52,3 +52,13 @@ export const towerData: TowerData = {
     info: '',
   },
 };
+
+export const BULLETS = {
+  LINE: 'line',
+  CIRCLE: 'circle',
+  SLOW: 'slow',
+  FIRE: 'fire',
+  LASER: 'laser',
+};
+type BULLET_KEYS = keyof typeof BULLETS;
+export type BULLET_TYPE = typeof BULLETS[BULLET_KEYS];

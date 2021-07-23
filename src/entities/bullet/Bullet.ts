@@ -1,8 +1,27 @@
+import { BULLETS, BULLET_TYPE } from '@/constants';
 import { vec2 } from 'gl-matrix';
 
 export default class Bullet {
-  constructor({ ctx, x, y, directionVec, damage }) {
-    this.type = 'line';
+  type: BULLET_TYPE;
+  x: number;
+  y: number;
+  directionVec: vec2;
+  start: vec2;
+  hue: number;
+  velocity: vec2;
+  length: number;
+  bulletVec: vec2;
+  end: vec2;
+  damage: number;
+
+  constructor({ ctx, x, y, directionVec, damage }: {
+    ctx: CanvasRenderingContext2D,
+    x: number;
+    y: number;
+    directionVec: vec2;
+    damage: number;
+  }) {
+    this.type = BULLETS.LINE;
     this.x = x;
     this.y = y;
     this.directionVec = directionVec;
@@ -30,7 +49,7 @@ export default class Bullet {
     this.damage = damage || 5;
   }
 
-  draw(ctx) {
+  draw(ctx: CanvasRenderingContext2D) {
     // bullet运动后的起点和终点位置
     vec2.add(this.start, this.start, this.velocity);
     vec2.add(this.end, this.end, this.velocity);

@@ -1,6 +1,35 @@
+import { BULLETS, BULLET_TYPE } from '@/constants';
+import { IBulletOption } from '@/interface';
+import Enemy from '../Enemy';
+import { LaserTower } from '../tower';
+
 export default class Laser {
-  constructor({ ctx, x, y, parent, target, damage, id }) {
-    this.type = 'laser';
+  type: BULLET_TYPE;
+  id: number;
+  x: number;
+  y: number;
+  ctx: CanvasRenderingContext2D;
+  parent: LaserTower;
+  target: Enemy;
+  damage: number;
+  width: number;
+  vx: number;
+  vy: number;
+  angle: number;
+  hue: number;
+
+  constructor({
+    ctx,
+    x,
+    y,
+    parent,
+    target,
+    damage,
+    id,
+  }: IBulletOption & {
+    parent: LaserTower;
+  }) {
+    this.type = BULLETS.LASER;
     this.id = id;
     this.x = x;
     this.y = y;
@@ -22,7 +51,7 @@ export default class Laser {
     this.y = parent.y + parent.bulletStartPosVec[1];
   }
 
-  draw(ctx) {
+  draw(ctx: CanvasRenderingContext2D) {
     this.step();
 
     // 绘图开始
