@@ -1,4 +1,4 @@
-import { gridNumX, gridNumY } from '../constants';
+import { gridNumX, gridNumY } from '@/constants';
 
 export const config = {
   renderShadow: false,

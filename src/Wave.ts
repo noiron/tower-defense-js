@@ -1,5 +1,3 @@
-import id from './id';
-
 interface EneyInitCnt {
   a: number;
   b: number;

@@ -1,9 +1,9 @@
 import BaseTower from './BaseTower';
-import Bullet from './../bullet/Bullet';
+import Bullet from '../bullet/Bullet';
 import { vec2 } from 'gl-matrix';
 import { toRadians } from '../../utils';
-import { config } from './../../utils/config';
-import { gridWidth, towerData } from '../../constants';
+import { config } from '../../utils/config';
+import { gridWidth, towerData } from '@/constants';
 
 export default class BulletTower extends BaseTower {
   constructor(opt) {

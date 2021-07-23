@@ -1,9 +1,9 @@
 import { vec2 } from 'gl-matrix';
-import TowerFactory from './Entity/tower';
-import Enemy from './Entity/Enemy';
-import Map from './Entity/Map';
+import TowerFactory from './entities/tower';
+import Enemy from './entities/Enemy';
+import Map from './entities/Map';
 import Wave from './Wave';
-import Message from './Entity/Message';
+import Message from './entities/Message';
 import { calculateDistance, index2Px, px2Index } from './utils';
 import {
   gridNumX,
@@ -16,13 +16,13 @@ import {
   OFFSET_X,
   OFFSET_Y,
   GRID_SIZE,
-} from './constants';
+} from '@/constants';
 import globalId from './id';
-import GameControl from './Entity/GameControl';
-import GameInfo from './Entity/GameInfo';
-import GameError from './Entity/GameError';
+import GameControl from './entities/GameControl';
+import GameInfo from './entities/GameInfo';
+import GameError from './entities/GameError';
 import { orbit, cfgPlayAudio } from './utils/config';
-import { world } from '../index';
+import { world } from './index';
 import EntityCollection from './EntityCollection';
 import { beepAudio } from './audio';
 

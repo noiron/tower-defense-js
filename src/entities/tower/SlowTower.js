@@ -1,40 +1,38 @@
 /**
- * 范围攻击
+ * 减速塔
  */
+
 import BaseTower from './BaseTower';
-import FireZone from '../bullet/FireZone';
-import { towerData, gridWidth } from '../../constants';
+import SlowField from '../bullet/SlowField';
+import { towerData, gridWidth } from '@/constants';
 import globalId from '../../id';
 
-export default class FireTower extends BaseTower {
-  shooting: boolean;
-  counter: number;
-
-  constructor(opt: any) {
+export default class SlowTower extends BaseTower {
+  constructor(opt) {
     super(opt);
     // const { ctx, x, y, selected, damage } = opt;
 
-    this.type = 'FIRE';
-    this.hue = 0;
+    this.type = 'SLOW';
+    this.hue = 120;
     this.cost = towerData[this.type].cost;
 
-    this.range = 3 * gridWidth;
+    this.range = 2.5 * gridWidth;
 
     this.shooting = false;
-    this.damage = 0.05;
+    this.ratio = 0.3;
 
     this.counter = 0;
   }
 
   shoot() {
-    const fireZone = new FireZone({
+    const slowField = new SlowField({
       id: globalId.genId(),
       ctx: this.ctx,
       range: this.range,
-      damage: this.damage,
+      ratio: this.ratio,
       parent: this,
     });
-    this.bullets.push(fireZone);
+    this.bullets.push(slowField);
   }
 
   draw() {
@@ -49,8 +47,8 @@ export default class FireTower extends BaseTower {
     }
 
     ctx.strokeStyle = 'hsl(' + this.hue + ',100%, 80%';
-    ctx.fillStyle = 'hsl(' + this.hue + ',100%, 80%';
-    // ctx.fillStyle = 'rgba(1, 158, 213, 0.3)';
+    // ctx.fillStyle = 'hsl(' + this.hue + ',100%, 80%';
+    ctx.fillStyle = 'rgba(1, 158, 213, 0.15)';
     ctx.lineWidth = Math.max(3, this.radius / 8);
 
     ctx.beginPath();

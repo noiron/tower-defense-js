@@ -4,7 +4,7 @@ import {
   GAME_CONTROL_WIDTH,
   GAME_CONTROL_HEIGHT,
   towerData,
-} from '../constants';
+} from '@/constants';
 
 const GRID_WIDTH = 60;
 const GRID_HEIGHT = 60;

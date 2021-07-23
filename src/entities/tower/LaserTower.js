@@ -1,9 +1,9 @@
 import BaseTower from './BaseTower';
 import Laser from '../bullet/Laser';
 import { vec2 } from 'gl-matrix';
-import { config } from './../../utils/config';
-import { gridWidth, towerData } from '../../constants';
-import globalId from './../../id';
+import { config } from '../../utils/config';
+import { gridWidth, towerData } from '@/constants';
+import globalId from '../../id';
 
 export default class LaserTower extends BaseTower {
   constructor(opt) {

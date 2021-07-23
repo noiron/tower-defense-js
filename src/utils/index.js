@@ -1,5 +1,5 @@
 import { vec2 } from 'gl-matrix';
-import { GRID_SIZE, OFFSET_X, OFFSET_Y } from '../constants';
+import { GRID_SIZE, OFFSET_X, OFFSET_Y } from '@/constants';
 
 export function toRadians(angle) {
   return angle * (Math.PI / 180);

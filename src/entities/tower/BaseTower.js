@@ -2,12 +2,12 @@
  * 用于发射圆形子弹的塔
  */
 
-import Bullet from './../bullet/CircleBullet';
+import Bullet from '../bullet/CircleBullet';
 import { vec2 } from 'gl-matrix';
 import { toRadians, calculateDistance, px2Index } from '../../utils';
-import { config } from '@/js/utils/config';
-import { GRID_SIZE, towerData } from '@/js/constants';
-import globalId from './../../id';
+import { config } from '@/utils/config';
+import { GRID_SIZE, towerData } from '@/constants';
+import globalId from '../../id';
 export default class BaseTower {
   constructor({ id, ctx, x, y, bullets, selected, damage, radius }) {
     this.id = id;

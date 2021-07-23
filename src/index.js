@@ -1,11 +1,11 @@
-import Game from './js/Game';
+import Game from './Game';
 import {
   WIDTH,
   HEIGHT,
   GAME_CONTROL_WIDTH,
   GAME_CONTROL_HEIGHT,
-} from './js/constants';
-import './style/index.less';
+} from '@/constants';
+import './styles/index.less';
 let stage = 1;
 let game = {};
 

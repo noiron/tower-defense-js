@@ -6,17 +6,11 @@
  * PATH: enemy 通行的道路，不能放置 tower
  */
 
-import {
-  GRID_SIZE,
-  gridNumX,
-  gridNumY,
-  OFFSET_X,
-  OFFSET_Y,
-} from '../constants';
+import { GRID_SIZE, gridNumX, gridNumY, OFFSET_X, OFFSET_Y } from '@/constants';
 import Path from './Path';
 import { highlightGrid, drawGrid, index2Px, px2Index } from '../utils';
 import { Graph, BreadthFirstSearch } from '../utils/BreadthFirstSearch';
-import globalId from './../id';
+import globalId from '../id';
 import TowerFactory from './tower/index';
 import { MAP_SETTING } from '../utils/config';
 

@@ -1,4 +1,4 @@
-import { WIDTH, HEIGHT, GAME_CONTROL_WIDTH } from '../constants';
+import { WIDTH, HEIGHT, GAME_CONTROL_WIDTH } from '@/constants';
 
 class GameInfo {
   constructor(opt) {
