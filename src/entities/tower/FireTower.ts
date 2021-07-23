@@ -2,7 +2,7 @@
  * 范围攻击
  */
 import BaseTower from './BaseTower';
-import FireZone from '../bullet/FireZone';
+import FireZone from '../bullets/FireZone';
 import { towerData, gridWidth } from '@/constants';
 import globalId from '../../id';
 

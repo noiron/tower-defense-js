@@ -3,7 +3,7 @@
  */
 
 import BaseTower from './BaseTower';
-import SlowField from '../bullet/SlowField';
+import SlowField from '../bullets/SlowField';
 import { towerData, gridWidth } from '@/constants';
 import globalId from '../../id';
 

@@ -1,5 +1,5 @@
 import BaseTower from './BaseTower';
-import Laser from '../bullet/Laser';
+import Laser from '../bullets/Laser';
 import { vec2 } from 'gl-matrix';
 import { config } from '../../utils/config';
 import { gridWidth, towerData } from '@/constants';

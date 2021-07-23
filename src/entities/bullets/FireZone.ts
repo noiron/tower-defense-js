@@ -21,9 +21,12 @@ export default class FireZone {
   y: number;
 
   constructor(
-    opt: IBulletOption & {
-      parent: FireTower;
-    }
+    opt: Omit<
+      IBulletOption & {
+        parent: FireTower;
+      },
+      'x' | 'y' | 'target'
+    >
   ) {
     const { ctx, parent, range, damage, id } = opt;
     this.type = BULLETS.FIRE;
