@@ -4,7 +4,7 @@
 
 import BaseTower from './BaseTower';
 import SlowField from '../bullet/SlowField';
-import { towerData, gridWidth } from './../../utils/constant';
+import { towerData, gridWidth } from '../../constants';
 import globalId from './../../id';
 
 export default class SlowTower extends BaseTower {

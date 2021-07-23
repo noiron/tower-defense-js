@@ -12,7 +12,7 @@ import {
   gridNumY,
   OFFSET_X,
   OFFSET_Y,
-} from './../utils/constant';
+} from '../constants';
 import Path from './Path';
 import { highlightGrid, drawGrid, index2Px, px2Index } from '../utils';
 import { Graph, BreadthFirstSearch } from '../utils/BreadthFirstSearch';

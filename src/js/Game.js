@@ -16,7 +16,7 @@ import {
   OFFSET_X,
   OFFSET_Y,
   GRID_SIZE,
-} from './utils/constant';
+} from './constants';
 import globalId from './id';
 import GameControl from './Entity/GameControl';
 import GameInfo from './Entity/GameInfo';

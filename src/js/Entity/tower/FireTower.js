@@ -4,7 +4,7 @@
 
 import BaseTower from './BaseTower';
 import FireZone from '../bullet/FireZone';
-import { towerData, gridWidth } from './../../utils/constant';
+import { towerData, gridWidth } from '../../constants';
 import globalId from './../../id';
 
 export default class FireTower extends BaseTower {

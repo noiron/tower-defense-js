@@ -4,7 +4,7 @@ import {
   HEIGHT,
   GAME_CONTROL_WIDTH,
   GAME_CONTROL_HEIGHT,
-} from './js/utils/constant';
+} from './js/constants';
 import './style/index.less';
 let stage = 1;
 let game = {};

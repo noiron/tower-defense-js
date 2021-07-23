@@ -1,4 +1,4 @@
-import { WIDTH, HEIGHT, GAME_CONTROL_WIDTH } from '../utils/constant';
+import { WIDTH, HEIGHT, GAME_CONTROL_WIDTH } from '../constants';
 import EntityCollection from '../EntityCollection';
 
 /**
