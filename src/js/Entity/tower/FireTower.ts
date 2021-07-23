@@ -1,14 +1,16 @@
 /**
  * 范围攻击
  */
-
 import BaseTower from './BaseTower';
 import FireZone from '../bullet/FireZone';
 import { towerData, gridWidth } from '../../constants';
-import globalId from './../../id';
+import globalId from '../../id';
 
 export default class FireTower extends BaseTower {
-  constructor(opt) {
+  shooting: boolean;
+  counter: number;
+
+  constructor(opt: any) {
     super(opt);
     // const { ctx, x, y, selected, damage } = opt;
 

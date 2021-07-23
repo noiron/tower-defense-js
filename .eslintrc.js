@@ -14,6 +14,7 @@ module.exports = {
   rules: {
     semi: [1, 'always'],
     indent: ['warn', 2, { SwitchCase: 1 }],
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
   },
   overrides: [
     {

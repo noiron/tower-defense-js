@@ -27,6 +27,7 @@ interface TowerData {
   SLOW: TowerItem;
   FIRE: TowerItem;
   BLOCK: TowerItem;
+  [index: string]: TowerItem;
 }
 
 export const towerData: TowerData = {
