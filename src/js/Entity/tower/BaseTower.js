@@ -5,8 +5,8 @@
 import Bullet from './../bullet/CircleBullet';
 import { vec2 } from 'gl-matrix';
 import { toRadians, calculateDistance, px2Index } from '../../utils';
-import { config } from './../../utils/config';
-import { GRID_SIZE, towerData } from './../../utils/constant';
+import { config } from '@/js/utils/config';
+import { GRID_SIZE, towerData } from '@/js/utils/constant';
 import globalId from './../../id';
 export default class BaseTower {
   constructor({ id, ctx, x, y, bullets, selected, damage, radius }) {

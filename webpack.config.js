@@ -39,6 +39,9 @@ module.exports = {
   },
   resolve: {
     extensions: ['.js', '.ts'],
+    alias: {
+      '@': path.resolve(__dirname, 'src')
+    }
   },
   devServer: {
     stats: 'errors-only',
