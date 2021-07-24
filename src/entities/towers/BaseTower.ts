@@ -7,9 +7,38 @@ import { vec2 } from 'gl-matrix';
 import { toRadians, calculateDistance, px2Index } from '../../utils';
 import { config } from '@/utils/config';
 import { GRID_SIZE, towerData } from '@/constants';
-import globalId from '../../id';
+import globalId from '@/id';
+import Enemy from '../Enemy';
+
 export default class BaseTower {
-  constructor({ id, ctx, x, y, bullets, selected, damage, radius }) {
+  id: number;
+  ctx: CanvasRenderingContext2D;
+  x: number;
+  y: number;
+  type: string;
+  level: number;
+  col: number;
+  row: number;
+  radius: number;
+  barrelLength: number;
+  hue: number;
+  bullets: Bullet[];
+  cost: number;
+  lastShootTime: Date;
+  shootInterval: number;
+  direction: number;
+  bulletStartPosVec: vec2;
+  directionVec: vec2;
+  targetIndex: number;
+  target: Enemy;
+  targetId: number;
+  range: number;
+  selected: boolean;
+  damage: number;
+  upgradeGain: number;
+  upgradeCost: number;
+
+  constructor({ id, ctx, x, y, bullets, selected, damage, radius }: any) {
     this.id = id;
     this.x = x;
     this.y = y;
@@ -54,6 +83,8 @@ export default class BaseTower {
       this.radius * this.barrelLength
     );
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     if (new Date() - this.lastShootTime >= this.shootInterval) {
       this.shoot();
       this.lastShootTime = new Date();
@@ -106,6 +137,8 @@ export default class BaseTower {
   shoot() {
     if (this.target) {
       this.bullets.push(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         new Bullet({
           id: globalId.genId(),
           target: this.target,
@@ -119,9 +152,10 @@ export default class BaseTower {
     }
   }
 
-  findTarget(enemies) {
+  findTarget(enemies: Enemy[]) {
     // 先判断原有的target是否仍在范围内
     if (this.target !== null) {
+      // @ts-ignore
       const prevTgt = enemies.getElementById(this.target.id);
       if (prevTgt) {
         if (
@@ -159,6 +193,7 @@ export default class BaseTower {
     }
 
     if (this.targetIndex !== -1) {
+      // @ts-ignore
       const target = enemies.getElementById(this.targetId);
       if (target) {
         this.directionVec = vec2.fromValues(

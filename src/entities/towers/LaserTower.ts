@@ -6,7 +6,12 @@ import { gridWidth, towerData } from '@/constants';
 import globalId from '../../id';
 
 export default class LaserTower extends BaseTower {
-  constructor(opt) {
+  shooting: boolean;
+  laserId: number;
+  // @ts-ignore
+  bullets: Laser[];
+
+  constructor(opt: any) {
     // const { ctx, x, y, bullets, selected, damage } = opt;
     super(opt);
 
@@ -48,6 +53,7 @@ export default class LaserTower extends BaseTower {
           x: this.x + this.bulletStartPosVec[0],
           y: this.y + this.bulletStartPosVec[1],
           damage: this.damage,
+          // @ts-ignore
           parent: this,
         })
       );
@@ -96,7 +102,7 @@ export default class LaserTower extends BaseTower {
     ctx.closePath();
 
     if (this.targetIndex !== -1 && this.shooting === false) {
-      this.shoot(ctx);
+      this.shoot();
     }
 
     ctx.restore();

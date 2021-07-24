@@ -26,9 +26,12 @@ export default class Laser {
     target,
     damage,
     id,
-  }: IBulletOption & {
-    parent: LaserTower;
-  }) {
+  }: Omit<
+    IBulletOption & {
+      parent: LaserTower;
+    },
+    'range'
+  >) {
     this.type = BULLETS.LASER;
     this.id = id;
     this.x = x;

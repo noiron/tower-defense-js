@@ -34,6 +34,7 @@ export default class FireTower extends BaseTower {
       damage: this.damage,
       parent: this,
     });
+    // @ts-ignore
     this.bullets.push(fireZone);
   }
 

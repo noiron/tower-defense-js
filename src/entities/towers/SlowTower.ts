@@ -8,6 +8,11 @@ import { towerData, gridWidth } from '@/constants';
 import globalId from '../../id';
 
 export default class SlowTower extends BaseTower {
+  shooting: boolean;
+  ratio: number;
+  counter: number;
+
+  // @ts-ignore
   constructor(opt) {
     super(opt);
     // const { ctx, x, y, selected, damage } = opt;
@@ -25,6 +30,7 @@ export default class SlowTower extends BaseTower {
   }
 
   shoot() {
+    // @ts-ignore
     const slowField = new SlowField({
       id: globalId.genId(),
       ctx: this.ctx,
@@ -32,6 +38,7 @@ export default class SlowTower extends BaseTower {
       ratio: this.ratio,
       parent: this,
     });
+    // @ts-ignore
     this.bullets.push(slowField);
   }
 

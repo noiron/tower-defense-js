@@ -4,9 +4,10 @@ import { vec2 } from 'gl-matrix';
 import { toRadians } from '@/utils';
 import { config } from '@/utils/config';
 import { gridWidth, towerData } from '@/constants';
+import Enemy from '../Enemy';
 
 export default class BulletTower extends BaseTower {
-  constructor(opt) {
+  constructor(opt: any) {
     // const { ctx, x, y, bullets, selected, damage } = opt;
     super(opt);
 
@@ -67,8 +68,11 @@ export default class BulletTower extends BaseTower {
     ctx.stroke();
     ctx.closePath();
 
-    if (this.targetIndex !== -1 && new Date() - this.lastShootTime >= 500) {
-      this.shoot(ctx);
+    if (
+      this.targetIndex !== -1 &&
+      new Date().getTime() - this.lastShootTime.getTime() >= 500
+    ) {
+      this.shoot();
       this.lastShootTime = new Date();
     }
 
@@ -76,10 +80,11 @@ export default class BulletTower extends BaseTower {
   }
 
   // 发射子弹
-  shoot(ctx) {
+  shoot() {
     this.bullets.push(
+      // @ts-ignore
       new Bullet({
-        ctx,
+        ctx: this.ctx,
         x: this.x + this.bulletStartPosVec[0],
         y: this.y + this.bulletStartPosVec[1],
         directionVec: this.directionVec,
@@ -87,7 +92,7 @@ export default class BulletTower extends BaseTower {
     );
   }
 
-  findTarget(enemies) {
+  findTarget(enemies: Enemy[]) {
     super.findTarget(enemies);
   }
 }
