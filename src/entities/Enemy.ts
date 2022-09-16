@@ -1,8 +1,38 @@
 import { GRID_SIZE } from '@/constants';
 import { index2Px } from '../utils';
 
-export default class Enemy {
-  constructor(opt) {
+interface Option {
+  id: number;
+  ctx: CanvasRenderingContext2D;
+  x: number;
+  y: number;
+  wp: number;
+  speed: number;
+  dx: number;
+  dy: number;
+  dist: number;
+  radius: number;
+  angleFlag: 0 | 1;
+  color: string | 0;
+  maxHealth: number;
+  health: number;
+  value: number;
+  damage: number;
+  path: any[];
+  buff: any;
+  angle: number;
+  dead: boolean;
+  reachDest: boolean;
+}
+
+interface Enemy extends Option {
+  /** 速度在两个方向上的分量 */
+  vx: number;
+  vy: number;
+};
+
+class Enemy implements Option {
+  constructor(opt: Option) {
     this.id = opt.id;
     this.ctx = opt.ctx;
 
@@ -59,7 +89,7 @@ export default class Enemy {
     // 对 this.buff 中的数据进行依次处理
     let speed = this.speed;
     if (this.buff.length > 0) {
-      this.buff.forEach((b, idx) => {
+      this.buff.forEach((b: any, idx: number) => {
         if (b.type === 'deceleration') {
           // 减速效果
           if (b.duration-- > 0) {
@@ -75,6 +105,7 @@ export default class Enemy {
     // 当即将达到终点时，path 长度为1，而 this.wp 为1，超出数组范围
     const wp = path[Math.min(this.wp, path.length - 1)];
 
+    // @ts-ignore
     const { x: wpX, y: wpY } = index2Px(...wp);
     this.dx = wpX - this.x;
     this.dy = wpY - this.y;
@@ -91,6 +122,7 @@ export default class Enemy {
       this.x += this.vx;
       this.y += this.vy;
     } else {
+      // @ts-ignore
       const { x, y } = index2Px(...wp);
       this.x = x;
       this.y = y;
@@ -153,3 +185,5 @@ export default class Enemy {
     ctx.stroke();
   }
 }
+
+export default Enemy;
