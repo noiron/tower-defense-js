@@ -1,4 +1,4 @@
-interface EneyInitCnt {
+interface EnemyInitCnt {
   a: number;
   b: number;
   c: number;
@@ -20,7 +20,7 @@ interface EnemyCfgItem {
 }
 
 export default class Wave {
-  enemyInitCnt: EneyInitCnt;
+  enemyInitCnt: EnemyInitCnt;
   enemyCnt: EnemyCnt;
   enemyCfg: { [propName: string]: EnemyCfgItem };
 

@@ -23,4 +23,6 @@ export {
   Block
 };
 
+export type TowerType = keyof typeof TowerFactory;
+
 export default TowerFactory;

@@ -8,7 +8,6 @@ import globalId from '../../id';
 export default class LaserTower extends BaseTower {
   shooting: boolean;
   laserId: number;
-  // @ts-ignore
   bullets: Laser[];
 
   constructor(opt: any) {
@@ -53,7 +52,6 @@ export default class LaserTower extends BaseTower {
           x: this.x + this.bulletStartPosVec[0],
           y: this.y + this.bulletStartPosVec[1],
           damage: this.damage,
-          // @ts-ignore
           parent: this,
         })
       );

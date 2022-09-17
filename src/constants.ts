@@ -5,8 +5,8 @@ export const GAME_CONTROL_WIDTH = 230;
 export const GAME_CONTROL_HEIGHT = 650;
 
 export const GRID_SIZE = 50;
-export const gridWidth: number = GRID_SIZE;
-export const gridHeight: number = GRID_SIZE;
+export const gridWidth = GRID_SIZE;
+export const gridHeight = GRID_SIZE;
 
 export const gridNumX = 15; // x轴方向上的格子数目
 export const gridNumY = 11; // y轴方向上的格子数目
@@ -22,7 +22,7 @@ interface TowerItem {
 }
 
 interface TowerData {
-  BASE: TowerItem;
+  BULLET: TowerItem;
   LASER: TowerItem;
   SLOW: TowerItem;
   FIRE: TowerItem;
@@ -31,7 +31,7 @@ interface TowerData {
 }
 
 export const towerData: TowerData = {
-  BASE: {
+  BULLET: {
     cost: 200,
     info: '子弹塔：沙包大的子弹见过没有？',
   },
@@ -54,6 +54,7 @@ export const towerData: TowerData = {
 };
 
 export const BULLETS = {
+  BASE: 'base',
   LINE: 'line',
   CIRCLE: 'circle',
   SLOW: 'slow',

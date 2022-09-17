@@ -1,5 +1,5 @@
 import { vec2 } from 'gl-matrix';
-import TowerFactory from './entities/towers';
+import TowerFactory, { BaseTower } from './entities/towers';
 import Enemy from './entities/Enemy';
 import Map from './entities/Map';
 import Wave from './Wave';
@@ -26,26 +26,79 @@ import { orbit, cfgPlayAudio } from './utils/config';
 import { world } from './index';
 import EntityCollection from './EntityCollection';
 import { beepAudio } from './audio';
+import Bullet from './entities/bullets/Bullet';
+import Laser from './entities/bullets/Laser';
 
-const canvas = document.getElementById('drawing');
+const canvas = document.getElementById('drawing') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d');
 
-const backgroundCanvas = document.getElementById('background');
+const backgroundCanvas = document.getElementById(
+  'background'
+) as HTMLCanvasElement;
 const bgCtx = backgroundCanvas.getContext('2d');
 backgroundCanvas.width = WIDTH + GAME_CONTROL_WIDTH;
 backgroundCanvas.height = HEIGHT;
 
-const gameControlCanvas = document.getElementById('game-control');
 const panels = document.getElementById('panels');
 const startButton = document.getElementById('start-button');
 const backButton = document.getElementById('back-button');
 const $chooseStage = document.getElementById('choose-stage');
 
-const gameInfoCanvas = document.getElementById('game-info');
 const status = document.getElementById('status');
 
-export default class Game {
-  constructor(opt) {
+interface Option {
+  element: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D;
+  stage: number;
+  gameControl: GameControl;
+  gameInfo: GameInfo;
+  gameError: GameError;
+  genId: number;
+  bullets: EntityCollection<Bullet>;
+  towers: EntityCollection<BaseTower>;
+  enemies: EntityCollection<Enemy>;
+  money: number;
+  col: number;
+  row: number;
+  /** 目前已经创建的 enemy 的总数 */
+  enemyCreatedCount: number;
+  lastCreatedEnemyTime: Date;
+  orbit: any;
+  map: Map;
+  animId: number;
+}
+
+interface Game extends Option {
+  mode: string;
+  addTowerType: string;
+  status: string;
+  score: number;
+  life: number;
+
+  // 当前是否选中塔
+  towerSelect: boolean;
+  towerSelectIndex: number;
+  towerSelectId: number;
+
+  /* 当前第几波 */
+  wave: number;
+  waves: any;
+
+  // FPS 相关数据
+  frames: number;
+  timeLastSecond: number;
+  fps: number;
+  fpsRate: number;
+  time: number;
+
+  destroy: boolean;
+
+  cursorX: number;
+  cursorY: number;
+}
+
+class Game implements Option {
+  constructor(opt: Option) {
     // Init
     canvas.width = WIDTH;
     canvas.height = HEIGHT;
@@ -75,25 +128,22 @@ export default class Game {
 
     panels.style.display = 'block';
 
-    const gameControlEle = document.getElementById('game-control');
     const gameControl = new GameControl({
-      element: gameControlEle,
+      element: document.getElementById('game-control') as HTMLCanvasElement,
       game: this,
     });
     this.gameControl = gameControl;
     gameControl.draw();
 
-    const $gameInfo = document.getElementById('game-info');
     const gameInfo = new GameInfo({
-      element: $gameInfo,
+      element: document.getElementById('game-info') as HTMLCanvasElement,
       game: this,
     });
     this.gameInfo = gameInfo;
     gameInfo.draw();
 
-    const $gameError = document.getElementById('error-message');
     const gameError = new GameError({
-      element: $gameError,
+      element: document.getElementById('error-message'),
       game: this,
     });
     this.gameError = gameError;
@@ -108,15 +158,15 @@ export default class Game {
     this.towers = new EntityCollection();
     this.enemies = new EntityCollection();
 
-    this.money = 5000;
+    this.money = 1000;
     this.col = 0;
     this.row = 0;
-    this.enemyCreatedCount = 0; // 目前已经创建的enemy的总数
+    this.enemyCreatedCount = 0;
     this.lastCreatedEnemyTime = new Date();
 
     this.orbit = orbit[this.stage];
 
-    const newTowerCoord = [5, 3];
+    const newTowerCoord: [number, number] = [5, 3];
     this.map = new Map({
       ctx,
       WIDTH,
@@ -127,7 +177,7 @@ export default class Game {
     });
 
     // 放置一个初始状态下的塔
-    const tower = new TowerFactory['BASE']({
+    const tower = new TowerFactory['BULLET']({
       id: globalId.genId(),
       ctx,
       x: GRID_SIZE / 2 + newTowerCoord[0] * GRID_SIZE + OFFSET_X,
@@ -137,7 +187,7 @@ export default class Game {
     this.towers.push(tower);
 
     this.mode = '';
-    this.addTowerType = 'BASE';
+    this.addTowerType = 'BULLET';
     this.status = '';
     this.score = 0;
     this.life = 1000;
@@ -179,7 +229,7 @@ export default class Game {
     bgCtx.fillRect(0, 0, WIDTH + GAME_CONTROL_WIDTH, HEIGHT);
   }
 
-  startButtonClickHandler(e) {
+  startButtonClickHandler(e: any) {
     e.stopPropagation();
 
     if (this.status === '' || this.status === 'gameOver') {
@@ -195,7 +245,7 @@ export default class Game {
     this.time = new Date().getTime();
   }
 
-  backButtonClickHandler(e) {
+  backButtonClickHandler(e: any) {
     e.stopPropagation();
 
     this.gameControl.stopAnim();
@@ -223,6 +273,7 @@ export default class Game {
     }
 
     // FIXME: 选择不同的 stage 之后，之前的游戏画面会出现干扰
+    // @ts-ignore
     if (this.stage !== world.stage || this.destroy) {
       return;
     }
@@ -428,7 +479,7 @@ export default class Game {
 
           case 'slow':
             if (distance <= bullet.range) {
-              if (enemy.buff.every((b) => b.source !== bullet.id)) {
+              if (enemy.buff.every((b: any) => b.source !== bullet.id)) {
                 enemy.buff.push({
                   type: 'deceleration',
                   value: 0.35,
@@ -466,7 +517,7 @@ export default class Game {
    * @param {Number} col x轴的坐标
    * @param {Number} row y轴的坐标
    */
-  createNewTower(col, row, towerType) {
+  createNewTower(col: number, row: number, towerType: string) {
     // 检查当前位置是否已有物体
     if (this.map.coord[col][row] === 'T') {
       console.log('You can not place tower here!');
@@ -484,6 +535,7 @@ export default class Game {
 
     const config = { id, ctx, x, y, bullets: this.bullets };
 
+    // @ts-ignore
     let tower = new TowerFactory[towerType](config);
 
     if (!this.map.checkPath(col, row)) {
@@ -554,8 +606,14 @@ export default class Game {
   }
 
   // 准备放置塔时，在鼠标所在位置画一个虚拟的塔
-  drawGhostTower(ctx, x, y, towerType) {
+  drawGhostTower(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    towerType: string
+  ) {
     const config = { ctx, x, y, bullets: this.bullets, selected: true };
+    // @ts-ignore
     const tower = new TowerFactory[towerType](config);
     tower.draw(ctx);
   }
@@ -565,12 +623,12 @@ export default class Game {
     const game = this;
 
     // 在canvas上进行右键操作
-    canvas.oncontextmenu = function (e) {
+    canvas.oncontextmenu = function (e: any) {
       game.mode = '';
       e.preventDefault();
     };
 
-    canvas.onclick = function (e) {
+    canvas.onclick = function (e: any) {
       const rect = canvas.getBoundingClientRect();
 
       const x = e.clientX - rect.left;
@@ -613,7 +671,7 @@ export default class Game {
       }
     };
 
-    canvas.onmousemove = function (e) {
+    canvas.onmousemove = function (e: any) {
       if (game.mode === 'ADD_TOWER') {
         game.cursorX = e.pageX;
         game.cursorY = e.pageY;
@@ -628,7 +686,9 @@ export default class Game {
   }
 
   shouldGenerateEnemy() {
-    return this.wave < 999 && new Date() - this.lastCreatedEnemyTime > 1000;
+    return (
+      this.wave < 999 && Date.now() - this.lastCreatedEnemyTime.getTime() > 1000
+    );
   }
 
   shouldGenerateWave() {
@@ -675,14 +735,14 @@ export default class Game {
     status.innerHTML = statusText;
   }
 
-  showError(info) {
+  showError(info: string) {
     const message = new Message({ text: info });
     console.log(info);
     this.gameError.messages.push(message);
   }
 }
 
-function bulletOutOfBound(bullet) {
+function bulletOutOfBound(bullet: Bullet) {
   switch (bullet.type) {
     case 'circle':
       return (
@@ -703,7 +763,7 @@ function bulletOutOfBound(bullet) {
 }
 
 // 计算不同种类的 bullet 和 enemy 的距离
-function distBulletToEnemy(bullet, enemy) {
+function distBulletToEnemy(bullet: Bullet, enemy: Enemy) {
   let dist;
 
   switch (bullet.type) {
@@ -713,10 +773,12 @@ function distBulletToEnemy(bullet, enemy) {
       dist = calculateDistance(bullet.x, bullet.y, enemy.x, enemy.y);
       break;
     case BULLETS.LASER:
-      if (bullet.target.id === enemy.id) {
+      if ((bullet as Laser).target.id === enemy.id) {
         dist = 0;
       }
       break;
   }
   return dist;
 }
+
+export default Game;

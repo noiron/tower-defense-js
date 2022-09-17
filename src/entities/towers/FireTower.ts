@@ -8,11 +8,10 @@ import globalId from '../../id';
 
 export default class FireTower extends BaseTower {
   shooting: boolean;
-  counter: number;
+  bullets: FireZone[];
 
   constructor(opt: any) {
     super(opt);
-    // const { ctx, x, y, selected, damage } = opt;
 
     this.type = 'FIRE';
     this.hue = 0;
@@ -22,8 +21,6 @@ export default class FireTower extends BaseTower {
 
     this.shooting = false;
     this.damage = 0.05;
-
-    this.counter = 0;
   }
 
   shoot() {
@@ -34,7 +31,6 @@ export default class FireTower extends BaseTower {
       damage: this.damage,
       parent: this,
     });
-    // @ts-ignore
     this.bullets.push(fireZone);
   }
 

@@ -2,8 +2,9 @@ import { BULLETS, BULLET_TYPE } from '@/constants';
 import { IBulletOption } from '@/interface';
 import Enemy from '../Enemy';
 import { LaserTower } from '../towers';
+import BaseBullet from './BaseBullet';
 
-export default class Laser {
+export default class Laser extends BaseBullet {
   type: BULLET_TYPE;
   id: number;
   x: number;
@@ -32,20 +33,14 @@ export default class Laser {
     },
     'range'
   >) {
+    super({ ctx, x, y, parent, damage, id });
     this.type = BULLETS.LASER;
-    this.id = id;
-    this.x = x;
-    this.y = y;
-    this.ctx = ctx;
     this.target = target;
     this.width = 5;
-    // this.speed = 8;
     this.vx = 0;
     this.vy = 0;
     this.angle = 0;
     this.hue = parent.hue;
-    this.damage = damage || 5;
-    this.parent = parent;
   }
 
   step() {

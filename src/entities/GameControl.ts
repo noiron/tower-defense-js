@@ -1,10 +1,11 @@
-import { BaseTower, LaserTower, SlowTower, FireTower, Block } from './towers';
+import { BaseTower, LaserTower, SlowTower, FireTower, Block, BulletTower } from './towers';
 import { isInside, highlightGrid, drawGrid } from '../utils';
 import {
   GAME_CONTROL_WIDTH,
   GAME_CONTROL_HEIGHT,
   towerData,
 } from '@/constants';
+import Game from '@/Game';
 
 const GRID_WIDTH = 60;
 const GRID_HEIGHT = 60;
@@ -18,10 +19,36 @@ const DISABLE_COLOR = '#aaa';
 const HOVER_COLOR = 'red';
 
 // 每一个子数组代表一列
-const TOWER_TYPE = [['BASE', 'FIRE'], ['LASER'], ['SLOW', 'BLOCK']];
+const TOWER_TYPE = [['BULLET', 'FIRE'], ['LASER'], ['SLOW', 'BLOCK']];
 
-class GameControl {
-  constructor(opt) {
+interface Option {
+  element: HTMLCanvasElement;
+  game: Game;
+}
+
+interface GameControl extends Option {
+  option: Option & {
+    offsetX: number;
+    offsetY: number;
+  };
+  ctx: CanvasRenderingContext2D;
+  towerAreaRect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }
+  pauseBtn: any;
+  upgradeBtn: any;
+  sellBtn: any;
+  towerArea: TowerArea;
+  animId: number;
+  offsetX: number;
+  offsetY: number;
+}
+
+class GameControl implements Option {
+  constructor(opt: Option) {
     this.option = Object.assign(
       {
         offsetX: 25,
@@ -303,14 +330,28 @@ class GameControl {
 
 export default GameControl;
 
-class TowerArea {
-  constructor(opt) {
+
+interface TowerAreaOption {
+  ctx: CanvasRenderingContext2D;
+  x: number;
+  y: number;
+}
+
+interface TowerArea extends TowerAreaOption {
+  selected: -1 | [number, number];
+  offsetX: number;
+  offsetY: number;
+  towers: any;
+};
+
+class TowerArea implements TowerAreaOption {
+  constructor(opt: TowerAreaOption) {
     this.ctx = opt.ctx;
     this.selected = -1;
     this.offsetX = opt.x;
     this.offsetY = opt.y;
 
-    const baseTower = new BaseTower({
+    const bulletTower = new BulletTower({
       x: this.offsetX + GRID_WIDTH / 2 + 10,
       y: this.offsetY + GRID_HEIGHT / 2,
       ctx: this.ctx,
@@ -347,7 +388,7 @@ class TowerArea {
     });
 
     this.towers = {
-      BASE: baseTower,
+      BULLET: bulletTower,
       LASER: laserTower,
       SLOW: slowTower,
       FIRE: fireTower,
@@ -379,7 +420,7 @@ class TowerArea {
     });
   }
 
-  highlightTower(col, row) {
+  highlightTower(col: number, row: number) {
     const x = col * GRID_WIDTH + this.offsetX;
     const y = row * GRID_HEIGHT + this.offsetY;
     highlightGrid(this.ctx, x, y, GRID_WIDTH, GRID_HEIGHT);

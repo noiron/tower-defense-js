@@ -1,21 +1,33 @@
 import { WIDTH, HEIGHT, GAME_CONTROL_WIDTH } from '@/constants';
+import Game from '@/Game';
 
-class GameInfo {
-  constructor(opt) {
+interface Option {
+  element: HTMLCanvasElement;
+  game: Game;
+}
+
+const defaultInfo = {
+  x: 100,
+  y: 100,
+  width: 100,
+  height: 100,
+  text: [] as string[],
+};
+
+interface GameInfo extends Option {
+  infos: typeof defaultInfo[];
+  count: number;
+}
+
+class GameInfo implements Option {
+  constructor(opt: Option) {
     this.element = opt.element;
     this.game = opt.game;
 
     this.element.width = WIDTH + GAME_CONTROL_WIDTH;
     this.element.height = HEIGHT;
 
-    this.infos = [
-      {
-        x: 100,
-        y: 100,
-        width: 100,
-        height: 100,
-      },
-    ];
+    this.infos = [defaultInfo];
 
     this.count = 0;
   }
@@ -44,6 +56,7 @@ class GameInfo {
         // 确定信息显示的位置
         const textStartX = info.x + WIDTH;
         // 确定信息的宽度
+        // @ts-ignore why?
         const textWidth = ctx.measureText(info.text).width;
         // 画出信息显示时的背景
         ctx.fillRect(
@@ -54,7 +67,7 @@ class GameInfo {
         );
 
         ctx.fillStyle = 'rgba(255, 255, 255, 1)';
-        info.text.forEach((t, idx) => {
+        info.text.forEach((t: string, idx: number) => {
           const y = info.y + idx * 25;
           ctx.fillText(t, textStartX, y);
         });
