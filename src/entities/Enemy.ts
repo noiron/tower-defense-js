@@ -81,7 +81,7 @@ class Enemy implements Option {
     this.maxHealth = opt.health || 20;
     this.health = this.maxHealth;
 
-    this.value = opt.value || 50;
+    this.value = opt.value || 20;
     this.damage = opt.damage || 5;
 
     this.path = opt.path;
