@@ -6,29 +6,34 @@ interface Option {
   ctx: CanvasRenderingContext2D;
   x: number;
   y: number;
-  wp: number;
   speed: number;
-  dx: number;
-  dy: number;
-  dist: number;
   radius: number;
-  angleFlag: 0 | 1;
   color: string | 0;
-  maxHealth: number;
   health: number;
-  value: number;
-  damage: number;
+  value?: number;
+  damage?: number;
+
   path: any[];
-  buff: any;
-  angle: number;
-  dead: boolean;
-  reachDest: boolean;
+
+
+
 }
 
 interface Enemy extends Option {
   /** 速度在两个方向上的分量 */
   vx: number;
   vy: number;
+  wp: number;
+  dx: number;
+  dy: number;
+  dist: number;
+  angleFlag: 0 | 1;
+  maxHealth: number;
+  buff: any;
+  angle: number;
+  dead: boolean;
+  reachDest: boolean;
+  // value, damage, buff, angle
 };
 
 class Enemy implements Option {
@@ -97,7 +102,7 @@ class Enemy implements Option {
           }
         }
         if (b.duration <= 0) {
-          this.buff.remove(idx);
+          this.buff.splice(idx, 1);
         }
       });
     }

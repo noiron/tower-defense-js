@@ -11,11 +11,27 @@ import Path from './Path';
 import { highlightGrid, drawGrid, index2Px, px2Index } from '../utils';
 import { Graph, BreadthFirstSearch } from '../utils/BreadthFirstSearch';
 import globalId from '../id';
-import TowerFactory from './towers/index';
+import TowerFactory, { BaseTower } from './towers/index';
 import { MAP_SETTING } from '../utils/config';
+import Game from '@/Game';
 
-export default class Map {
-  constructor(opt) {
+interface Option {
+  ctx: CanvasRenderingContext2D;
+  newTowerCoord: [number, number];
+  orbit: any;
+  WIDTH: number;
+  HEIGHT: number;
+  path?: Path;
+  game: Game;
+}
+
+interface Map extends Option {
+  graph: Graph;
+  coord: any[];
+};
+
+class Map implements Option {
+  constructor(opt: Option) {
     this.ctx = opt.ctx;
     this.newTowerCoord = opt.newTowerCoord || null;
     this.orbit = opt.orbit;
@@ -44,11 +60,13 @@ export default class Map {
     const game = opt.game;
     this.game = game;
 
+    // @ts-ignore
     const mapSetting = MAP_SETTING[game.stage];
     if (mapSetting) {
       /* 默认情况下路径以给出的 orbit 为准，如果存在 mapSetting，则重新寻找路径 */
+      // @ts-ignore
       const blockArray = MAP_SETTING[game.stage].BLOCK;
-      blockArray.forEach((block) => {
+      blockArray.forEach((block: any) => {
         const [col, row] = block;
         this.coord[col][row] = 'B';
         const { x, y } = index2Px(col, row);
@@ -105,7 +123,11 @@ export default class Map {
     }
   }
 
-  draw({ towers, towerSelect, towerSelectIndex }) {
+  draw({ towers, towerSelect, towerSelectIndex }: {
+    towers: BaseTower[],
+    towerSelect: boolean,
+    towerSelectIndex: number,
+  }) {
     const ctx = this.ctx;
     const WIDTH = this.WIDTH;
     const HEIGHT = this.HEIGHT;
@@ -177,7 +199,7 @@ export default class Map {
     this.setMap();
   }
 
-  findPointPath([x, y]) {
+  findPointPath([x, y]: [number, number]) {
     const graph = this.graph;
 
     const endPoint = this.orbit[this.orbit.length - 1];
@@ -191,7 +213,7 @@ export default class Map {
    * 检查在该位置放置障碍物后，起点和终点间是否存在一条路径，
    * 以及所有的 enemy 是否能够到达终点
    */
-  checkPath(col, row) {
+  checkPath(col: number, row: number) {
     const graph = new Graph(gridNumX, gridNumY);
     for (let j = 0; j < gridNumY; j++) {
       for (let i = 0; i < gridNumX; i++) {
@@ -222,3 +244,5 @@ export default class Map {
     });
   }
 }
+
+export default Map;

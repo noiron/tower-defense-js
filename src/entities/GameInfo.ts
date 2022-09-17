@@ -1,7 +1,18 @@
 import { WIDTH, HEIGHT, GAME_CONTROL_WIDTH } from '@/constants';
+import Game from '@/Game';
 
-class GameInfo {
-  constructor(opt) {
+interface Option {
+  element: HTMLCanvasElement;
+  game: Game;
+}
+
+interface GameInfo extends Option {
+  infos: any[];
+  count: number;
+};
+
+class GameInfo implements Option {
+  constructor(opt: Option) {
     this.element = opt.element;
     this.game = opt.game;
 
@@ -54,7 +65,7 @@ class GameInfo {
         );
 
         ctx.fillStyle = 'rgba(255, 255, 255, 1)';
-        info.text.forEach((t, idx) => {
+        info.text.forEach((t: string, idx: number) => {
           const y = info.y + idx * 25;
           ctx.fillText(t, textStartX, y);
         });

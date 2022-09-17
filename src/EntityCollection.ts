@@ -9,7 +9,7 @@ class EntityCollection extends Array {
     super();
   }
 
-  getElementById(id) {
+  getElementById(id: number) {
     for (let i = 0; i < this.length; i++) {
       if (this[i].id === id) {
         return this[i];
@@ -18,7 +18,7 @@ class EntityCollection extends Array {
     return null;
   }
 
-  removeElementById(id) {
+  removeElementById(id: number) {
     let removed;
     for (let i = 0; i < this.length; i++) {
       if (this[i].id === id) {
@@ -29,7 +29,7 @@ class EntityCollection extends Array {
     return removed;
   }
 
-  removeElementByIndex(idx) {
+  removeElementByIndex(idx: number) {
     const removed = this.splice(idx, 1);
     return removed;
   }

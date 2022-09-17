@@ -1,11 +1,19 @@
 import { WIDTH, HEIGHT, GAME_CONTROL_WIDTH } from '@/constants';
 import EntityCollection from '../EntityCollection';
 
+interface Option {
+  element: any;
+  game: any;
+  messages: EntityCollection[];
+}
+
+interface GameError extends Option {};
+
 /**
  * 显示在游戏画面左下角的错误信息
  */
 class GameError {
-  constructor(opt) {
+  constructor(opt: any) {
     this.element = opt.element;
     this.game = opt.game;
 

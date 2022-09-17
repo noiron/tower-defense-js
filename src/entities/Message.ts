@@ -6,11 +6,25 @@
 // 颜色
 // type: 提示信息和错误信息需要显示在不同的 canvas 层上
 
-const canvas = document.getElementById('error-message');
+const canvas = document.getElementById('error-message') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d');
 
-class Message {
-  constructor(opt) {
+interface Option {
+  text: string;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+}
+
+interface Message extends Option {
+  life: number;
+  vanish: boolean;
+  startTime: number;
+}
+
+class Message implements Option {
+  constructor(opt: Option) {
     this.text = opt.text;
     this.x = opt.x || 0;
     this.y = opt.y || canvas.height - 15;
