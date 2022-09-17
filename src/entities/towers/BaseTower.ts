@@ -10,13 +10,14 @@ import globalId from '@/id';
 import Enemy from '../Enemy';
 import EntityCollection from '@/EntityCollection';
 import BaseBullet from '../bullets/BaseBullet';
+import { TowerType } from '.';
 
 export default class BaseTower {
   id: number;
   ctx: CanvasRenderingContext2D;
   x: number;
   y: number;
-  type: string;
+  type: TowerType;
   level: number;
   col: number;
   row: number;

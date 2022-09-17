@@ -1,10 +1,11 @@
 import { WIDTH, HEIGHT, GAME_CONTROL_WIDTH } from '@/constants';
+import Game from '@/Game';
 import EntityCollection from '../EntityCollection';
 import Message from './Message';
 
 interface Option {
-  element: any;
-  game: any;
+  element: HTMLCanvasElement;
+  game: Game;
 }
 
 interface GameError extends Option {

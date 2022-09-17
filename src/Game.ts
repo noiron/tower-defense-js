@@ -60,6 +60,7 @@ interface Option {
   money: number;
   col: number;
   row: number;
+  /** 目前已经创建的 enemy 的总数 */
   enemyCreatedCount: number;
   lastCreatedEnemyTime: Date;
   orbit: any;
@@ -157,10 +158,10 @@ class Game implements Option {
     this.towers = new EntityCollection();
     this.enemies = new EntityCollection();
 
-    this.money = 5000;
+    this.money = 1000;
     this.col = 0;
     this.row = 0;
-    this.enemyCreatedCount = 0; // 目前已经创建的enemy的总数
+    this.enemyCreatedCount = 0;
     this.lastCreatedEnemyTime = new Date();
 
     this.orbit = orbit[this.stage];

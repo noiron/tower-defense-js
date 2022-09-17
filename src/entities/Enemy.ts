@@ -1,12 +1,31 @@
 import { GRID_SIZE } from '@/constants';
 import { index2Px } from '../utils';
 
+/**
+ * {
+ *   type: 'deceleration',
+ *   value: 0.1,
+ *   source: someId,
+ *   duration: 2000     // ms
+ * }
+ */
+interface BUFF {
+  type: string;
+  value: number;
+  source: number;
+  /** ms */
+  duration: number;
+}
+
 interface Option {
   id: number;
   ctx: CanvasRenderingContext2D;
+  /** X 轴当前位置（pixel） */
   x: number;
+  /** Y 轴当前位置（pixel） */
   y: number;
   speed: number;
+  /** 需要绘制的半径大小 */
   radius: number;
   color: string | 0;
   health: number;
@@ -17,35 +36,32 @@ interface Option {
 }
 
 interface Enemy extends Option {
-  /** 速度在两个方向上的分量 */
+  /** 速度在 x 方向上的分量 */
   vx: number;
+  /** 速度在 y 方向上的分量 */
   vy: number;
+  /** 当前目标点 waypoint 的 index */
   wp: number;
   dx: number;
   dy: number;
   dist: number;
   angleFlag: 0 | 1;
   maxHealth: number;
-  buff: any;
+  buff: BUFF[];
   angle: number;
   dead: boolean;
   reachDest: boolean;
-  // value, damage, buff, angle
-};
+}
 
 class Enemy implements Option {
   constructor(opt: Option) {
     this.id = opt.id;
     this.ctx = opt.ctx;
 
-    // 用像素表示的当前位置
     this.x = opt.x;
     this.y = opt.y;
-
-    // 当前目标点waypoint的index
     this.wp = 0;
 
-    // 速度在两个方向上的分量
     this.vx = 0;
     this.vy = 0;
 
@@ -56,7 +72,6 @@ class Enemy implements Option {
     this.dy = 0;
     this.dist = 0;
 
-    // 需要绘制的半径大小
     this.radius = opt.radius || 10;
 
     // 标记是否需要转弯
@@ -70,15 +85,6 @@ class Enemy implements Option {
     this.damage = opt.damage || 5;
 
     this.path = opt.path;
-
-    /**
-     * {
-     *   type: 'deceleration',
-     *   value: 0.1,
-     *   source: someId,
-     *   duration: 2000     // ms
-     * }
-     */
     this.buff = [];
   }
 
@@ -91,7 +97,7 @@ class Enemy implements Option {
     // 对 this.buff 中的数据进行依次处理
     let speed = this.speed;
     if (this.buff.length > 0) {
-      this.buff.forEach((b: any, idx: number) => {
+      this.buff.forEach((b, idx) => {
         if (b.type === 'deceleration') {
           // 减速效果
           if (b.duration-- > 0) {

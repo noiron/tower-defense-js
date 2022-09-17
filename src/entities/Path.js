@@ -63,13 +63,13 @@ class Path {
     ctx.fill();
 
     // Draw a line in the middle of the path
-    ctx.strokeStyle = '#111';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    this.points.forEach((point) => {
-      ctx.lineTo(point[0], point[1]);
-    });
-    ctx.stroke();
+    // ctx.strokeStyle = '#111';
+    // ctx.lineWidth = 1;
+    // ctx.beginPath();
+    // this.points.forEach((point) => {
+    //   ctx.lineTo(point[0], point[1]);
+    // });
+    // ctx.stroke();
 
     // 标记终点
     ctx.beginPath();

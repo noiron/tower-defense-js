@@ -13,12 +13,10 @@ interface Option {
 class SlowTower extends BaseTower {
   shooting: boolean;
   ratio: number;
-  counter: number;
   bullets: SlowField[];
 
   constructor(opt: Option) {
     super(opt);
-    // const { ctx, x, y, selected, damage } = opt;
 
     this.type = 'SLOW';
     this.hue = 120;
@@ -28,8 +26,6 @@ class SlowTower extends BaseTower {
 
     this.shooting = false;
     this.ratio = 0.3;
-
-    this.counter = 0;
   }
 
   shoot() {

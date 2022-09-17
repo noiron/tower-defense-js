@@ -643,10 +643,8 @@ var config = {
   renderShadow: true
 };
 var cfgPlayAudio = false;
-var cols = __WEBPACK_IMPORTED_MODULE_0__constants__["j" /* gridNumX */]; // 16
-
-var rows = __WEBPACK_IMPORTED_MODULE_0__constants__["k" /* gridNumY */]; // 12
-// 地图路径坐标
+var cols = __WEBPACK_IMPORTED_MODULE_0__constants__["j" /* gridNumX */];
+var rows = __WEBPACK_IMPORTED_MODULE_0__constants__["k" /* gridNumY */]; // 地图路径坐标
 
 var orbit = {
   1: [[1, 0], [1, rows - 1]],
@@ -6026,11 +6024,10 @@ var Game = /*#__PURE__*/function () {
       this.bullets = new __WEBPACK_IMPORTED_MODULE_14__EntityCollection__["a" /* default */]();
       this.towers = new __WEBPACK_IMPORTED_MODULE_14__EntityCollection__["a" /* default */]();
       this.enemies = new __WEBPACK_IMPORTED_MODULE_14__EntityCollection__["a" /* default */]();
-      this.money = 5000;
+      this.money = 1000;
       this.col = 0;
       this.row = 0;
-      this.enemyCreatedCount = 0; // 目前已经创建的enemy的总数
-
+      this.enemyCreatedCount = 0;
       this.lastCreatedEnemyTime = new Date();
       this.orbit = __WEBPACK_IMPORTED_MODULE_12__utils_config__["d" /* orbit */][this.stage];
       var newTowerCoord = [5, 3];
@@ -9750,15 +9747,13 @@ var SlowTower = /*#__PURE__*/function (_BaseTower) {
 
     _classCallCheck(this, SlowTower);
 
-    _this = _super.call(this, opt); // const { ctx, x, y, selected, damage } = opt;
-
+    _this = _super.call(this, opt);
     _this.type = 'SLOW';
     _this.hue = 120;
     _this.cost = __WEBPACK_IMPORTED_MODULE_2__constants__["m" /* towerData */][_this.type].cost;
     _this.range = 2.5 * __WEBPACK_IMPORTED_MODULE_2__constants__["l" /* gridWidth */];
     _this.shooting = false;
     _this.ratio = 0.3;
-    _this.counter = 0;
     return _this;
   }
 
@@ -9966,15 +9961,13 @@ var FireTower = /*#__PURE__*/function (_BaseTower) {
 
     _classCallCheck(this, FireTower);
 
-    _this = _super.call(this, opt); // const { ctx, x, y, selected, damage } = opt;
-
+    _this = _super.call(this, opt);
     _this.type = 'FIRE';
     _this.hue = 0;
     _this.cost = __WEBPACK_IMPORTED_MODULE_2__constants__["m" /* towerData */][_this.type].cost;
     _this.range = 3 * __WEBPACK_IMPORTED_MODULE_2__constants__["l" /* gridWidth */];
     _this.shooting = false;
     _this.damage = 0.05;
-    _this.counter = 0;
     return _this;
   }
 
@@ -10228,28 +10221,31 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 
 
-;
+/**
+ * {
+ *   type: 'deceleration',
+ *   value: 0.1,
+ *   source: someId,
+ *   duration: 2000     // ms
+ * }
+ */
 
 var Enemy = /*#__PURE__*/function () {
   function Enemy(opt) {
     _classCallCheck(this, Enemy);
 
     this.id = opt.id;
-    this.ctx = opt.ctx; // 用像素表示的当前位置
-
+    this.ctx = opt.ctx;
     this.x = opt.x;
-    this.y = opt.y; // 当前目标点waypoint的index
-
-    this.wp = 0; // 速度在两个方向上的分量
-
+    this.y = opt.y;
+    this.wp = 0;
     this.vx = 0;
     this.vy = 0;
     this.speed = opt.speed || 2; // 当前位置到目标点的距离
 
     this.dx = 0;
     this.dy = 0;
-    this.dist = 0; // 需要绘制的半径大小
-
+    this.dist = 0;
     this.radius = opt.radius || 10; // 标记是否需要转弯
 
     this.angleFlag = 1;
@@ -10259,15 +10255,6 @@ var Enemy = /*#__PURE__*/function () {
     this.value = opt.value || 50;
     this.damage = opt.damage || 5;
     this.path = opt.path;
-    /**
-     * {
-     *   type: 'deceleration',
-     *   value: 0.1,
-     *   source: someId,
-     *   duration: 2000     // ms
-     * }
-     */
-
     this.buff = [];
   }
 
@@ -10435,7 +10422,6 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 
 
-;
 
 var Map = /*#__PURE__*/function () {
   function Map(opt) {
@@ -10773,14 +10759,14 @@ var Path = /*#__PURE__*/function () {
       var startPoint = this.points[0];
       ctx.arc(startPoint[0], startPoint[1], this.radius, 0 * Math.PI, 2 * Math.PI, false);
       ctx.fill(); // Draw a line in the middle of the path
-
-      ctx.strokeStyle = '#111';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      this.points.forEach(function (point) {
-        ctx.lineTo(point[0], point[1]);
-      });
-      ctx.stroke(); // 标记终点
+      // ctx.strokeStyle = '#111';
+      // ctx.lineWidth = 1;
+      // ctx.beginPath();
+      // this.points.forEach((point) => {
+      //   ctx.lineTo(point[0], point[1]);
+      // });
+      // ctx.stroke();
+      // 标记终点
 
       ctx.beginPath();
       ctx.fillStyle = 'tomato';
@@ -11201,10 +11187,8 @@ var Message = /*#__PURE__*/function () {
     this.y = opt.y || canvas.height - 15;
     this.width = opt.width || 0;
     this.height = opt.height || 0;
-    this.life = 2000; // 信息存在的时长
-
-    this.startTime = new Date().getTime(); // 信息开始显示的时间
-
+    this.life = 2000;
+    this.startTime = new Date().getTime();
     this.vanish = false;
   }
 

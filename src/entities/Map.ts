@@ -5,7 +5,6 @@
  * PLATFORM: 平台，enemy 不能通过，但能放置 tower
  * PATH: enemy 通行的道路，不能放置 tower
  */
-
 import { GRID_SIZE, gridNumX, gridNumY, OFFSET_X, OFFSET_Y } from '@/constants';
 import Path from './Path';
 import { highlightGrid, drawGrid, index2Px, px2Index } from '../utils';
@@ -28,7 +27,7 @@ interface Option {
 interface Map extends Option {
   graph: Graph;
   coord: any[];
-};
+}
 
 class Map implements Option {
   constructor(opt: Option) {
@@ -64,7 +63,7 @@ class Map implements Option {
     if (mapSetting) {
       /* 默认情况下路径以给出的 orbit 为准，如果存在 mapSetting，则重新寻找路径 */
       const blockArray = MAP_SETTING[game.stage].BLOCK;
-      blockArray.forEach((block: any) => {
+      blockArray.forEach((block) => {
         const [col, row] = block;
         this.coord[col][row] = 'B';
         const { x, y } = index2Px(col, row);
@@ -121,10 +120,14 @@ class Map implements Option {
     }
   }
 
-  draw({ towers, towerSelect, towerSelectIndex }: {
-    towers: BaseTower[],
-    towerSelect: boolean,
-    towerSelectIndex: number,
+  draw({
+    towers,
+    towerSelect,
+    towerSelectIndex,
+  }: {
+    towers: BaseTower[];
+    towerSelect: boolean;
+    towerSelectIndex: number;
   }) {
     const ctx = this.ctx;
     const WIDTH = this.WIDTH;

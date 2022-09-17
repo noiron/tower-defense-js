@@ -18,8 +18,10 @@ interface Option {
 }
 
 interface Message extends Option {
+  /** 信息存在的时长 */
   life: number;
   vanish: boolean;
+  /** 信息开始显示的时间 */
   startTime: number;
 }
 
@@ -31,8 +33,8 @@ class Message implements Option {
     this.width = opt.width || 0;
     this.height = opt.height || 0;
 
-    this.life = 2000; // 信息存在的时长
-    this.startTime = new Date().getTime(); // 信息开始显示的时间
+    this.life = 2000;
+    this.startTime = new Date().getTime();
 
     this.vanish = false;
   }

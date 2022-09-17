@@ -6,8 +6,8 @@ export const config = {
 
 export const cfgPlayAudio = false;
 
-const cols: number = gridNumX; // 16
-const rows: number = gridNumY; // 12
+const cols: number = gridNumX;
+const rows: number = gridNumY;
 
 // 地图路径坐标
 export const orbit: {
