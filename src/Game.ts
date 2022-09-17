@@ -38,26 +38,24 @@ const bgCtx = backgroundCanvas.getContext('2d');
 backgroundCanvas.width = WIDTH + GAME_CONTROL_WIDTH;
 backgroundCanvas.height = HEIGHT;
 
-const gameControlCanvas = document.getElementById('game-control');
 const panels = document.getElementById('panels');
 const startButton = document.getElementById('start-button');
 const backButton = document.getElementById('back-button');
 const $chooseStage = document.getElementById('choose-stage');
 
-const gameInfoCanvas = document.getElementById('game-info');
 const status = document.getElementById('status');
 
 interface Option {
-  element: any;
+  element: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   stage: number;
   gameControl: GameControl;
   gameInfo: GameInfo;
   gameError: GameError;
   genId: number;
-  bullets: EntityCollection;
-  towers: EntityCollection;
-  enemies: EntityCollection;
+  bullets: EntityCollection<Bullet>;
+  towers: EntityCollection<BaseTower>;
+  enemies: EntityCollection<Enemy>;
   money: number;
   col: number;
   row: number;
@@ -128,25 +126,22 @@ class Game implements Option {
 
     panels.style.display = 'block';
 
-    const gameControlEle = document.getElementById('game-control');
     const gameControl = new GameControl({
-      element: gameControlEle,
+      element: document.getElementById('game-control') as HTMLCanvasElement,
       game: this,
     });
     this.gameControl = gameControl;
     gameControl.draw();
 
-    const $gameInfo = document.getElementById('game-info');
     const gameInfo = new GameInfo({
-      element: $gameInfo,
+      element: document.getElementById('game-info') as HTMLCanvasElement,
       game: this,
     });
     this.gameInfo = gameInfo;
     gameInfo.draw();
 
-    const $gameError = document.getElementById('error-message');
     const gameError = new GameError({
-      element: $gameError,
+      element: document.getElementById('error-message'),
       game: this,
     });
     this.gameError = gameError;
@@ -690,8 +685,9 @@ class Game implements Option {
   }
 
   shouldGenerateEnemy() {
-    // @ts-ignore
-    return this.wave < 999 && new Date() - this.lastCreatedEnemyTime > 1000;
+    return (
+      this.wave < 999 && Date.now() - this.lastCreatedEnemyTime.getTime() > 1000
+    );
   }
 
   shouldGenerateWave() {

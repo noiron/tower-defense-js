@@ -4,12 +4,12 @@
  * 提供增、删功能
  */
 
-class EntityCollection extends Array {
+class EntityCollection<T> extends Array {
   constructor() {
     super();
   }
 
-  getElementById(id: number) {
+  getElementById(id: number): T | null {
     for (let i = 0; i < this.length; i++) {
       if (this[i].id === id) {
         return this[i];
@@ -18,7 +18,7 @@ class EntityCollection extends Array {
     return null;
   }
 
-  removeElementById(id: number) {
+  removeElementById(id: number): T[] {
     let removed;
     for (let i = 0; i < this.length; i++) {
       if (this[i].id === id) {
@@ -29,7 +29,7 @@ class EntityCollection extends Array {
     return removed;
   }
 
-  removeElementByIndex(idx: number) {
+  removeElementByIndex(idx: number): T[] {
     const removed = this.splice(idx, 1);
     return removed;
   }

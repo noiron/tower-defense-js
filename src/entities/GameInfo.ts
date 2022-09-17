@@ -6,10 +6,18 @@ interface Option {
   game: Game;
 }
 
-interface GameInfo extends Option {
-  infos: any[];
-  count: number;
+const defaultInfo = {
+  x: 100,
+  y: 100,
+  width: 100,
+  height: 100,
+  text: [] as string[],
 };
+
+interface GameInfo extends Option {
+  infos: typeof defaultInfo[];
+  count: number;
+}
 
 class GameInfo implements Option {
   constructor(opt: Option) {
@@ -19,14 +27,7 @@ class GameInfo implements Option {
     this.element.width = WIDTH + GAME_CONTROL_WIDTH;
     this.element.height = HEIGHT;
 
-    this.infos = [
-      {
-        x: 100,
-        y: 100,
-        width: 100,
-        height: 100,
-      },
-    ];
+    this.infos = [defaultInfo];
 
     this.count = 0;
   }
@@ -55,6 +56,7 @@ class GameInfo implements Option {
         // 确定信息显示的位置
         const textStartX = info.x + WIDTH;
         // 确定信息的宽度
+        // @ts-ignore why?
         const textWidth = ctx.measureText(info.text).width;
         // 画出信息显示时的背景
         ctx.fillRect(

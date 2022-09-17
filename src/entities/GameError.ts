@@ -1,26 +1,28 @@
 import { WIDTH, HEIGHT, GAME_CONTROL_WIDTH } from '@/constants';
 import EntityCollection from '../EntityCollection';
+import Message from './Message';
 
 interface Option {
   element: any;
   game: any;
-  messages: EntityCollection[];
 }
 
-interface GameError extends Option {};
+interface GameError extends Option {
+  messages: EntityCollection<Message>;
+}
 
 /**
  * 显示在游戏画面左下角的错误信息
  */
 class GameError {
-  constructor(opt: any) {
+  constructor(opt: Option) {
     this.element = opt.element;
     this.game = opt.game;
 
     this.element.width = WIDTH + GAME_CONTROL_WIDTH;
     this.element.height = HEIGHT;
 
-    this.messages = new EntityCollection();
+    this.messages = new EntityCollection<Message>();
   }
 
   draw() {
@@ -30,7 +32,9 @@ class GameError {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    this.messages = messages.filter((msg) => !msg.vanish);
+    this.messages = messages.filter(
+      (msg) => !msg.vanish
+    ) as EntityCollection<Message>;
     this.messages.forEach((msg, index) => {
       // 不同的消息在 y 方向上叠加
       // TODO: y 方向的数值需要改变

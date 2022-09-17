@@ -24,12 +24,13 @@ const TOWER_TYPE = [['BASE', 'FIRE'], ['LASER'], ['SLOW', 'BLOCK']];
 interface Option {
   element: HTMLCanvasElement;
   game: Game;
-  offsetX: number;
-  offsetY: number;
 }
 
 interface GameControl extends Option {
-  option: Option;
+  option: Option & {
+    offsetX: number;
+    offsetY: number;
+  };
   ctx: CanvasRenderingContext2D;
   towerAreaRect: {
     x: number;
@@ -42,6 +43,8 @@ interface GameControl extends Option {
   sellBtn: any;
   towerArea: TowerArea;
   animId: number;
+  offsetX: number;
+  offsetY: number;
 }
 
 class GameControl implements Option {
