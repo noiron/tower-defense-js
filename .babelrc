@@ -1,9 +1,7 @@
 {
-  "presets": ["env"],
-  "plugins": [
-    ["transform-object-rest-spread"],
-    ["transform-builtin-extend", {
-      "globals": ["Array"]
-    }]
-  ]
+  "presets": [
+    "@babel/preset-env",
+    "@babel/preset-typescript"
+  ],
+  "plugins": []
 }

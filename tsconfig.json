@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "noImplicitAny": true,
+    "allowJs": true,
+    "noEmit": true
+  },
+  "include": [
+    "src"
+  ],
+}
