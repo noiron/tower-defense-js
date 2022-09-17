@@ -3,8 +3,9 @@ import EntityCollection from '@/EntityCollection';
 import Enemy from '../Enemy';
 import { BULLETS, BULLET_TYPE } from '@/constants';
 import { IBulletOption } from '@/interface';
+import BaseBullet from './BaseBullet';
 
-export default class CircleBullet {
+export default class CircleBullet extends BaseBullet {
   type: BULLET_TYPE;
   x: number;
   y: number;
@@ -19,11 +20,9 @@ export default class CircleBullet {
   range: number;
   damage: number;
 
-  constructor({ ctx, x, y, target, range, damage }: IBulletOption) {
+  constructor({ id, ctx, x, y, target, range, damage, parent }: IBulletOption) {
+    super({ ctx, x, y, damage, id, parent })
     this.type = BULLETS.CIRCLE;
-    this.x = x;
-    this.y = y;
-    this.ctx = ctx;
     this.target = target;
     this.radius = 3;
     this.speed = 5;
@@ -32,10 +31,9 @@ export default class CircleBullet {
     this.angle = 0;
     this.hue = 200;
     this.range = range;
-    this.damage = damage || 5;
   }
 
-  step(enemies: EntityCollection) {
+  step(enemies: EntityCollection<Enemy>) {
     // 计算新位置
 
     if (this.target) {
@@ -56,7 +54,7 @@ export default class CircleBullet {
     this.y += this.vy;
   }
 
-  draw(ctx: CanvasRenderingContext2D, enemies: EntityCollection) {
+  draw(ctx: CanvasRenderingContext2D, enemies: EntityCollection<Enemy>) {
     this.step(enemies);
 
     // 绘图开始

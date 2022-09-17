@@ -5,8 +5,9 @@
 import { BULLETS, BULLET_TYPE } from '@/constants';
 import { IBulletOption } from '@/interface';
 import { SlowTower } from '../towers';
+import BaseBullet from './BaseBullet';
 
-export default class SlowField {
+export default class SlowField extends BaseBullet {
   type: BULLET_TYPE;
   ctx: CanvasRenderingContext2D;
   id: number;
@@ -26,24 +27,19 @@ export default class SlowField {
       parent: SlowTower;
     }
   ) {
-    const { ctx, parent, range, ratio, id } = opt;
+    super({ ...opt, damage: 0 });
+    const { range, ratio } = opt;
     this.type = BULLETS.SLOW;
-    this.ctx = ctx;
-    this.id = id;
 
     // range 将随时间逐渐加大
     this.minRange = 20;
     this.maxRange = range;
     this.range = this.minRange;
 
-    this.parent = parent;
     this.ratio = ratio; // 减速系数
 
     this.maxLife = 300;
     this.life = this.maxLife;
-
-    this.x = parent.x;
-    this.y = parent.y;
   }
 
   draw(ctx: CanvasRenderingContext2D) {

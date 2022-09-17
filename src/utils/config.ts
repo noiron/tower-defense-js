@@ -1,7 +1,7 @@
 import { gridNumX, gridNumY } from '@/constants';
 
 export const config = {
-  renderShadow: false,
+  renderShadow: true,
 };
 
 export const cfgPlayAudio = false;
@@ -10,7 +10,9 @@ const cols: number = gridNumX; // 16
 const rows: number = gridNumY; // 12
 
 // 地图路径坐标
-export const orbit = {
+export const orbit: {
+  [index: number]: [number, number][];
+} = {
   1: [
     [1, 0],
     [1, rows - 1],
@@ -33,7 +35,11 @@ export const orbit = {
   ],
 };
 
-export const MAP_SETTING = {
+export const MAP_SETTING: {
+  [index: number]: {
+    BLOCK: [number, number][];
+  };
+} = {
   3: {
     BLOCK: [
       [5, 3],

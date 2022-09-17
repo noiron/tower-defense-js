@@ -5,8 +5,9 @@
 import { BULLETS } from '@/constants';
 import { IBulletOption } from '@/interface';
 import { FireTower } from '../towers';
+import BaseBullet from './BaseBullet';
 
-export default class FireZone {
+export default class FireZone extends BaseBullet {
   type: string;
   ctx: CanvasRenderingContext2D;
   id: number;
@@ -29,6 +30,7 @@ export default class FireZone {
     >
   ) {
     const { ctx, parent, range, damage, id } = opt;
+    super(opt);
     this.type = BULLETS.FIRE;
     this.ctx = ctx;
     this.id = id;
@@ -38,14 +40,8 @@ export default class FireZone {
     this.maxRange = range;
     this.range = this.minRange;
 
-    this.parent = parent;
-    this.damage = damage;
-
     this.maxLife = 300;
     this.life = this.maxLife;
-
-    this.x = parent.x;
-    this.y = parent.y;
   }
 
   draw(ctx: CanvasRenderingContext2D): void {

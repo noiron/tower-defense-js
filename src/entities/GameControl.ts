@@ -1,4 +1,4 @@
-import { BaseTower, LaserTower, SlowTower, FireTower, Block } from './towers';
+import { BaseTower, LaserTower, SlowTower, FireTower, Block, BulletTower } from './towers';
 import { isInside, highlightGrid, drawGrid } from '../utils';
 import {
   GAME_CONTROL_WIDTH,
@@ -19,7 +19,7 @@ const DISABLE_COLOR = '#aaa';
 const HOVER_COLOR = 'red';
 
 // 每一个子数组代表一列
-const TOWER_TYPE = [['BASE', 'FIRE'], ['LASER'], ['SLOW', 'BLOCK']];
+const TOWER_TYPE = [['BULLET', 'FIRE'], ['LASER'], ['SLOW', 'BLOCK']];
 
 interface Option {
   element: HTMLCanvasElement;
@@ -124,7 +124,6 @@ class GameControl implements Option {
     this.drawGrid();
 
     if (this.game.mode !== 'ADD_TOWER') {
-      // @ts-ignore
       this.towerArea.selected = -1;
     }
     this.towerArea.draw();
@@ -319,7 +318,6 @@ class GameControl implements Option {
             y: this.offsetY + row * GRID_HEIGHT,
             width: 200,
             height: 50,
-            // @ts-ignore
             text,
           },
         ];
@@ -353,7 +351,7 @@ class TowerArea implements TowerAreaOption {
     this.offsetX = opt.x;
     this.offsetY = opt.y;
 
-    const baseTower = new BaseTower({
+    const bulletTower = new BulletTower({
       x: this.offsetX + GRID_WIDTH / 2 + 10,
       y: this.offsetY + GRID_HEIGHT / 2,
       ctx: this.ctx,
@@ -390,7 +388,7 @@ class TowerArea implements TowerAreaOption {
     });
 
     this.towers = {
-      BASE: baseTower,
+      BULLET: bulletTower,
       LASER: laserTower,
       SLOW: slowTower,
       FIRE: fireTower,

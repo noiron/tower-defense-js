@@ -2,13 +2,14 @@
  * 用于发射圆形子弹的塔
  */
 
-import Bullet from '../bullets/CircleBullet';
 import { vec2 } from 'gl-matrix';
 import { toRadians, calculateDistance, px2Index } from '../../utils';
 import { config } from '@/utils/config';
 import { GRID_SIZE, towerData } from '@/constants';
 import globalId from '@/id';
 import Enemy from '../Enemy';
+import EntityCollection from '@/EntityCollection';
+import BaseBullet from '../bullets/BaseBullet';
 
 export default class BaseTower {
   id: number;
@@ -22,7 +23,7 @@ export default class BaseTower {
   radius: number;
   barrelLength: number;
   hue: number;
-  bullets: Bullet[];
+  bullets: BaseBullet[];
   cost: number;
   lastShootTime: Date;
   shootInterval: number;
@@ -52,7 +53,7 @@ export default class BaseTower {
     this.barrelLength = 2;
     this.hue = 200;
     this.bullets = bullets;
-    this.cost = towerData[this.type].cost;
+    this.cost = towerData[this.type]?.cost || 0;
     this.lastShootTime = new Date();
     this.shootInterval = 500; // 发射间隔，单位ms
     this.direction = 180; // 用度数表示的tower指向
@@ -83,9 +84,7 @@ export default class BaseTower {
       this.radius * this.barrelLength
     );
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    if (new Date() - this.lastShootTime >= this.shootInterval) {
+    if (Date.now() - this.lastShootTime.getTime() >= this.shootInterval) {
       this.shoot();
       this.lastShootTime = new Date();
     }
@@ -137,25 +136,21 @@ export default class BaseTower {
   shoot() {
     if (this.target) {
       this.bullets.push(
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        new Bullet({
+        new BaseBullet({
           id: globalId.genId(),
-          target: this.target,
           ctx: this.ctx,
           x: this.x + this.bulletStartPosVec[0],
           y: this.y + this.bulletStartPosVec[1],
-          range: this.range,
           damage: this.damage,
+          parent: this,
         })
       );
     }
   }
 
-  findTarget(enemies: Enemy[]) {
+  findTarget(enemies: EntityCollection<Enemy>) {
     // 先判断原有的target是否仍在范围内
     if (this.target !== null) {
-      // @ts-ignore
       const prevTgt = enemies.getElementById(this.target.id);
       if (prevTgt) {
         if (
@@ -193,7 +188,6 @@ export default class BaseTower {
     }
 
     if (this.targetIndex !== -1) {
-      // @ts-ignore
       const target = enemies.getElementById(this.targetId);
       if (target) {
         this.directionVec = vec2.fromValues(

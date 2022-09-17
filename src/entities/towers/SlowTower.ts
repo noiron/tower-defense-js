@@ -7,13 +7,16 @@ import SlowField from '../bullets/SlowField';
 import { towerData, gridWidth } from '@/constants';
 import globalId from '../../id';
 
-export default class SlowTower extends BaseTower {
+interface Option {
+
+}
+class SlowTower extends BaseTower {
   shooting: boolean;
   ratio: number;
   counter: number;
+  bullets: SlowField[];
 
-  // @ts-ignore
-  constructor(opt) {
+  constructor(opt: Option) {
     super(opt);
     // const { ctx, x, y, selected, damage } = opt;
 
@@ -30,7 +33,6 @@ export default class SlowTower extends BaseTower {
   }
 
   shoot() {
-    // @ts-ignore
     const slowField = new SlowField({
       id: globalId.genId(),
       ctx: this.ctx,
@@ -38,7 +40,6 @@ export default class SlowTower extends BaseTower {
       ratio: this.ratio,
       parent: this,
     });
-    // @ts-ignore
     this.bullets.push(slowField);
   }
 
@@ -72,3 +73,5 @@ export default class SlowTower extends BaseTower {
     ctx.restore();
   }
 }
+
+export default SlowTower;

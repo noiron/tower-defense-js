@@ -27,6 +27,7 @@ import { world } from './index';
 import EntityCollection from './EntityCollection';
 import { beepAudio } from './audio';
 import Bullet from './entities/bullets/Bullet';
+import Laser from './entities/bullets/Laser';
 
 const canvas = document.getElementById('drawing') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d');
@@ -162,7 +163,6 @@ class Game implements Option {
     this.enemyCreatedCount = 0; // 目前已经创建的enemy的总数
     this.lastCreatedEnemyTime = new Date();
 
-    // @ts-ignore
     this.orbit = orbit[this.stage];
 
     const newTowerCoord: [number, number] = [5, 3];
@@ -176,7 +176,7 @@ class Game implements Option {
     });
 
     // 放置一个初始状态下的塔
-    const tower = new TowerFactory['BASE']({
+    const tower = new TowerFactory['BULLET']({
       id: globalId.genId(),
       ctx,
       x: GRID_SIZE / 2 + newTowerCoord[0] * GRID_SIZE + OFFSET_X,
@@ -186,7 +186,7 @@ class Game implements Option {
     this.towers.push(tower);
 
     this.mode = '';
-    this.addTowerType = 'BASE';
+    this.addTowerType = 'BULLET';
     this.status = '';
     this.score = 0;
     this.life = 1000;
@@ -737,7 +737,6 @@ class Game implements Option {
   showError(info: string) {
     const message = new Message({ text: info });
     console.log(info);
-    // @ts-ignore
     this.gameError.messages.push(message);
   }
 }
@@ -773,8 +772,7 @@ function distBulletToEnemy(bullet: Bullet, enemy: Enemy) {
       dist = calculateDistance(bullet.x, bullet.y, enemy.x, enemy.y);
       break;
     case BULLETS.LASER:
-      // @ts-ignore
-      if (bullet.target.id === enemy.id) {
+      if ((bullet as Laser).target.id === enemy.id) {
         dist = 0;
       }
       break;

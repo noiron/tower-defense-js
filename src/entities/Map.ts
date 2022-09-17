@@ -60,11 +60,9 @@ class Map implements Option {
     const game = opt.game;
     this.game = game;
 
-    // @ts-ignore
     const mapSetting = MAP_SETTING[game.stage];
     if (mapSetting) {
       /* 默认情况下路径以给出的 orbit 为准，如果存在 mapSetting，则重新寻找路径 */
-      // @ts-ignore
       const blockArray = MAP_SETTING[game.stage].BLOCK;
       blockArray.forEach((block: any) => {
         const [col, row] = block;

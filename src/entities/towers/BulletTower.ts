@@ -1,24 +1,23 @@
 import BaseTower from './BaseTower';
-import Bullet from '../bullets/Bullet';
 import { vec2 } from 'gl-matrix';
 import { toRadians } from '@/utils';
 import { config } from '@/utils/config';
 import { gridWidth, towerData } from '@/constants';
 import Enemy from '../Enemy';
+import CircleBullet from '../bullets/CircleBullet';
+import globalId from '@/id';
+import EntityCollection from '@/EntityCollection';
 
 export default class BulletTower extends BaseTower {
   constructor(opt: any) {
-    // const { ctx, x, y, bullets, selected, damage } = opt;
     super(opt);
 
     this.type = 'BULLET';
-    this.hue = 100;
+    this.hue = 200;
     this.cost = towerData[this.type].cost;
     this.range = 3 * gridWidth;
 
     this.direction = opt.direction || 0; // 用度数表示的tower指向
-    this.bulletStartPosVec = vec2.fromValues(0, 0);
-    this.directionVec = vec2.create();
   }
 
   draw() {
@@ -32,7 +31,6 @@ export default class BulletTower extends BaseTower {
     vec2.normalize(this.directionVec, this.directionVec);
 
     // bullet 出射位置
-
     vec2.scale(this.bulletStartPosVec, this.directionVec, 30);
 
     ctx.save();
@@ -82,17 +80,20 @@ export default class BulletTower extends BaseTower {
   // 发射子弹
   shoot() {
     this.bullets.push(
-      // @ts-ignore
-      new Bullet({
+      new CircleBullet({
+        id: globalId.genId(),
+        target: this.target,
         ctx: this.ctx,
         x: this.x + this.bulletStartPosVec[0],
         y: this.y + this.bulletStartPosVec[1],
-        directionVec: this.directionVec,
+        range: this.range,
+        damage: this.damage,
+        parent: this,
       })
     );
   }
 
-  findTarget(enemies: Enemy[]) {
-    super.findTarget(enemies);
+  findTarget(enemies: EntityCollection<Enemy>) {
+    return super.findTarget(enemies);
   }
 }

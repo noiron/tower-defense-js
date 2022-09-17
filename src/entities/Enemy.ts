@@ -13,10 +13,7 @@ interface Option {
   value?: number;
   damage?: number;
 
-  path: any[];
-
-
-
+  path: [number, number][];
 }
 
 interface Enemy extends Option {
@@ -110,7 +107,6 @@ class Enemy implements Option {
     // 当即将达到终点时，path 长度为1，而 this.wp 为1，超出数组范围
     const wp = path[Math.min(this.wp, path.length - 1)];
 
-    // @ts-ignore
     const { x: wpX, y: wpY } = index2Px(...wp);
     this.dx = wpX - this.x;
     this.dy = wpY - this.y;
@@ -127,7 +123,6 @@ class Enemy implements Option {
       this.x += this.vx;
       this.y += this.vy;
     } else {
-      // @ts-ignore
       const { x, y } = index2Px(...wp);
       this.x = x;
       this.y = y;

@@ -22,7 +22,7 @@ interface TowerItem {
 }
 
 interface TowerData {
-  BASE: TowerItem;
+  BULLET: TowerItem;
   LASER: TowerItem;
   SLOW: TowerItem;
   FIRE: TowerItem;
@@ -31,7 +31,7 @@ interface TowerData {
 }
 
 export const towerData: TowerData = {
-  BASE: {
+  BULLET: {
     cost: 200,
     info: '子弹塔：沙包大的子弹见过没有？',
   },
@@ -54,6 +54,7 @@ export const towerData: TowerData = {
 };
 
 export const BULLETS = {
+  BASE: 'base',
   LINE: 'line',
   CIRCLE: 'circle',
   SLOW: 'slow',

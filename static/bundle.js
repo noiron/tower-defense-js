@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "/static/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 15);
+/******/ 	return __webpack_require__(__webpack_require__.s = 16);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -97,7 +97,7 @@ var FRAMERATE = 60;
 var OFFSET_X = 25;
 var OFFSET_Y = 50;
 var towerData = {
-  BASE: {
+  BULLET: {
     cost: 200,
     info: '子弹塔：沙包大的子弹见过没有？'
   },
@@ -119,6 +119,7 @@ var towerData = {
   }
 };
 var BULLETS = {
+  BASE: 'base',
   LINE: 'line',
   CIRCLE: 'circle',
   SLOW: 'slow',
@@ -200,7 +201,7 @@ if (!Math.hypot) Math.hypot = function () {
 /* harmony export (immutable) */ __webpack_exports__["d"] = index2Px;
 /* harmony export (immutable) */ __webpack_exports__["f"] = px2Index;
 /* harmony export (immutable) */ __webpack_exports__["b"] = drawGrid;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_gl_matrix__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_gl_matrix__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__constants__ = __webpack_require__(0);
 
 
@@ -347,248 +348,6 @@ function drawGrid(ctx, cols, rows) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common_js__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__mat2_js__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__mat2d_js__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__mat3_js__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__mat4_js__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__quat_js__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__quat2_js__ = __webpack_require__(19);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__vec2_js__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__vec3_js__ = __webpack_require__(12);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__vec4_js__ = __webpack_require__(13);
-/* unused harmony reexport glMatrix */
-/* unused harmony reexport mat2 */
-/* unused harmony reexport mat2d */
-/* unused harmony reexport mat3 */
-/* unused harmony reexport mat4 */
-/* unused harmony reexport quat */
-/* unused harmony reexport quat2 */
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "a", function() { return __WEBPACK_IMPORTED_MODULE_7__vec2_js__; });
-/* unused harmony reexport vec3 */
-/* unused harmony reexport vec4 */
-
-
-
-
-
-
-
-
-
-
-
-
-/***/ }),
-/* 4 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return BaseTower; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__bullets_CircleBullet__ = __webpack_require__(21);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_gl_matrix__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utils_config__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__constants__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__id__ = __webpack_require__(5);
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-/**
- * 用于发射圆形子弹的塔
- */
-
-
-
-
-
-
-
-var BaseTower = /*#__PURE__*/function () {
-  function BaseTower(_ref) {
-    var id = _ref.id,
-        ctx = _ref.ctx,
-        x = _ref.x,
-        y = _ref.y,
-        bullets = _ref.bullets,
-        selected = _ref.selected,
-        damage = _ref.damage,
-        radius = _ref.radius;
-
-    _classCallCheck(this, BaseTower);
-
-    this.id = id;
-    this.x = x;
-    this.y = y;
-    this.ctx = ctx;
-    this.type = 'BASE';
-    this.level = 1;
-
-    var _px2Index = Object(__WEBPACK_IMPORTED_MODULE_2__utils__["f" /* px2Index */])(x, y),
-        col = _px2Index.col,
-        row = _px2Index.row;
-
-    this.col = col;
-    this.row = row;
-    this.radius = radius || 10;
-    this.barrelLength = 2;
-    this.hue = 200;
-    this.bullets = bullets;
-    this.cost = __WEBPACK_IMPORTED_MODULE_4__constants__["m" /* towerData */][this.type].cost;
-    this.lastShootTime = new Date();
-    this.shootInterval = 500; // 发射间隔，单位ms
-
-    this.direction = 180; // 用度数表示的tower指向
-
-    this.bulletStartPosVec = __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["a" /* vec2 */].fromValues(0, 0);
-    this.directionVec = __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["a" /* vec2 */].create();
-    this.targetIndex = -1;
-    this.target = null;
-    this.targetId = -1;
-    this.range = 4 * __WEBPACK_IMPORTED_MODULE_4__constants__["e" /* GRID_SIZE */];
-    this.selected = selected || false;
-    this.damage = damage || 5;
-    this.upgradeGain = damage * 0.4; // 升级后的伤害增益
-
-    this.upgradeCost = this.cost * 0.6;
-  }
-
-  _createClass(BaseTower, [{
-    key: "step",
-    value: function step() {
-      // 将方向向量归一化
-      this.directionVec = __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["a" /* vec2 */].fromValues(Math.cos(Object(__WEBPACK_IMPORTED_MODULE_2__utils__["g" /* toRadians */])(this.direction)), Math.sin(Object(__WEBPACK_IMPORTED_MODULE_2__utils__["g" /* toRadians */])(this.direction)));
-      __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["a" /* vec2 */].normalize(this.directionVec, this.directionVec); // bullet 出射位置
-
-      __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["a" /* vec2 */].scale(this.bulletStartPosVec, this.directionVec, this.radius * this.barrelLength); // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-
-      if (new Date() - this.lastShootTime >= this.shootInterval) {
-        this.shoot();
-        this.lastShootTime = new Date();
-      }
-    }
-  }, {
-    key: "draw",
-    value: function draw() {
-      this.step();
-      var ctx = this.ctx;
-      ctx.save();
-
-      if (__WEBPACK_IMPORTED_MODULE_3__utils_config__["c" /* config */].renderShadow) {
-        ctx.shadowBlur = this.radius;
-        ctx.shadowColor = 'hsl(' + this.hue + ',100%,60%)';
-      } // 在选中的情况下，画出其射程范围
-
-
-      if (this.selected) {
-        ctx.beginPath();
-        ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
-        ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
-        ctx.fill();
-      }
-
-      ctx.strokeStyle = 'hsl(' + this.hue + ',100%, 40%';
-      ctx.fillStyle = 'hsl(' + this.hue + ',100%, 40%';
-      ctx.lineWidth = Math.max(5, this.radius / 6);
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-      ctx.closePath(); // ctx.stroke();
-
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(this.x, this.y);
-      ctx.lineTo(this.x + this.bulletStartPosVec[0], this.y + this.bulletStartPosVec[1]);
-      ctx.stroke();
-      ctx.closePath(); // this.direction = (this.direction + 0.6) % 360;
-
-      ctx.restore();
-    } // 发射子弹
-
-  }, {
-    key: "shoot",
-    value: function shoot() {
-      if (this.target) {
-        this.bullets.push( // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        new __WEBPACK_IMPORTED_MODULE_0__bullets_CircleBullet__["a" /* default */]({
-          id: __WEBPACK_IMPORTED_MODULE_5__id__["a" /* default */].genId(),
-          target: this.target,
-          ctx: this.ctx,
-          x: this.x + this.bulletStartPosVec[0],
-          y: this.y + this.bulletStartPosVec[1],
-          range: this.range,
-          damage: this.damage
-        }));
-      }
-    }
-  }, {
-    key: "findTarget",
-    value: function findTarget(enemies) {
-      // 先判断原有的target是否仍在范围内
-      if (this.target !== null) {
-        // @ts-ignore
-        var prevTgt = enemies.getElementById(this.target.id);
-
-        if (prevTgt) {
-          if (Object(__WEBPACK_IMPORTED_MODULE_2__utils__["a" /* calculateDistance */])(prevTgt.x, prevTgt.y, this.x, this.y) < this.range) {
-            return;
-          }
-        }
-      } // 去寻找一个新的target
-
-
-      this.targetIndex = -1;
-      this.targetId = -1;
-      this.target = null;
-
-      for (var i = 0, len = enemies.length; i < len; i++) {
-        var enemy = enemies[i];
-
-        if (Math.abs(enemy.x - this.x) + Math.abs(enemy.y - this.y) > this.range) {
-          // 简化计算
-          continue;
-        } else {
-          if (Object(__WEBPACK_IMPORTED_MODULE_2__utils__["a" /* calculateDistance */])(enemy.x, enemy.y, this.x, this.y) < this.range) {
-            if (this.target) {
-              this.target.color = 0;
-            }
-
-            this.targetIndex = i;
-            this.target = enemies[i];
-            this.targetId = enemies[i].id;
-            break;
-          }
-        }
-      }
-
-      if (this.targetIndex !== -1) {
-        // @ts-ignore
-        var target = enemies.getElementById(this.targetId);
-
-        if (target) {
-          this.directionVec = __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["a" /* vec2 */].fromValues(target.x - this.x, target.y - this.y);
-          this.direction = Math.atan2(target.y - this.y, target.x - this.x) * (180 / Math.PI); // target.color = 'red';
-        }
-
-        return target;
-      }
-    }
-  }]);
-
-  return BaseTower;
-}();
-
-
-
-/***/ }),
-/* 5 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -632,6 +391,244 @@ var globalId = /*#__PURE__*/function () {
 /* harmony default export */ __webpack_exports__["a"] = (new globalId());
 
 /***/ }),
+/* 4 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return BaseTower; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_gl_matrix__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utils__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils_config__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__constants__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__id__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__bullets_BaseBullet__ = __webpack_require__(7);
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+/**
+ * 用于发射圆形子弹的塔
+ */
+
+
+
+
+
+
+
+var BaseTower = /*#__PURE__*/function () {
+  function BaseTower(_ref) {
+    var _towerData$this$type;
+
+    var id = _ref.id,
+        ctx = _ref.ctx,
+        x = _ref.x,
+        y = _ref.y,
+        bullets = _ref.bullets,
+        selected = _ref.selected,
+        damage = _ref.damage,
+        radius = _ref.radius;
+
+    _classCallCheck(this, BaseTower);
+
+    this.id = id;
+    this.x = x;
+    this.y = y;
+    this.ctx = ctx;
+    this.type = 'BASE';
+    this.level = 1;
+
+    var _px2Index = Object(__WEBPACK_IMPORTED_MODULE_1__utils__["f" /* px2Index */])(x, y),
+        col = _px2Index.col,
+        row = _px2Index.row;
+
+    this.col = col;
+    this.row = row;
+    this.radius = radius || 10;
+    this.barrelLength = 2;
+    this.hue = 200;
+    this.bullets = bullets;
+    this.cost = ((_towerData$this$type = __WEBPACK_IMPORTED_MODULE_3__constants__["m" /* towerData */][this.type]) === null || _towerData$this$type === void 0 ? void 0 : _towerData$this$type.cost) || 0;
+    this.lastShootTime = new Date();
+    this.shootInterval = 500; // 发射间隔，单位ms
+
+    this.direction = 180; // 用度数表示的tower指向
+
+    this.bulletStartPosVec = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["a" /* vec2 */].fromValues(0, 0);
+    this.directionVec = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["a" /* vec2 */].create();
+    this.targetIndex = -1;
+    this.target = null;
+    this.targetId = -1;
+    this.range = 4 * __WEBPACK_IMPORTED_MODULE_3__constants__["e" /* GRID_SIZE */];
+    this.selected = selected || false;
+    this.damage = damage || 5;
+    this.upgradeGain = damage * 0.4; // 升级后的伤害增益
+
+    this.upgradeCost = this.cost * 0.6;
+  }
+
+  _createClass(BaseTower, [{
+    key: "step",
+    value: function step() {
+      // 将方向向量归一化
+      this.directionVec = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["a" /* vec2 */].fromValues(Math.cos(Object(__WEBPACK_IMPORTED_MODULE_1__utils__["g" /* toRadians */])(this.direction)), Math.sin(Object(__WEBPACK_IMPORTED_MODULE_1__utils__["g" /* toRadians */])(this.direction)));
+      __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["a" /* vec2 */].normalize(this.directionVec, this.directionVec); // bullet 出射位置
+
+      __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["a" /* vec2 */].scale(this.bulletStartPosVec, this.directionVec, this.radius * this.barrelLength);
+
+      if (Date.now() - this.lastShootTime.getTime() >= this.shootInterval) {
+        this.shoot();
+        this.lastShootTime = new Date();
+      }
+    }
+  }, {
+    key: "draw",
+    value: function draw() {
+      this.step();
+      var ctx = this.ctx;
+      ctx.save();
+
+      if (__WEBPACK_IMPORTED_MODULE_2__utils_config__["c" /* config */].renderShadow) {
+        ctx.shadowBlur = this.radius;
+        ctx.shadowColor = 'hsl(' + this.hue + ',100%,60%)';
+      } // 在选中的情况下，画出其射程范围
+
+
+      if (this.selected) {
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+        ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+
+      ctx.strokeStyle = 'hsl(' + this.hue + ',100%, 40%';
+      ctx.fillStyle = 'hsl(' + this.hue + ',100%, 40%';
+      ctx.lineWidth = Math.max(5, this.radius / 6);
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+      ctx.closePath(); // ctx.stroke();
+
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(this.x + this.bulletStartPosVec[0], this.y + this.bulletStartPosVec[1]);
+      ctx.stroke();
+      ctx.closePath(); // this.direction = (this.direction + 0.6) % 360;
+
+      ctx.restore();
+    } // 发射子弹
+
+  }, {
+    key: "shoot",
+    value: function shoot() {
+      if (this.target) {
+        this.bullets.push(new __WEBPACK_IMPORTED_MODULE_5__bullets_BaseBullet__["a" /* default */]({
+          id: __WEBPACK_IMPORTED_MODULE_4__id__["a" /* default */].genId(),
+          ctx: this.ctx,
+          x: this.x + this.bulletStartPosVec[0],
+          y: this.y + this.bulletStartPosVec[1],
+          damage: this.damage,
+          parent: this
+        }));
+      }
+    }
+  }, {
+    key: "findTarget",
+    value: function findTarget(enemies) {
+      // 先判断原有的target是否仍在范围内
+      if (this.target !== null) {
+        var prevTgt = enemies.getElementById(this.target.id);
+
+        if (prevTgt) {
+          if (Object(__WEBPACK_IMPORTED_MODULE_1__utils__["a" /* calculateDistance */])(prevTgt.x, prevTgt.y, this.x, this.y) < this.range) {
+            return;
+          }
+        }
+      } // 去寻找一个新的target
+
+
+      this.targetIndex = -1;
+      this.targetId = -1;
+      this.target = null;
+
+      for (var i = 0, len = enemies.length; i < len; i++) {
+        var enemy = enemies[i];
+
+        if (Math.abs(enemy.x - this.x) + Math.abs(enemy.y - this.y) > this.range) {
+          // 简化计算
+          continue;
+        } else {
+          if (Object(__WEBPACK_IMPORTED_MODULE_1__utils__["a" /* calculateDistance */])(enemy.x, enemy.y, this.x, this.y) < this.range) {
+            if (this.target) {
+              this.target.color = 0;
+            }
+
+            this.targetIndex = i;
+            this.target = enemies[i];
+            this.targetId = enemies[i].id;
+            break;
+          }
+        }
+      }
+
+      if (this.targetIndex !== -1) {
+        var target = enemies.getElementById(this.targetId);
+
+        if (target) {
+          this.directionVec = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["a" /* vec2 */].fromValues(target.x - this.x, target.y - this.y);
+          this.direction = Math.atan2(target.y - this.y, target.x - this.x) * (180 / Math.PI); // target.color = 'red';
+        }
+
+        return target;
+      }
+    }
+  }]);
+
+  return BaseTower;
+}();
+
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common_js__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__mat2_js__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__mat2d_js__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__mat3_js__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__mat4_js__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__quat_js__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__quat2_js__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__vec2_js__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__vec3_js__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__vec4_js__ = __webpack_require__(14);
+/* unused harmony reexport glMatrix */
+/* unused harmony reexport mat2 */
+/* unused harmony reexport mat2d */
+/* unused harmony reexport mat3 */
+/* unused harmony reexport mat4 */
+/* unused harmony reexport quat */
+/* unused harmony reexport quat2 */
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "a", function() { return __WEBPACK_IMPORTED_MODULE_7__vec2_js__; });
+/* unused harmony reexport vec3 */
+/* unused harmony reexport vec4 */
+
+
+
+
+
+
+
+
+
+
+
+
+/***/ }),
 /* 6 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -643,7 +640,7 @@ var globalId = /*#__PURE__*/function () {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__constants__ = __webpack_require__(0);
 
 var config = {
-  renderShadow: false
+  renderShadow: true
 };
 var cfgPlayAudio = false;
 var cols = __WEBPACK_IMPORTED_MODULE_0__constants__["j" /* gridNumX */]; // 16
@@ -667,18 +664,52 @@ var MAP_SETTING = {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return BaseBullet; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__constants__ = __webpack_require__(0);
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+
+
+var BaseBullet = function BaseBullet(_ref) {
+  var id = _ref.id,
+      x = _ref.x,
+      y = _ref.y,
+      directionVec = _ref.directionVec,
+      damage = _ref.damage,
+      parent = _ref.parent;
+
+  _classCallCheck(this, BaseBullet);
+
+  this.id = id;
+  this.type = __WEBPACK_IMPORTED_MODULE_0__constants__["a" /* BULLETS */].BASE;
+  this.x = x || parent.x;
+  this.y = y || parent.y;
+  this.directionVec = directionVec;
+  this.parent = parent;
+  this.hue = 200;
+  this.damage = damage || 5;
+} // draw(ctx: CanvasRenderingContext2D) {}
+;
+
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__BaseTower__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__BulletTower__ = __webpack_require__(22);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__LaserTower__ = __webpack_require__(24);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__SlowTower__ = __webpack_require__(26);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__FireTower__ = __webpack_require__(28);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__Block__ = __webpack_require__(30);
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return __WEBPACK_IMPORTED_MODULE_0__BaseTower__["a"]; });
-/* unused harmony reexport BulletTower */
+/* unused harmony reexport BaseTower */
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_1__BulletTower__["a"]; });
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return __WEBPACK_IMPORTED_MODULE_2__LaserTower__["a"]; });
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "e", function() { return __WEBPACK_IMPORTED_MODULE_3__SlowTower__["a"]; });
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return __WEBPACK_IMPORTED_MODULE_4__FireTower__["a"]; });
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_5__Block__["a"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return __WEBPACK_IMPORTED_MODULE_5__Block__["a"]; });
 
 
 
@@ -697,13 +728,13 @@ var TowerFactory = {
 /* harmony default export */ __webpack_exports__["f"] = (TowerFactory);
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "world", function() { return world; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Game__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Game__ = __webpack_require__(17);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__constants__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__styles_index_less__ = __webpack_require__(42);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__styles_index_less___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__styles_index_less__);
@@ -801,7 +832,7 @@ windowResizeHandler();
 renderBackground();
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1618,7 +1649,7 @@ var mul = multiply;
 var sub = subtract;
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3486,7 +3517,7 @@ var mul = multiply;
 var sub = subtract;
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3530,9 +3561,9 @@ var sub = subtract;
 /* unused harmony export sqlerp */
 /* unused harmony export setAxes */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common_js__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__mat3_js__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vec3_js__ = __webpack_require__(12);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__vec4_js__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__mat3_js__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vec3_js__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__vec4_js__ = __webpack_require__(14);
 
 
 
@@ -4245,7 +4276,7 @@ var setAxes = function () {
 }();
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -5087,7 +5118,7 @@ var forEach = function () {
 }();
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -5798,7 +5829,7 @@ var forEach = function () {
 }();
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -5885,32 +5916,32 @@ var EntityCollection = /*#__PURE__*/function (_Array) {
 /* harmony default export */ __webpack_exports__["a"] = (EntityCollection);
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(8);
+module.exports = __webpack_require__(9);
 
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_gl_matrix__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__entities_towers__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_gl_matrix__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__entities_towers__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__entities_Enemy__ = __webpack_require__(31);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__entities_Map__ = __webpack_require__(32);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__Wave__ = __webpack_require__(35);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__entities_Message__ = __webpack_require__(36);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__utils__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__constants__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__id__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__id__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__entities_GameControl__ = __webpack_require__(37);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__entities_GameInfo__ = __webpack_require__(38);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__entities_GameError__ = __webpack_require__(39);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__utils_config__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__index__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__EntityCollection__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__index__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__EntityCollection__ = __webpack_require__(15);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__audio__ = __webpack_require__(40);
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -5940,12 +5971,10 @@ var backgroundCanvas = document.getElementById('background');
 var bgCtx = backgroundCanvas.getContext('2d');
 backgroundCanvas.width = __WEBPACK_IMPORTED_MODULE_7__constants__["i" /* WIDTH */] + __WEBPACK_IMPORTED_MODULE_7__constants__["d" /* GAME_CONTROL_WIDTH */];
 backgroundCanvas.height = __WEBPACK_IMPORTED_MODULE_7__constants__["f" /* HEIGHT */];
-var gameControlCanvas = document.getElementById('game-control');
 var panels = document.getElementById('panels');
 var startButton = document.getElementById('start-button');
 var backButton = document.getElementById('back-button');
 var $chooseStage = document.getElementById('choose-stage');
-var gameInfoCanvas = document.getElementById('game-info');
 var status = document.getElementById('status');
 
 var Game = /*#__PURE__*/function () {
@@ -5970,23 +5999,20 @@ var Game = /*#__PURE__*/function () {
       backButton.addEventListener('click', this.backButtonClickHandler.bind(this), false);
       this.renderBackground();
       panels.style.display = 'block';
-      var gameControlEle = document.getElementById('game-control');
       var gameControl = new __WEBPACK_IMPORTED_MODULE_9__entities_GameControl__["a" /* default */]({
-        element: gameControlEle,
+        element: document.getElementById('game-control'),
         game: this
       });
       this.gameControl = gameControl;
       gameControl.draw();
-      var $gameInfo = document.getElementById('game-info');
       var gameInfo = new __WEBPACK_IMPORTED_MODULE_10__entities_GameInfo__["a" /* default */]({
-        element: $gameInfo,
+        element: document.getElementById('game-info'),
         game: this
       });
       this.gameInfo = gameInfo;
       gameInfo.draw();
-      var $gameError = document.getElementById('error-message');
       var gameError = new __WEBPACK_IMPORTED_MODULE_11__entities_GameError__["a" /* default */]({
-        element: $gameError,
+        element: document.getElementById('error-message'),
         game: this
       });
       this.gameError = gameError;
@@ -6005,8 +6031,7 @@ var Game = /*#__PURE__*/function () {
       this.row = 0;
       this.enemyCreatedCount = 0; // 目前已经创建的enemy的总数
 
-      this.lastCreatedEnemyTime = new Date(); // @ts-ignore
-
+      this.lastCreatedEnemyTime = new Date();
       this.orbit = __WEBPACK_IMPORTED_MODULE_12__utils_config__["d" /* orbit */][this.stage];
       var newTowerCoord = [5, 3];
       this.map = new __WEBPACK_IMPORTED_MODULE_3__entities_Map__["a" /* default */]({
@@ -6018,7 +6043,7 @@ var Game = /*#__PURE__*/function () {
         game: this
       }); // 放置一个初始状态下的塔
 
-      var tower = new __WEBPACK_IMPORTED_MODULE_1__entities_towers__["f" /* default */]['BASE']({
+      var tower = new __WEBPACK_IMPORTED_MODULE_1__entities_towers__["f" /* default */]['BULLET']({
         id: __WEBPACK_IMPORTED_MODULE_8__id__["a" /* default */].genId(),
         ctx: ctx,
         x: __WEBPACK_IMPORTED_MODULE_7__constants__["e" /* GRID_SIZE */] / 2 + newTowerCoord[0] * __WEBPACK_IMPORTED_MODULE_7__constants__["e" /* GRID_SIZE */] + __WEBPACK_IMPORTED_MODULE_7__constants__["g" /* OFFSET_X */],
@@ -6027,7 +6052,7 @@ var Game = /*#__PURE__*/function () {
       });
       this.towers.push(tower);
       this.mode = '';
-      this.addTowerType = 'BASE';
+      this.addTowerType = 'BULLET';
       this.status = '';
       this.score = 0;
       this.life = 1000; // 当前是否选中塔
@@ -6542,8 +6567,7 @@ var Game = /*#__PURE__*/function () {
   }, {
     key: "shouldGenerateEnemy",
     value: function shouldGenerateEnemy() {
-      // @ts-ignore
-      return this.wave < 999 && new Date() - this.lastCreatedEnemyTime > 1000;
+      return this.wave < 999 && Date.now() - this.lastCreatedEnemyTime.getTime() > 1000;
     }
   }, {
     key: "shouldGenerateWave",
@@ -6592,8 +6616,7 @@ var Game = /*#__PURE__*/function () {
       var message = new __WEBPACK_IMPORTED_MODULE_5__entities_Message__["a" /* default */]({
         text: info
       });
-      console.log(info); // @ts-ignore
-
+      console.log(info);
       this.gameError.messages.push(message);
     }
   }]);
@@ -6626,7 +6649,6 @@ function distBulletToEnemy(bullet, enemy) {
       break;
 
     case __WEBPACK_IMPORTED_MODULE_7__constants__["a" /* BULLETS */].LASER:
-      // @ts-ignore
       if (bullet.target.id === enemy.id) {
         dist = 0;
       }
@@ -6640,7 +6662,7 @@ function distBulletToEnemy(bullet, enemy) {
 /* harmony default export */ __webpack_exports__["a"] = (Game);
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7105,7 +7127,7 @@ var mul = multiply;
 var sub = subtract;
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7623,7 +7645,7 @@ var mul = multiply;
 var sub = subtract;
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7667,8 +7689,8 @@ var sub = subtract;
 /* unused harmony export exactEquals */
 /* unused harmony export equals */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common_js__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__quat_js__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__mat4_js__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__quat_js__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__mat4_js__ = __webpack_require__(11);
 
 
 
@@ -8506,7 +8528,7 @@ function equals(a, b) {
 }
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -9183,46 +9205,216 @@ var forEach = function () {
 }();
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return CircleBullet; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__constants__ = __webpack_require__(0);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return BulletTower; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__BaseTower__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_gl_matrix__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utils_config__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__constants__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__bullets_CircleBullet__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__id__ = __webpack_require__(3);
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
+function _get(target, property, receiver) { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get; } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(receiver); } return desc.value; }; } return _get(target, property, receiver || target); }
+
+function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
 
 
-var CircleBullet = /*#__PURE__*/function () {
+
+
+
+
+
+
+var BulletTower = /*#__PURE__*/function (_BaseTower) {
+  _inherits(BulletTower, _BaseTower);
+
+  var _super = _createSuper(BulletTower);
+
+  function BulletTower(opt) {
+    var _this;
+
+    _classCallCheck(this, BulletTower);
+
+    _this = _super.call(this, opt);
+    _this.type = 'BULLET';
+    _this.hue = 200;
+    _this.cost = __WEBPACK_IMPORTED_MODULE_4__constants__["m" /* towerData */][_this.type].cost;
+    _this.range = 3 * __WEBPACK_IMPORTED_MODULE_4__constants__["l" /* gridWidth */];
+    _this.direction = opt.direction || 0; // 用度数表示的tower指向
+
+    return _this;
+  }
+
+  _createClass(BulletTower, [{
+    key: "draw",
+    value: function draw() {
+      var ctx = this.ctx; // 将方向向量归一化
+
+      this.directionVec = __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["a" /* vec2 */].fromValues(Math.cos(Object(__WEBPACK_IMPORTED_MODULE_2__utils__["g" /* toRadians */])(this.direction)), Math.sin(Object(__WEBPACK_IMPORTED_MODULE_2__utils__["g" /* toRadians */])(this.direction)));
+      __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["a" /* vec2 */].normalize(this.directionVec, this.directionVec); // bullet 出射位置
+
+      __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["a" /* vec2 */].scale(this.bulletStartPosVec, this.directionVec, 30);
+      ctx.save();
+
+      if (__WEBPACK_IMPORTED_MODULE_3__utils_config__["c" /* config */].renderShadow) {
+        ctx.shadowBlur = this.radius;
+        ctx.shadowColor = 'hsl(' + this.hue + ',100%,60%)';
+      } // 在选中的情况下，画出其射程范围
+
+
+      if (this.selected) {
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+        ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+
+      ctx.strokeStyle = 'hsl(' + this.hue + ',100%,80%';
+      ctx.fillStyle = 'hsl(' + this.hue + ',100%,80%';
+      ctx.lineWidth = Math.max(3, this.radius / 8);
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(this.x + this.bulletStartPosVec[0], this.y + this.bulletStartPosVec[1]);
+      ctx.stroke();
+      ctx.closePath();
+
+      if (this.targetIndex !== -1 && new Date().getTime() - this.lastShootTime.getTime() >= 500) {
+        this.shoot();
+        this.lastShootTime = new Date();
+      }
+
+      ctx.restore();
+    } // 发射子弹
+
+  }, {
+    key: "shoot",
+    value: function shoot() {
+      this.bullets.push(new __WEBPACK_IMPORTED_MODULE_5__bullets_CircleBullet__["a" /* default */]({
+        id: __WEBPACK_IMPORTED_MODULE_6__id__["a" /* default */].genId(),
+        target: this.target,
+        ctx: this.ctx,
+        x: this.x + this.bulletStartPosVec[0],
+        y: this.y + this.bulletStartPosVec[1],
+        range: this.range,
+        damage: this.damage,
+        parent: this
+      }));
+    }
+  }, {
+    key: "findTarget",
+    value: function findTarget(enemies) {
+      return _get(_getPrototypeOf(BulletTower.prototype), "findTarget", this).call(this, enemies);
+    }
+  }]);
+
+  return BulletTower;
+}(__WEBPACK_IMPORTED_MODULE_0__BaseTower__["a" /* default */]);
+
+
+
+/***/ }),
+/* 23 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return CircleBullet; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__constants__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__BaseBullet__ = __webpack_require__(7);
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+
+
+
+
+var CircleBullet = /*#__PURE__*/function (_BaseBullet) {
+  _inherits(CircleBullet, _BaseBullet);
+
+  var _super = _createSuper(CircleBullet);
+
   function CircleBullet(_ref) {
-    var ctx = _ref.ctx,
+    var _this;
+
+    var id = _ref.id,
+        ctx = _ref.ctx,
         x = _ref.x,
         y = _ref.y,
         target = _ref.target,
         range = _ref.range,
-        damage = _ref.damage;
+        damage = _ref.damage,
+        parent = _ref.parent;
 
     _classCallCheck(this, CircleBullet);
 
-    this.type = __WEBPACK_IMPORTED_MODULE_1__constants__["a" /* BULLETS */].CIRCLE;
-    this.x = x;
-    this.y = y;
-    this.ctx = ctx;
-    this.target = target;
-    this.radius = 3;
-    this.speed = 5;
-    this.vx = 0;
-    this.vy = 0;
-    this.angle = 0;
-    this.hue = 200;
-    this.range = range;
-    this.damage = damage || 5;
+    _this = _super.call(this, {
+      ctx: ctx,
+      x: x,
+      y: y,
+      damage: damage,
+      id: id,
+      parent: parent
+    });
+    _this.type = __WEBPACK_IMPORTED_MODULE_1__constants__["a" /* BULLETS */].CIRCLE;
+    _this.target = target;
+    _this.radius = 3;
+    _this.speed = 5;
+    _this.vx = 0;
+    _this.vy = 0;
+    _this.angle = 0;
+    _this.hue = 200;
+    _this.range = range;
+    return _this;
   }
 
   _createClass(CircleBullet, [{
@@ -9263,215 +9455,7 @@ var CircleBullet = /*#__PURE__*/function () {
   }]);
 
   return CircleBullet;
-}();
-
-
-
-/***/ }),
-/* 22 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return BulletTower; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__BaseTower__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__bullets_Bullet__ = __webpack_require__(23);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_gl_matrix__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utils__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__utils_config__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__constants__ = __webpack_require__(0);
-function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _get(target, property, receiver) { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get; } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(receiver); } return desc.value; }; } return _get(target, property, receiver || target); }
-
-function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-
-
-
-
-
-
-
-var BulletTower = /*#__PURE__*/function (_BaseTower) {
-  _inherits(BulletTower, _BaseTower);
-
-  var _super = _createSuper(BulletTower);
-
-  function BulletTower(opt) {
-    var _this;
-
-    _classCallCheck(this, BulletTower);
-
-    // const { ctx, x, y, bullets, selected, damage } = opt;
-    _this = _super.call(this, opt);
-    _this.type = 'BULLET';
-    _this.hue = 100;
-    _this.cost = __WEBPACK_IMPORTED_MODULE_5__constants__["m" /* towerData */][_this.type].cost;
-    _this.range = 3 * __WEBPACK_IMPORTED_MODULE_5__constants__["l" /* gridWidth */];
-    _this.direction = opt.direction || 0; // 用度数表示的tower指向
-
-    _this.bulletStartPosVec = __WEBPACK_IMPORTED_MODULE_2_gl_matrix__["a" /* vec2 */].fromValues(0, 0);
-    _this.directionVec = __WEBPACK_IMPORTED_MODULE_2_gl_matrix__["a" /* vec2 */].create();
-    return _this;
-  }
-
-  _createClass(BulletTower, [{
-    key: "draw",
-    value: function draw() {
-      var ctx = this.ctx; // 将方向向量归一化
-
-      this.directionVec = __WEBPACK_IMPORTED_MODULE_2_gl_matrix__["a" /* vec2 */].fromValues(Math.cos(Object(__WEBPACK_IMPORTED_MODULE_3__utils__["g" /* toRadians */])(this.direction)), Math.sin(Object(__WEBPACK_IMPORTED_MODULE_3__utils__["g" /* toRadians */])(this.direction)));
-      __WEBPACK_IMPORTED_MODULE_2_gl_matrix__["a" /* vec2 */].normalize(this.directionVec, this.directionVec); // bullet 出射位置
-
-      __WEBPACK_IMPORTED_MODULE_2_gl_matrix__["a" /* vec2 */].scale(this.bulletStartPosVec, this.directionVec, 30);
-      ctx.save();
-
-      if (__WEBPACK_IMPORTED_MODULE_4__utils_config__["c" /* config */].renderShadow) {
-        ctx.shadowBlur = this.radius;
-        ctx.shadowColor = 'hsl(' + this.hue + ',100%,60%)';
-      } // 在选中的情况下，画出其射程范围
-
-
-      if (this.selected) {
-        ctx.beginPath();
-        ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
-        ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
-        ctx.fill();
-      }
-
-      ctx.strokeStyle = 'hsl(' + this.hue + ',100%,80%';
-      ctx.fillStyle = 'hsl(' + this.hue + ',100%,80%';
-      ctx.lineWidth = Math.max(3, this.radius / 8);
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-      ctx.closePath();
-      ctx.stroke();
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(this.x, this.y);
-      ctx.lineTo(this.x + this.bulletStartPosVec[0], this.y + this.bulletStartPosVec[1]);
-      ctx.stroke();
-      ctx.closePath();
-
-      if (this.targetIndex !== -1 && new Date().getTime() - this.lastShootTime.getTime() >= 500) {
-        this.shoot();
-        this.lastShootTime = new Date();
-      }
-
-      ctx.restore();
-    } // 发射子弹
-
-  }, {
-    key: "shoot",
-    value: function shoot() {
-      this.bullets.push( // @ts-ignore
-      new __WEBPACK_IMPORTED_MODULE_1__bullets_Bullet__["a" /* default */]({
-        ctx: this.ctx,
-        x: this.x + this.bulletStartPosVec[0],
-        y: this.y + this.bulletStartPosVec[1],
-        directionVec: this.directionVec
-      }));
-    }
-  }, {
-    key: "findTarget",
-    value: function findTarget(enemies) {
-      _get(_getPrototypeOf(BulletTower.prototype), "findTarget", this).call(this, enemies);
-    }
-  }]);
-
-  return BulletTower;
-}(__WEBPACK_IMPORTED_MODULE_0__BaseTower__["a" /* default */]);
-
-
-
-/***/ }),
-/* 23 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Bullet; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__constants__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_gl_matrix__ = __webpack_require__(3);
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-
-
-
-var Bullet = /*#__PURE__*/function () {
-  function Bullet(_ref) {
-    var ctx = _ref.ctx,
-        x = _ref.x,
-        y = _ref.y,
-        directionVec = _ref.directionVec,
-        damage = _ref.damage;
-
-    _classCallCheck(this, Bullet);
-
-    this.type = __WEBPACK_IMPORTED_MODULE_0__constants__["a" /* BULLETS */].LINE;
-    this.x = x;
-    this.y = y;
-    this.directionVec = directionVec; // {vec2} this.start 表示起点位置的向量
-
-    this.start = __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["a" /* vec2 */].fromValues(x, y);
-    this.hue = 200; // {vec2} this.velocity 表示bullet速度的向量
-    // 将表示方向的单位向量乘以速率，得到速度向量
-
-    this.velocity = __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["a" /* vec2 */].create();
-    __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["a" /* vec2 */].scale(this.velocity, directionVec, 2); // bullet的长度
-
-    this.length = 10; // 从bullet的起点指向终点的向量
-
-    this.bulletVec = __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["a" /* vec2 */].create();
-    __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["a" /* vec2 */].scale(this.bulletVec, directionVec, this.length); // {vec2} this.end 表示终点位置的向量
-
-    this.end = __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["a" /* vec2 */].create();
-    this.end = __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["a" /* vec2 */].add(this.end, this.start, this.bulletVec);
-    this.damage = damage || 5;
-  }
-
-  _createClass(Bullet, [{
-    key: "draw",
-    value: function draw(ctx) {
-      // bullet运动后的起点和终点位置
-      __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["a" /* vec2 */].add(this.start, this.start, this.velocity);
-      __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["a" /* vec2 */].add(this.end, this.end, this.velocity); // 绘图开始
-
-      ctx.save();
-      ctx.strokeStyle = 'hsl(' + this.hue + ', 100%, 80%)';
-      ctx.beginPath();
-      ctx.moveTo(this.start[0], this.start[1]);
-      ctx.lineTo(this.end[0], this.end[1]);
-      ctx.stroke();
-      ctx.restore();
-    }
-  }]);
-
-  return Bullet;
-}();
+}(__WEBPACK_IMPORTED_MODULE_2__BaseBullet__["a" /* default */]);
 
 
 
@@ -9483,10 +9467,10 @@ var Bullet = /*#__PURE__*/function () {
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LaserTower; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__BaseTower__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__bullets_Laser__ = __webpack_require__(25);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_gl_matrix__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_gl_matrix__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utils_config__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__constants__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__id__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__id__ = __webpack_require__(3);
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -9521,7 +9505,6 @@ var LaserTower = /*#__PURE__*/function (_BaseTower) {
 
   var _super = _createSuper(LaserTower);
 
-  // @ts-ignore
   function LaserTower(opt) {
     var _this;
 
@@ -9568,7 +9551,6 @@ var LaserTower = /*#__PURE__*/function (_BaseTower) {
           x: this.x + this.bulletStartPosVec[0],
           y: this.y + this.bulletStartPosVec[1],
           damage: this.damage,
-          // @ts-ignore
           parent: this
         }));
         this.shooting = true;
@@ -9629,16 +9611,40 @@ var LaserTower = /*#__PURE__*/function (_BaseTower) {
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Laser; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__constants__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__BaseBullet__ = __webpack_require__(7);
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
 
-var Laser = /*#__PURE__*/function () {
+
+
+var Laser = /*#__PURE__*/function (_BaseBullet) {
+  _inherits(Laser, _BaseBullet);
+
+  var _super = _createSuper(Laser);
+
   function Laser(_ref) {
+    var _this;
+
     var ctx = _ref.ctx,
         x = _ref.x,
         y = _ref.y,
@@ -9649,20 +9655,22 @@ var Laser = /*#__PURE__*/function () {
 
     _classCallCheck(this, Laser);
 
-    this.type = __WEBPACK_IMPORTED_MODULE_0__constants__["a" /* BULLETS */].LASER;
-    this.id = id;
-    this.x = x;
-    this.y = y;
-    this.ctx = ctx;
-    this.target = target;
-    this.width = 5; // this.speed = 8;
-
-    this.vx = 0;
-    this.vy = 0;
-    this.angle = 0;
-    this.hue = parent.hue;
-    this.damage = damage || 5;
-    this.parent = parent;
+    _this = _super.call(this, {
+      ctx: ctx,
+      x: x,
+      y: y,
+      parent: parent,
+      damage: damage,
+      id: id
+    });
+    _this.type = __WEBPACK_IMPORTED_MODULE_0__constants__["a" /* BULLETS */].LASER;
+    _this.target = target;
+    _this.width = 5;
+    _this.vx = 0;
+    _this.vy = 0;
+    _this.angle = 0;
+    _this.hue = parent.hue;
+    return _this;
   }
 
   _createClass(Laser, [{
@@ -9689,7 +9697,7 @@ var Laser = /*#__PURE__*/function () {
   }]);
 
   return Laser;
-}();
+}(__WEBPACK_IMPORTED_MODULE_1__BaseBullet__["a" /* default */]);
 
 
 
@@ -9698,11 +9706,10 @@ var Laser = /*#__PURE__*/function () {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return SlowTower; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__BaseTower__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__bullets_SlowField__ = __webpack_require__(27);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__constants__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__id__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__id__ = __webpack_require__(3);
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -9738,7 +9745,6 @@ var SlowTower = /*#__PURE__*/function (_BaseTower) {
 
   var _super = _createSuper(SlowTower);
 
-  // @ts-ignore
   function SlowTower(opt) {
     var _this;
 
@@ -9759,15 +9765,13 @@ var SlowTower = /*#__PURE__*/function (_BaseTower) {
   _createClass(SlowTower, [{
     key: "shoot",
     value: function shoot() {
-      // @ts-ignore
       var slowField = new __WEBPACK_IMPORTED_MODULE_1__bullets_SlowField__["a" /* default */]({
         id: __WEBPACK_IMPORTED_MODULE_3__id__["a" /* default */].genId(),
         ctx: this.ctx,
         range: this.range,
         ratio: this.ratio,
         parent: this
-      }); // @ts-ignore
-
+      });
       this.bullets.push(slowField);
     }
   }, {
@@ -9805,7 +9809,7 @@ var SlowTower = /*#__PURE__*/function (_BaseTower) {
   return SlowTower;
 }(__WEBPACK_IMPORTED_MODULE_0__BaseTower__["a" /* default */]);
 
-
+/* harmony default export */ __webpack_exports__["a"] = (SlowTower);
 
 /***/ }),
 /* 27 */
@@ -9814,40 +9818,66 @@ var SlowTower = /*#__PURE__*/function (_BaseTower) {
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return SlowField; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__constants__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__BaseBullet__ = __webpack_require__(7);
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
 /**
  * 减速场 ====> 就是一个大圆圈
  */
 
 
-var SlowField = /*#__PURE__*/function () {
+
+var SlowField = /*#__PURE__*/function (_BaseBullet) {
+  _inherits(SlowField, _BaseBullet);
+
+  var _super = _createSuper(SlowField);
+
   function SlowField(opt) {
+    var _this;
+
     _classCallCheck(this, SlowField);
 
-    var ctx = opt.ctx,
-        parent = opt.parent,
-        range = opt.range,
-        ratio = opt.ratio,
-        id = opt.id;
-    this.type = __WEBPACK_IMPORTED_MODULE_0__constants__["a" /* BULLETS */].SLOW;
-    this.ctx = ctx;
-    this.id = id; // range 将随时间逐渐加大
+    _this = _super.call(this, _objectSpread(_objectSpread({}, opt), {}, {
+      damage: 0
+    }));
+    var range = opt.range,
+        ratio = opt.ratio;
+    _this.type = __WEBPACK_IMPORTED_MODULE_0__constants__["a" /* BULLETS */].SLOW; // range 将随时间逐渐加大
 
-    this.minRange = 20;
-    this.maxRange = range;
-    this.range = this.minRange;
-    this.parent = parent;
-    this.ratio = ratio; // 减速系数
+    _this.minRange = 20;
+    _this.maxRange = range;
+    _this.range = _this.minRange;
+    _this.ratio = ratio; // 减速系数
 
-    this.maxLife = 300;
-    this.life = this.maxLife;
-    this.x = parent.x;
-    this.y = parent.y;
+    _this.maxLife = 300;
+    _this.life = _this.maxLife;
+    return _this;
   }
 
   _createClass(SlowField, [{
@@ -9882,7 +9912,7 @@ var SlowField = /*#__PURE__*/function () {
   }]);
 
   return SlowField;
-}();
+}(__WEBPACK_IMPORTED_MODULE_1__BaseBullet__["a" /* default */]);
 
 
 
@@ -9895,7 +9925,7 @@ var SlowField = /*#__PURE__*/function () {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__BaseTower__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__bullets_FireZone__ = __webpack_require__(29);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__constants__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__id__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__id__ = __webpack_require__(3);
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -9957,8 +9987,7 @@ var FireTower = /*#__PURE__*/function (_BaseTower) {
         range: this.range,
         damage: this.damage,
         parent: this
-      }); // @ts-ignore
-
+      });
       this.bullets.push(fireZone);
     }
   }, {
@@ -10005,19 +10034,43 @@ var FireTower = /*#__PURE__*/function (_BaseTower) {
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return FireZone; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__constants__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__BaseBullet__ = __webpack_require__(7);
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
 /**
  * 范围伤害 aoe
  */
 
 
-var FireZone = /*#__PURE__*/function () {
+
+var FireZone = /*#__PURE__*/function (_BaseBullet) {
+  _inherits(FireZone, _BaseBullet);
+
+  var _super = _createSuper(FireZone);
+
   function FireZone(opt) {
+    var _this;
+
     _classCallCheck(this, FireZone);
 
     var ctx = opt.ctx,
@@ -10025,19 +10078,17 @@ var FireZone = /*#__PURE__*/function () {
         range = opt.range,
         damage = opt.damage,
         id = opt.id;
-    this.type = __WEBPACK_IMPORTED_MODULE_0__constants__["a" /* BULLETS */].FIRE;
-    this.ctx = ctx;
-    this.id = id; // range 将随时间逐渐加大
+    _this = _super.call(this, opt);
+    _this.type = __WEBPACK_IMPORTED_MODULE_0__constants__["a" /* BULLETS */].FIRE;
+    _this.ctx = ctx;
+    _this.id = id; // range 将随时间逐渐加大
 
-    this.minRange = 20;
-    this.maxRange = range;
-    this.range = this.minRange;
-    this.parent = parent;
-    this.damage = damage;
-    this.maxLife = 300;
-    this.life = this.maxLife;
-    this.x = parent.x;
-    this.y = parent.y;
+    _this.minRange = 20;
+    _this.maxRange = range;
+    _this.range = _this.minRange;
+    _this.maxLife = 300;
+    _this.life = _this.maxLife;
+    return _this;
   }
 
   _createClass(FireZone, [{
@@ -10072,7 +10123,7 @@ var FireZone = /*#__PURE__*/function () {
   }]);
 
   return FireZone;
-}();
+}(__WEBPACK_IMPORTED_MODULE_1__BaseBullet__["a" /* default */]);
 
 
 
@@ -10250,7 +10301,7 @@ var Enemy = /*#__PURE__*/function () {
       } // 当即将达到终点时，path 长度为1，而 this.wp 为1，超出数组范围
 
 
-      var wp = path[Math.min(this.wp, path.length - 1)]; // @ts-ignore
+      var wp = path[Math.min(this.wp, path.length - 1)];
 
       var _index2Px = __WEBPACK_IMPORTED_MODULE_1__utils__["d" /* index2Px */].apply(void 0, _toConsumableArray(wp)),
           wpX = _index2Px.x,
@@ -10272,7 +10323,6 @@ var Enemy = /*#__PURE__*/function () {
         this.x += this.vx;
         this.y += this.vy;
       } else {
-        // @ts-ignore
         var _index2Px2 = __WEBPACK_IMPORTED_MODULE_1__utils__["d" /* index2Px */].apply(void 0, _toConsumableArray(wp)),
             x = _index2Px2.x,
             y = _index2Px2.y;
@@ -10350,8 +10400,8 @@ var Enemy = /*#__PURE__*/function () {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__Path__ = __webpack_require__(33);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utils_BreadthFirstSearch__ = __webpack_require__(34);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__id__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__towers_index__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__id__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__towers_index__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__utils_config__ = __webpack_require__(6);
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 
@@ -10421,13 +10471,11 @@ var Map = /*#__PURE__*/function () {
     }); // 初始化坐标
 
     var game = opt.game;
-    this.game = game; // @ts-ignore
-
+    this.game = game;
     var mapSetting = __WEBPACK_IMPORTED_MODULE_6__utils_config__["a" /* MAP_SETTING */][game.stage];
 
     if (mapSetting) {
       /* 默认情况下路径以给出的 orbit 为准，如果存在 mapSetting，则重新寻找路径 */
-      // @ts-ignore
       var blockArray = __WEBPACK_IMPORTED_MODULE_6__utils_config__["a" /* MAP_SETTING */][game.stage].BLOCK;
       blockArray.forEach(function (block) {
         var _block = _slicedToArray(block, 2),
@@ -11190,7 +11238,7 @@ var Message = /*#__PURE__*/function () {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__towers__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__towers__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utils__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__constants__ = __webpack_require__(0);
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
@@ -11220,7 +11268,7 @@ var FILL_COLOR = '#fafafa';
 var DISABLE_COLOR = '#aaa';
 var HOVER_COLOR = 'red'; // 每一个子数组代表一列
 
-var TOWER_TYPE = [['BASE', 'FIRE'], ['LASER'], ['SLOW', 'BLOCK']];
+var TOWER_TYPE = [['BULLET', 'FIRE'], ['LASER'], ['SLOW', 'BLOCK']];
 
 var GameControl = /*#__PURE__*/function () {
   function GameControl(opt) {
@@ -11289,7 +11337,6 @@ var GameControl = /*#__PURE__*/function () {
       this.drawGrid();
 
       if (this.game.mode !== 'ADD_TOWER') {
-        // @ts-ignore
         this.towerArea.selected = -1;
       }
 
@@ -11509,7 +11556,6 @@ var GameControl = /*#__PURE__*/function () {
             y: _this3.offsetY + row * GRID_HEIGHT,
             width: 200,
             height: 50,
-            // @ts-ignore
             text: text
           }];
         } else {
@@ -11533,7 +11579,7 @@ var TowerArea = /*#__PURE__*/function () {
     this.selected = -1;
     this.offsetX = opt.x;
     this.offsetY = opt.y;
-    var baseTower = new __WEBPACK_IMPORTED_MODULE_0__towers__["a" /* BaseTower */]({
+    var bulletTower = new __WEBPACK_IMPORTED_MODULE_0__towers__["b" /* BulletTower */]({
       x: this.offsetX + GRID_WIDTH / 2 + 10,
       y: this.offsetY + GRID_HEIGHT / 2,
       ctx: this.ctx,
@@ -11558,14 +11604,14 @@ var TowerArea = /*#__PURE__*/function () {
       ctx: this.ctx,
       radius: 10
     });
-    var block = new __WEBPACK_IMPORTED_MODULE_0__towers__["b" /* Block */]({
+    var block = new __WEBPACK_IMPORTED_MODULE_0__towers__["a" /* Block */]({
       x: this.offsetX + GRID_WIDTH * 2.5,
       y: this.offsetY + GRID_HEIGHT * 1.5,
       ctx: this.ctx,
       radius: 0
     });
     this.towers = {
-      BASE: baseTower,
+      BULLET: bulletTower,
       LASER: laserTower,
       SLOW: slowTower,
       FIRE: fireTower,
@@ -11616,7 +11662,13 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 
-;
+var defaultInfo = {
+  x: 100,
+  y: 100,
+  width: 100,
+  height: 100,
+  text: []
+};
 
 var GameInfo = /*#__PURE__*/function () {
   function GameInfo(opt) {
@@ -11626,12 +11678,7 @@ var GameInfo = /*#__PURE__*/function () {
     this.game = opt.game;
     this.element.width = __WEBPACK_IMPORTED_MODULE_0__constants__["i" /* WIDTH */] + __WEBPACK_IMPORTED_MODULE_0__constants__["d" /* GAME_CONTROL_WIDTH */];
     this.element.height = __WEBPACK_IMPORTED_MODULE_0__constants__["f" /* HEIGHT */];
-    this.infos = [{
-      x: 100,
-      y: 100,
-      width: 100,
-      height: 100
-    }];
+    this.infos = [defaultInfo];
     this.count = 0;
   }
 
@@ -11661,6 +11708,7 @@ var GameInfo = /*#__PURE__*/function () {
           ctx.fillStyle = 'rgba(0, 255, 0, 0.2)'; // 确定信息显示的位置
 
           var textStartX = info.x + __WEBPACK_IMPORTED_MODULE_0__constants__["i" /* WIDTH */]; // 确定信息的宽度
+          // @ts-ignore why?
 
           var textWidth = ctx.measureText(info.text).width; // 画出信息显示时的背景
 
@@ -11687,7 +11735,7 @@ var GameInfo = /*#__PURE__*/function () {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__constants__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__EntityCollection__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__EntityCollection__ = __webpack_require__(15);
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -11696,11 +11744,10 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 
 
-;
+
 /**
  * 显示在游戏画面左下角的错误信息
  */
-
 var GameError = /*#__PURE__*/function () {
   function GameError(opt) {
     _classCallCheck(this, GameError);
