@@ -63,7 +63,7 @@ interface Option {
   /** 目前已经创建的 enemy 的总数 */
   enemyCreatedCount: number;
   lastCreatedEnemyTime: Date;
-  orbit: any;
+  orbit: [number, number][];
   map: Map;
   animId: number;
 }
@@ -143,7 +143,7 @@ class Game implements Option {
     gameInfo.draw();
 
     const gameError = new GameError({
-      element: document.getElementById('error-message'),
+      element: document.getElementById('error-message') as HTMLCanvasElement,
       game: this,
     });
     this.gameError = gameError;
@@ -229,7 +229,7 @@ class Game implements Option {
     bgCtx.fillRect(0, 0, WIDTH + GAME_CONTROL_WIDTH, HEIGHT);
   }
 
-  startButtonClickHandler(e: any) {
+  startButtonClickHandler(e: MouseEvent) {
     e.stopPropagation();
 
     if (this.status === '' || this.status === 'gameOver') {
@@ -245,7 +245,7 @@ class Game implements Option {
     this.time = new Date().getTime();
   }
 
-  backButtonClickHandler(e: any) {
+  backButtonClickHandler(e: MouseEvent) {
     e.stopPropagation();
 
     this.gameControl.stopAnim();
@@ -448,13 +448,13 @@ class Game implements Option {
 
   // 循环检测 bullet 是否和 enemy 碰撞
   detectImpact() {
-    for (var i = 0; i < this.bullets.length; i++) {
+    for (let i = 0; i < this.bullets.length; i++) {
       let impact = false;
       let distance = 0;
       const bullet = this.bullets[i];
 
-      for (var j = 0; j < this.enemies.length; j++) {
-        const enemy = this.enemies[j];
+      for (let j = 0; j < this.enemies.length; j++) {
+        const enemy: Enemy = this.enemies[j];
 
         // 计算 bullet 和 enemy 距离
         distance = distBulletToEnemy(bullet, enemy);
@@ -479,7 +479,7 @@ class Game implements Option {
 
           case 'slow':
             if (distance <= bullet.range) {
-              if (enemy.buff.every((b: any) => b.source !== bullet.id)) {
+              if (enemy.buff.every((b) => b.source !== bullet.id)) {
                 enemy.buff.push({
                   type: 'deceleration',
                   value: 0.35,
@@ -496,7 +496,7 @@ class Game implements Option {
               if (enemy.health <= 0) {
                 this.money += enemy.value;
                 this.enemies.removeElementByIndex(j--);
-                this.score += 100;
+                this.score += 1;
               }
             }
             break;
@@ -519,8 +519,8 @@ class Game implements Option {
    */
   createNewTower(col: number, row: number, towerType: string) {
     // 检查当前位置是否已有物体
-    if (this.map.coord[col][row] === 'T') {
-      console.log('You can not place tower here!');
+    if (this.map.coord[col][row] === 'T' || this.map.coord[col][row] === 'B') {
+      this.showError('You can not place tower here!');
       return -1;
     }
     const cost = towerData[towerType].cost;
@@ -536,7 +536,7 @@ class Game implements Option {
     const config = { id, ctx, x, y, bullets: this.bullets };
 
     // @ts-ignore
-    let tower = new TowerFactory[towerType](config);
+    const tower = new TowerFactory[towerType](config);
 
     if (!this.map.checkPath(col, row)) {
       const info = '存在不能到达的区域，不能放置在这里';
@@ -623,12 +623,12 @@ class Game implements Option {
     const game = this;
 
     // 在canvas上进行右键操作
-    canvas.oncontextmenu = function (e: any) {
+    canvas.oncontextmenu = function (e) {
       game.mode = '';
       e.preventDefault();
     };
 
-    canvas.onclick = function (e: any) {
+    canvas.onclick = function (e) {
       const rect = canvas.getBoundingClientRect();
 
       const x = e.clientX - rect.left;
@@ -671,7 +671,7 @@ class Game implements Option {
       }
     };
 
-    canvas.onmousemove = function (e: any) {
+    canvas.onmousemove = function (e) {
       if (game.mode === 'ADD_TOWER') {
         game.cursorX = e.pageX;
         game.cursorY = e.pageY;
@@ -687,7 +687,8 @@ class Game implements Option {
 
   shouldGenerateEnemy() {
     return (
-      this.wave < 999 && Date.now() - this.lastCreatedEnemyTime.getTime() > 1000
+      // TODO: 写入配置
+      this.wave < 10 && Date.now() - this.lastCreatedEnemyTime.getTime() > 1000
     );
   }
 

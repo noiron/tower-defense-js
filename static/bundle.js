@@ -6284,12 +6284,12 @@ var Game = /*#__PURE__*/function () {
     value: function detectImpact() {
       var _this2 = this;
 
-      var _loop = function _loop() {
+      var _loop = function _loop(_i) {
         var impact = false;
         var distance = 0;
-        var bullet = _this2.bullets[i];
+        var bullet = _this2.bullets[_i];
 
-        for (j = 0; j < _this2.enemies.length; j++) {
+        for (var j = 0; j < _this2.enemies.length; j++) {
           var enemy = _this2.enemies[j]; // 计算 bullet 和 enemy 距离
 
           distance = distBulletToEnemy(bullet, enemy); // enemy进入bullet的作用范围后，依据其种类产生效果
@@ -6340,7 +6340,7 @@ var Game = /*#__PURE__*/function () {
 
                   _this2.enemies.removeElementByIndex(j--);
 
-                  _this2.score += 100;
+                  _this2.score += 1;
                 }
               }
 
@@ -6353,14 +6353,14 @@ var Game = /*#__PURE__*/function () {
         }
 
         if (impact) {
-          _this2.bullets.removeElementByIndex(i--);
+          _this2.bullets.removeElementByIndex(_i--);
         }
+
+        i = _i;
       };
 
       for (var i = 0; i < this.bullets.length; i++) {
-        var j;
-
-        _loop();
+        _loop(i);
       }
     }
     /**
@@ -6375,8 +6375,8 @@ var Game = /*#__PURE__*/function () {
       var _this3 = this;
 
       // 检查当前位置是否已有物体
-      if (this.map.coord[col][row] === 'T') {
-        console.log('You can not place tower here!');
+      if (this.map.coord[col][row] === 'T' || this.map.coord[col][row] === 'B') {
+        this.showError('You can not place tower here!');
         return -1;
       }
 
@@ -6444,11 +6444,11 @@ var Game = /*#__PURE__*/function () {
           towerType = _tower$type === void 0 ? 'BASE' : _tower$type; // 删除 laser tower 时将其对应的 laser 一起删除
 
       if (towerType === 'LASER') {
-        for (var i = 0; i < this.bullets.length; i++) {
-          var bullet = this.bullets[i];
+        for (var _i2 = 0; _i2 < this.bullets.length; _i2++) {
+          var bullet = this.bullets[_i2];
 
           if (bullet.type === 'laser' && bullet.parent.id === tower.id) {
-            this.bullets.removeElementByIndex(i--);
+            this.bullets.removeElementByIndex(_i2--);
           }
         }
       }
@@ -6564,7 +6564,9 @@ var Game = /*#__PURE__*/function () {
   }, {
     key: "shouldGenerateEnemy",
     value: function shouldGenerateEnemy() {
-      return this.wave < 999 && Date.now() - this.lastCreatedEnemyTime.getTime() > 1000;
+      return (// TODO: 写入配置
+        this.wave < 10 && Date.now() - this.lastCreatedEnemyTime.getTime() > 1000
+      );
     }
   }, {
     key: "shouldGenerateWave",
@@ -10252,7 +10254,7 @@ var Enemy = /*#__PURE__*/function () {
     this.color = opt.color || 0;
     this.maxHealth = opt.health || 20;
     this.health = this.maxHealth;
-    this.value = opt.value || 50;
+    this.value = opt.value || 20;
     this.damage = opt.damage || 5;
     this.path = opt.path;
     this.buff = [];
@@ -10498,9 +10500,9 @@ var Map = /*#__PURE__*/function () {
     value: function setMap() {
       for (var i = 0; i < __WEBPACK_IMPORTED_MODULE_0__constants__["j" /* gridNumX */]; i++) {
         for (var j = 0; j < __WEBPACK_IMPORTED_MODULE_0__constants__["k" /* gridNumY */]; j++) {
-          // 清除之前的路径标记，0 表示空白方块
+          // 清除之前的路径标记
           if (this.coord[i][j] === 'P') {
-            this.coord[i][j] = 0;
+            this.coord[i][j] = '';
           }
         }
       }

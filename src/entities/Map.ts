@@ -17,7 +17,7 @@ import Game from '@/Game';
 interface Option {
   ctx: CanvasRenderingContext2D;
   newTowerCoord: [number, number];
-  orbit: any;
+  orbit: [number, number][];
   WIDTH: number;
   HEIGHT: number;
   path?: Path;
@@ -26,7 +26,7 @@ interface Option {
 
 interface Map extends Option {
   graph: Graph;
-  coord: any[];
+  coord: ('B' | 'T' | 'P' | '')[][];
 }
 
 class Map implements Option {
@@ -85,9 +85,9 @@ class Map implements Option {
   setMap() {
     for (let i = 0; i < gridNumX; i++) {
       for (let j = 0; j < gridNumY; j++) {
-        // 清除之前的路径标记，0 表示空白方块
+        // 清除之前的路径标记
         if (this.coord[i][j] === 'P') {
-          this.coord[i][j] = 0;
+          this.coord[i][j] = '';
         }
       }
     }
