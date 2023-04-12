@@ -1,3 +1,56 @@
+import i18next from 'i18next';
+
+(async function () {
+  await i18next.init({
+    lng: 'en',
+    debug: true,
+    resources: {
+      en: {
+        translation: {
+          Wave: 'Wave',
+          Life: 'Life',
+          Score: 'Score',
+          Money: 'Money',
+          CurrentLevel: 'Current Level',
+          Attack: 'Attack',
+          Pause: 'Pause',
+          Resume: 'Resume',
+          Upgrade: 'Upgrade',
+          Sell: 'Sell',
+          TowerInfo: {
+            BULLET: 'Bullet Tower',
+            LASER: 'Laser Tower',
+            SLOW: 'Slow Tower',
+            FIRE: 'Fire Tower',
+            BLOCK: 'Block',
+          },
+        },
+      },
+      ch: {
+        translation: {
+          Wave: '波',
+          Life: '生命',
+          Score: '分数',
+          Money: '金钱',
+          CurrentLevel: '当前等级',
+          Attack: '攻击',
+          Pause: '暂停',
+          Resume: '继续',
+          Upgrade: '升级',
+          Sell: '出售',
+          TowerInfo: {
+            BULLET: '子弹塔：沙包大的子弹见过没有？',
+            LASER: '激光塔：哎哟，不错！',
+            SLOW: '减速塔：Yo, Yo, Yo, 留下来！',
+            FIRE: '火焰塔：啊哈，你想被烤成几分熟？',
+            BLOCK: '障碍物',
+          },
+        },
+      },
+    },
+  });
+})();
+
 export const WIDTH = 800;
 export const HEIGHT = 650;
 
@@ -33,23 +86,23 @@ interface TowerData {
 export const towerData: TowerData = {
   BULLET: {
     cost: 200,
-    info: '子弹塔：沙包大的子弹见过没有？',
+    info: i18next.t('TowerInfo.BULLET'),
   },
   LASER: {
     cost: 200,
-    info: '激光塔：哎哟，不错！',
+    info: i18next.t('TowerInfo.LASER'),
   },
   SLOW: {
     cost: 600,
-    info: '减速塔：Yo, Yo, Yo, 留下来！',
+    info: i18next.t('TowerInfo.SLOW'),
   },
   FIRE: {
     cost: 400,
-    info: '火焰塔：啊哈，你想被烤成几分熟？',
+    info: i18next.t('TowerInfo.FIRE'),
   },
   BLOCK: {
     cost: 50,
-    info: '',
+    info: i18next.t('TowerInfo.BLOCK'),
   },
 };
 

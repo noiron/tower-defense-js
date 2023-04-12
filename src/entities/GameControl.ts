@@ -1,4 +1,4 @@
-import { BaseTower, LaserTower, SlowTower, FireTower, Block, BulletTower } from './towers';
+import { LaserTower, SlowTower, FireTower, Block, BulletTower } from './towers';
 import { isInside, highlightGrid, drawGrid } from '../utils';
 import {
   GAME_CONTROL_WIDTH,
@@ -6,6 +6,7 @@ import {
   towerData,
 } from '@/constants';
 import Game from '@/Game';
+import i18next from 'i18next';
 
 const GRID_WIDTH = 60;
 const GRID_HEIGHT = 60;
@@ -37,7 +38,7 @@ interface GameControl extends Option {
     y: number;
     width: number;
     height: number;
-  }
+  };
   pauseBtn: any;
   upgradeBtn: any;
   sellBtn: any;
@@ -84,20 +85,20 @@ class GameControl implements Option {
 
     this.pauseBtn = {
       y: 350,
-      text: '暂停',
+      text: i18next.t('Pause'),
       ...commonBtnProp,
     };
 
     this.upgradeBtn = {
       y: 410,
-      text: '升级',
+      text: i18next.t('Upgrade'),
       disable: true,
       ...commonBtnProp,
     };
 
     this.sellBtn = {
       y: 470,
-      text: '出售',
+      text: i18next.t('Sell'),
       disable: true,
       ...commonBtnProp,
     };
@@ -160,10 +161,10 @@ class GameControl implements Option {
     const game = this.game;
     ctx.fillStyle = FILL_COLOR;
     ctx.font = '20px Arial';
-    ctx.fillText(`第 ${game.wave + 1} 波`, this.offsetX, 200);
-    ctx.fillText(`生命: ${game.life}`, this.offsetX, 240);
-    ctx.fillText('得分: ' + game.score, this.offsetX, 280);
-    ctx.fillText('金钱: ' + game.money, this.offsetX, 320);
+    ctx.fillText(`${i18next.t('Wave')}: ${game.wave + 1}`, this.offsetX, 200);
+    ctx.fillText(`${i18next.t('Life')}: ${game.life}`, this.offsetX, 240);
+    ctx.fillText(`${i18next.t('Score')}: ${game.score}`, this.offsetX, 280);
+    ctx.fillText(`${i18next.t('Money')}: ${game.money}`, this.offsetX, 320);
   }
 
   drawButton() {
@@ -172,7 +173,6 @@ class GameControl implements Option {
     [this.sellBtn, this.upgradeBtn].forEach(
       (b) => (b.disable = !this.game.towerSelect)
     );
-
     [this.pauseBtn, this.sellBtn, this.upgradeBtn].forEach((btn) => {
       if (btn.disable) {
         /* 按钮当前处于不可用状态 */
@@ -200,8 +200,16 @@ class GameControl implements Option {
 
     ctx.fillStyle = FILL_COLOR;
     ctx.font = '18px Arial';
-    ctx.fillText(`当前等级: ${tower.level}`, this.offsetX, 560);
-    ctx.fillText(`攻击: ${tower.damage.toFixed(2)}`, this.offsetX, 585);
+    ctx.fillText(
+      `${i18next.t('CurrentLevel')}: ${tower.level}`,
+      this.offsetX,
+      560
+    );
+    ctx.fillText(
+      `${i18next.t('Attack')}: ${tower.damage.toFixed(2)}`,
+      this.offsetX,
+      585
+    );
   }
 
   // 在游戏的控制区域绑定事件
@@ -243,7 +251,8 @@ class GameControl implements Option {
       }
 
       if (isInside({ x, y }, this.pauseBtn)) {
-        this.pauseBtn.text = game.status === 'running' ? '继续' : '暂停';
+        this.pauseBtn.text =
+          game.status === 'running' ? i18next.t('Resume') : i18next.t('Pause');
         game.status = game.status === 'running' ? 'pause' : 'running';
         if (game.status === 'running') {
           game.draw();
@@ -302,8 +311,8 @@ class GameControl implements Option {
           const data = towerData[towerType];
           const tower = this.towerArea.towers[towerType];
           text.push(data.info);
-          text.push(`造价: ${data.cost}`);
-          text.push(`攻击: ${tower.damage}`);
+          text.push(`${i18next.t('Cost')}: ${data.cost}`);
+          text.push(`${i18next.t('Attack')}: ${tower.damage}`);
         }
         // TODO: 修改此处，使其更通用
         if (row === 0 && col === 2) {
@@ -330,7 +339,6 @@ class GameControl implements Option {
 
 export default GameControl;
 
-
 interface TowerAreaOption {
   ctx: CanvasRenderingContext2D;
   x: number;
@@ -342,7 +350,7 @@ interface TowerArea extends TowerAreaOption {
   offsetX: number;
   offsetY: number;
   towers: any;
-};
+}
 
 class TowerArea implements TowerAreaOption {
   constructor(opt: TowerAreaOption) {

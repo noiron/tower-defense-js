@@ -37,6 +37,13 @@
   },
   "dependencies": {
     "gl-matrix": "^3.3.0",
+    "i18next": "^22.4.14",
     "tslint": "^5.9.1"
+  },
+  "prettier": {
+      "trailingComma": "es5",
+      "tabWidth": 2,
+      "semi": true,
+      "singleQuote": true
   }
 }

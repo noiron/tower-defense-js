@@ -52,7 +52,7 @@ class GameInfo implements Option {
 
       if (info.text && info.text.length > 0) {
         ctx.save();
-        ctx.fillStyle = 'rgba(0, 255, 0, 0.2)';
+        ctx.fillStyle = 'rgba(0, 255, 0, 0.4)';
         // 确定信息显示的位置
         const textStartX = info.x + WIDTH;
         // 确定信息的宽度
